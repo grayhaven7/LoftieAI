@@ -1,22 +1,23 @@
-import { promises as fs } from 'fs';
-import path from 'path';
+import { put, list, head } from '@vercel/blob';
 import { RoomTransformation } from './types';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const TRANSFORMATIONS_FILE = path.join(DATA_DIR, 'transformations.json');
-const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
-
-async function ensureDirectories() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.mkdir(UPLOADS_DIR, { recursive: true });
-}
+const TRANSFORMATIONS_BLOB_KEY = 'transformations.json';
 
 export async function getTransformations(): Promise<RoomTransformation[]> {
-  await ensureDirectories();
   try {
-    const data = await fs.readFile(TRANSFORMATIONS_FILE, 'utf-8');
-    return JSON.parse(data);
-  } catch {
+    // List blobs to find our transformations file
+    const { blobs } = await list({ prefix: TRANSFORMATIONS_BLOB_KEY });
+    
+    if (blobs.length === 0) {
+      return [];
+    }
+    
+    // Fetch the blob content
+    const response = await fetch(blobs[0].url);
+    const data = await response.json();
+    return data as RoomTransformation[];
+  } catch (error) {
+    console.error('Error fetching transformations:', error);
     return [];
   }
 }
@@ -27,7 +28,6 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
 }
 
 export async function saveTransformation(transformation: RoomTransformation): Promise<void> {
-  await ensureDirectories();
   const transformations = await getTransformations();
   const existingIndex = transformations.findIndex(t => t.id === transformation.id);
   
@@ -37,42 +37,55 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
     transformations.push(transformation);
   }
   
-  await fs.writeFile(TRANSFORMATIONS_FILE, JSON.stringify(transformations, null, 2));
+  // Save to Vercel Blob (overwrite existing)
+  await put(TRANSFORMATIONS_BLOB_KEY, JSON.stringify(transformations, null, 2), {
+    access: 'public',
+    addRandomSuffix: false,
+  });
 }
 
 export async function saveImage(base64Data: string, filename: string): Promise<string> {
-  await ensureDirectories();
-  
   // Remove data URL prefix if present
   const base64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
   const buffer = Buffer.from(base64, 'base64');
   
-  const filepath = path.join(UPLOADS_DIR, filename);
-  await fs.writeFile(filepath, buffer);
+  // Determine content type from filename
+  const contentType = filename.endsWith('.png') ? 'image/png' : 'image/jpeg';
   
-  return `/uploads/${filename}`;
+  const blob = await put(`uploads/${filename}`, buffer, {
+    access: 'public',
+    contentType,
+    addRandomSuffix: false,
+  });
+  
+  return blob.url;
 }
 
 export async function saveImageFromUrl(imageUrl: string, filename: string): Promise<string> {
-  await ensureDirectories();
-  
   const response = await fetch(imageUrl);
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   
-  const filepath = path.join(UPLOADS_DIR, filename);
-  await fs.writeFile(filepath, buffer);
+  // Determine content type from filename
+  const contentType = filename.endsWith('.png') ? 'image/png' : 'image/jpeg';
   
-  return `/uploads/${filename}`;
+  const blob = await put(`uploads/${filename}`, buffer, {
+    access: 'public',
+    contentType,
+    addRandomSuffix: false,
+  });
+  
+  return blob.url;
 }
 
 export async function saveAudio(audioBuffer: ArrayBuffer, filename: string): Promise<string> {
-  await ensureDirectories();
-  
   const buffer = Buffer.from(audioBuffer);
-  const filepath = path.join(UPLOADS_DIR, filename);
-  await fs.writeFile(filepath, buffer);
   
-  return `/uploads/${filename}`;
+  const blob = await put(`uploads/${filename}`, buffer, {
+    access: 'public',
+    contentType: 'audio/mpeg',
+    addRandomSuffix: false,
+  });
+  
+  return blob.url;
 }
-

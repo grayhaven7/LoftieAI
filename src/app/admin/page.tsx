@@ -7,8 +7,8 @@ import Link from 'next/link';
 
 interface TransformationRecord {
   id: string;
-  originalImage: string;
-  transformedImage: string;
+  beforeImageUrl: string;
+  afterImageUrl: string;
   userEmail?: string;
   createdAt: string;
 }
@@ -131,7 +131,7 @@ export default function AdminPage() {
                     {transformations.map((t) => (
                       <tr key={t.id}>
                         <td>
-                          <img src={t.transformedImage} alt="" className="w-12 h-8 object-cover rounded" />
+                          <img src={t.afterImageUrl} alt="" className="w-12 h-8 object-cover rounded" />
                         </td>
                         <td>
                           <code className="text-xs text-[var(--color-text-muted)]">{t.id.slice(0, 10)}...</code>
@@ -160,7 +160,7 @@ export default function AdminPage() {
                     className="card p-3"
                   >
                     <div className="flex gap-3 items-center">
-                      <img src={t.transformedImage} alt="" className="w-14 h-10 object-cover rounded flex-shrink-0" />
+                      <img src={t.afterImageUrl} alt="" className="w-14 h-10 object-cover rounded flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <code className="text-xs text-[var(--color-text-muted)] block truncate">{t.id.slice(0, 14)}...</code>
                         {t.userEmail && <p className="text-xs text-[var(--color-text-secondary)] truncate">{t.userEmail}</p>}
