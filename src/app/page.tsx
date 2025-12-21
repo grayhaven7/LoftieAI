@@ -267,6 +267,15 @@ export default function Home() {
                     <p className="text-[var(--color-text-muted)] text-xs text-center">
                       {progress < 30 ? 'Analyzing...' : progress < 60 ? 'Styling...' : progress < 90 ? 'Creating plan...' : 'Almost there...'}
                     </p>
+                    {progress >= 60 && (
+                      <motion.p 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-[var(--color-text-muted)] text-[10px] text-center opacity-70"
+                      >
+                        Please don&apos;t refresh — this may take up to a minute
+                      </motion.p>
+                    )}
                   </motion.div>
                 )}
 

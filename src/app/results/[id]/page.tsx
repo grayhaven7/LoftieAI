@@ -8,9 +8,9 @@ import { use } from 'react';
 
 interface TransformationData {
   id: string;
-  originalImage: string;
-  transformedImage: string;
-  declutterPlan: string;
+  beforeImageUrl: string;
+  afterImageUrl: string;
+  declutteringPlan: string;
   audioUrl?: string;
   userEmail?: string;
   createdAt: string;
@@ -57,9 +57,9 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
   };
 
   const handleDownload = async () => {
-    if (!data?.transformedImage) return;
+    if (!data?.afterImageUrl) return;
     const link = document.createElement('a');
-    link.href = data.transformedImage;
+    link.href = data.afterImageUrl;
     link.download = `loftie-${id}.png`;
     link.click();
   };
@@ -92,7 +92,8 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
     }
   };
 
-  const parseSteps = (plan: string): string[] => {
+  const parseSteps = (plan: string | undefined): string[] => {
+    if (!plan) return [];
     return plan.split(/\d+\.\s+/).filter((step) => step.trim()).slice(0, 6);
   };
 
@@ -119,7 +120,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
     );
   }
 
-  const steps = parseSteps(data.declutterPlan);
+  const steps = parseSteps(data.declutteringPlan);
 
   return (
     <div className="gradient-bg min-h-screen">
@@ -183,7 +184,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
               <AnimatePresence mode="wait">
                 <motion.img
                   key={showAfter ? 'after' : 'before'}
-                  src={showAfter ? data.transformedImage : data.originalImage}
+                  src={showAfter ? data.afterImageUrl : data.beforeImageUrl}
                   alt={showAfter ? 'Transformed' : 'Original'}
                   className="w-full h-full object-cover"
                   initial={{ opacity: 0 }}

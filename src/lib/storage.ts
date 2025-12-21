@@ -66,3 +66,13 @@ export async function saveImageFromUrl(imageUrl: string, filename: string): Prom
   return `/uploads/${filename}`;
 }
 
+export async function saveAudio(audioBuffer: ArrayBuffer, filename: string): Promise<string> {
+  await ensureDirectories();
+  
+  const buffer = Buffer.from(audioBuffer);
+  const filepath = path.join(UPLOADS_DIR, filename);
+  await fs.writeFile(filepath, buffer);
+  
+  return `/uploads/${filename}`;
+}
+

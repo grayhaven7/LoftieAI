@@ -3,6 +3,7 @@ export interface RoomTransformation {
   beforeImageUrl: string;
   afterImageUrl: string;
   declutteringPlan: string;
+  audioUrl?: string;
   userEmail?: string;
   createdAt: string;
   status: 'processing' | 'completed' | 'failed';
