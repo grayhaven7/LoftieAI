@@ -60,8 +60,23 @@ export async function saveImage(base64Data: string, filename: string): Promise<s
   const token = getBlobToken();
   
   // Remove data URL prefix if present
-  const base64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
+  let base64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
+  
+  // Clean up base64 string - remove whitespace, newlines, and carriage returns
+  // OpenAI's b64_json responses may include these characters
+  base64 = base64.replace(/[\s\r\n]+/g, '');
+  
+  // Ensure proper base64 padding
+  while (base64.length % 4 !== 0) {
+    base64 += '=';
+  }
+  
   const buffer = Buffer.from(base64, 'base64');
+  
+  // Validate that we have valid image data
+  if (buffer.length === 0) {
+    throw new Error('Failed to decode base64 image data');
+  }
   
   // Determine content type from filename
   const contentType = filename.endsWith('.png') ? 'image/png' : 'image/jpeg';
