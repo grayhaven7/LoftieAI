@@ -1,12 +1,22 @@
-import { put, list, head } from '@vercel/blob';
+import { put, list } from '@vercel/blob';
 import { RoomTransformation } from './types';
 
 const TRANSFORMATIONS_BLOB_KEY = 'transformations.json';
 
+function getBlobToken() {
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) {
+    throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
+  }
+  return token;
+}
+
 export async function getTransformations(): Promise<RoomTransformation[]> {
   try {
+    const token = getBlobToken();
+    
     // List blobs to find our transformations file
-    const { blobs } = await list({ prefix: TRANSFORMATIONS_BLOB_KEY });
+    const { blobs } = await list({ prefix: TRANSFORMATIONS_BLOB_KEY, token });
     
     if (blobs.length === 0) {
       return [];
@@ -28,6 +38,7 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
 }
 
 export async function saveTransformation(transformation: RoomTransformation): Promise<void> {
+  const token = getBlobToken();
   const transformations = await getTransformations();
   const existingIndex = transformations.findIndex(t => t.id === transformation.id);
   
@@ -41,10 +52,13 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
   await put(TRANSFORMATIONS_BLOB_KEY, JSON.stringify(transformations, null, 2), {
     access: 'public',
     addRandomSuffix: false,
+    token,
   });
 }
 
 export async function saveImage(base64Data: string, filename: string): Promise<string> {
+  const token = getBlobToken();
+  
   // Remove data URL prefix if present
   const base64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
   const buffer = Buffer.from(base64, 'base64');
@@ -56,12 +70,15 @@ export async function saveImage(base64Data: string, filename: string): Promise<s
     access: 'public',
     contentType,
     addRandomSuffix: false,
+    token,
   });
   
   return blob.url;
 }
 
 export async function saveImageFromUrl(imageUrl: string, filename: string): Promise<string> {
+  const token = getBlobToken();
+  
   const response = await fetch(imageUrl);
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
@@ -73,18 +90,22 @@ export async function saveImageFromUrl(imageUrl: string, filename: string): Prom
     access: 'public',
     contentType,
     addRandomSuffix: false,
+    token,
   });
   
   return blob.url;
 }
 
 export async function saveAudio(audioBuffer: ArrayBuffer, filename: string): Promise<string> {
+  const token = getBlobToken();
+  
   const buffer = Buffer.from(audioBuffer);
   
   const blob = await put(`uploads/${filename}`, buffer, {
     access: 'public',
     contentType: 'audio/mpeg',
     addRandomSuffix: false,
+    token,
   });
   
   return blob.url;
