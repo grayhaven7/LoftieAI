@@ -2,238 +2,185 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowLeft, ExternalLink, Clock, Mail, CheckCircle, XCircle, Loader } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
-import { format } from 'date-fns';
-import { RoomTransformation } from '@/lib/types';
+
+interface TransformationRecord {
+  id: string;
+  originalImage: string;
+  transformedImage: string;
+  userEmail?: string;
+  createdAt: string;
+}
 
 export default function AdminPage() {
-  const [transformations, setTransformations] = useState<RoomTransformation[]>([]);
+  const [transformations, setTransformations] = useState<TransformationRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchTransformations = async () => {
-      try {
-        const response = await fetch('/api/transformations');
-        if (response.ok) {
-          const data = await response.json();
-          setTransformations(data);
-        }
-      } catch (err) {
-        console.error('Error fetching transformations:', err);
-      } finally {
-        setLoading(false);
+  const fetchTransformations = async () => {
+    try {
+      const response = await fetch('/api/transformations');
+      if (response.ok) {
+        const data = await response.json();
+        setTransformations(data);
       }
-    };
-
-    fetchTransformations();
-  }, []);
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'processing':
-        return <Loader className="w-5 h-5 text-yellow-500 animate-spin" />;
-      case 'failed':
-        return <XCircle className="w-5 h-5 text-red-500" />;
-      default:
-        return null;
+    } catch (err) {
+      console.error('Failed to fetch:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const stats = {
-    total: transformations.length,
-    completed: transformations.filter(t => t.status === 'completed').length,
-    processing: transformations.filter(t => t.status === 'processing').length,
-    withEmail: transformations.filter(t => t.userEmail).length,
+  useEffect(() => { fetchTransformations(); }, []);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchTransformations();
   };
 
-  return (
-    <div className="min-h-screen gradient-bg">
-      {/* Image Modal */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <motion.img
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            src={selectedImage}
-            alt="Preview"
-            className="max-w-full max-h-[90vh] rounded-2xl"
-          />
-        </div>
-      )}
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
 
+  const stats = [
+    { value: transformations.length, label: 'Total' },
+    { value: transformations.filter(t => t.userEmail).length, label: 'With Email' },
+    {
+      value: transformations.filter(t => {
+        const d = new Date(t.createdAt);
+        return d.toDateString() === new Date().toDateString();
+      }).length,
+      label: 'Today'
+    },
+  ];
+
+  return (
+    <div className="gradient-bg min-h-screen">
       {/* Header */}
-      <header className="py-6 px-8">
-        <nav className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-sage)] to-[var(--color-sage-dark)] flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-2xl font-display font-semibold text-[var(--color-charcoal)]">
-              Loftie
-            </span>
-            <span className="text-sm text-[var(--color-soft-gray)] ml-2">Admin</span>
-          </Link>
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-[var(--color-soft-gray)] hover:text-[var(--color-charcoal)]"
-          >
+      <header className="py-4 px-4 sm:px-6 border-b border-[rgba(255,255,255,0.04)]">
+        <nav className="max-w-5xl mx-auto flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
-            Back to App
+            <span className="hidden sm:inline">Back</span>
           </Link>
+          
+          <span className="logo-text">Loftie</span>
+          
+          <button onClick={handleRefresh} disabled={refreshing} className="btn-icon">
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
         </nav>
       </header>
 
-      <main className="max-w-7xl mx-auto px-8 py-8">
+      {/* Main */}
+      <main className="max-w-5xl mx-auto px-4 py-8 sm:py-10">
         {/* Title */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-4xl font-display text-[var(--color-charcoal)] mb-2">
-            Transformations Dashboard
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <h1 className="text-2xl text-[var(--color-text-primary)] tracking-tight mb-1">
+            <span className="text-emphasis">Dashboard</span>
           </h1>
-          <p className="text-[var(--color-soft-gray)]">
-            View and manage all room transformations
-          </p>
+          <p className="text-sm text-[var(--color-text-secondary)]">Manage transformations</p>
         </motion.div>
 
         {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
-        >
-          {[
-            { label: 'Total', value: stats.total, color: 'var(--color-sage)' },
-            { label: 'Completed', value: stats.completed, color: '#22c55e' },
-            { label: 'Processing', value: stats.processing, color: '#eab308' },
-            { label: 'With Email', value: stats.withEmail, color: 'var(--color-terracotta)' },
-          ].map((stat, i) => (
-            <div key={i} className="card text-center">
-              <div
-                className="text-3xl font-display font-semibold mb-1"
-                style={{ color: stat.color }}
-              >
-                {stat.value}
-              </div>
-              <div className="text-sm text-[var(--color-soft-gray)]">{stat.label}</div>
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-3 gap-3 mb-8">
+          {stats.map((stat, i) => (
+            <div key={i} className="stat-card">
+              <div className="stat-value text-[var(--color-accent)]">{stat.value}</div>
+              <div className="stat-label">{stat.label}</div>
             </div>
           ))}
         </motion.div>
 
-        {/* Transformations Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="card overflow-x-auto"
-        >
+        {/* Content */}
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           {loading ? (
             <div className="text-center py-12">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[var(--color-sage-light)] flex items-center justify-center animate-pulse">
-                <Sparkles className="w-6 h-6 text-[var(--color-sage-dark)]" />
-              </div>
-              <p className="text-[var(--color-soft-gray)]">Loading transformations...</p>
+              <div className="w-8 h-8 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-[var(--color-text-muted)] text-sm">Loading...</p>
             </div>
           ) : transformations.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-[var(--color-soft-gray)]">No transformations yet</p>
-              <Link href="/" className="btn-primary inline-block mt-4">
-                Create First Transformation
-              </Link>
+            <div className="card text-center py-12">
+              <ImageIcon className="w-8 h-8 text-[var(--color-text-muted)] mx-auto mb-3" />
+              <h3 className="text-sm text-[var(--color-text-primary)] font-medium mb-1">No transformations</h3>
+              <p className="text-xs text-[var(--color-text-muted)] mb-4">Upload your first room photo</p>
+              <Link href="/" className="btn-primary inline-flex">Get Started</Link>
             </div>
           ) : (
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Preview</th>
-                  <th>Status</th>
-                  <th>Email</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transformations.map((transformation, index) => (
-                  <motion.tr
-                    key={transformation.id}
+            <>
+              {/* Desktop */}
+              <div className="hidden md:block">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th className="w-16">Preview</th>
+                      <th>ID</th>
+                      <th>Email</th>
+                      <th>Date</th>
+                      <th className="w-12"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transformations.map((t) => (
+                      <tr key={t.id}>
+                        <td>
+                          <img src={t.transformedImage} alt="" className="w-12 h-8 object-cover rounded" />
+                        </td>
+                        <td>
+                          <code className="text-xs text-[var(--color-text-muted)]">{t.id.slice(0, 10)}...</code>
+                        </td>
+                        <td className="text-sm text-[var(--color-text-secondary)]">{t.userEmail || '—'}</td>
+                        <td className="text-sm text-[var(--color-text-muted)]">{formatDate(t.createdAt)}</td>
+                        <td>
+                          <Link href={`/results/${t.id}`} className="btn-icon w-8 h-8">
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile */}
+              <div className="md:hidden space-y-3">
+                {transformations.map((t, i) => (
+                  <motion.div
+                    key={t.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 * index }}
+                    transition={{ delay: i * 0.03 }}
+                    className="card p-3"
                   >
-                    <td>
-                      <div className="flex gap-2">
-                        <img
-                          src={transformation.beforeImageUrl}
-                          alt="Before"
-                          className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => setSelectedImage(transformation.beforeImageUrl)}
-                        />
-                        {transformation.afterImageUrl && (
-                          <img
-                            src={transformation.afterImageUrl}
-                            alt="After"
-                            className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => setSelectedImage(transformation.afterImageUrl)}
-                          />
-                        )}
+                    <div className="flex gap-3 items-center">
+                      <img src={t.transformedImage} alt="" className="w-14 h-10 object-cover rounded flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <code className="text-xs text-[var(--color-text-muted)] block truncate">{t.id.slice(0, 14)}...</code>
+                        {t.userEmail && <p className="text-xs text-[var(--color-text-secondary)] truncate">{t.userEmail}</p>}
+                        <p className="text-xs text-[var(--color-text-muted)]">{formatDate(t.createdAt)}</p>
                       </div>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(transformation.status)}
-                        <span className="capitalize text-[var(--color-charcoal)]">
-                          {transformation.status}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      {transformation.userEmail ? (
-                        <div className="flex items-center gap-2 text-[var(--color-charcoal)]">
-                          <Mail className="w-4 h-4 text-[var(--color-sage)]" />
-                          {transformation.userEmail}
-                        </div>
-                      ) : (
-                        <span className="text-[var(--color-soft-gray)]">—</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-2 text-[var(--color-soft-gray)]">
-                        <Clock className="w-4 h-4" />
-                        {format(new Date(transformation.createdAt), 'MMM d, yyyy h:mm a')}
-                      </div>
-                    </td>
-                    <td>
-                      <Link
-                        href={`/results/${transformation.id}`}
-                        className="flex items-center gap-1 text-[var(--color-sage-dark)] hover:text-[var(--color-sage)] font-medium"
-                      >
-                        View
-                        <ExternalLink className="w-4 h-4" />
+                      <Link href={`/results/${t.id}`} className="btn-icon">
+                        <ExternalLink className="w-3.5 h-3.5" />
                       </Link>
-                    </td>
-                  </motion.tr>
+                    </div>
+                  </motion.div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </>
           )}
         </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-8 text-center text-[var(--color-soft-gray)] text-sm">
-        <p>© 2024 Loftie AI • Admin Dashboard</p>
+      <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">
+        <p>© 2024 Loftie</p>
       </footer>
     </div>
   );
 }
-

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Sparkles, ArrowRight, X, Image as ImageIcon } from 'lucide-react';
+import { ArrowRight, X, ArrowUpRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
@@ -67,7 +67,6 @@ export default function Home() {
     setProgress(0);
     setError(null);
 
-    // Simulate progress
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 90) {
@@ -97,10 +96,9 @@ export default function Home() {
       clearInterval(progressInterval);
       setProgress(100);
 
-      // Navigate to results page
       setTimeout(() => {
         router.push(`/results/${data.id}`);
-      }, 500);
+      }, 400);
     } catch (err) {
       clearInterval(progressInterval);
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -109,56 +107,81 @@ export default function Home() {
     }
   };
 
+  const features = [
+    {
+      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80',
+      title: 'Visualize',
+      desc: 'AI-generated vision of your decluttered space',
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80',
+      title: 'Plan',
+      desc: 'Step-by-step guidance to achieve it',
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80',
+      title: 'Listen',
+      desc: 'Audio companion walks you through',
+    },
+  ];
+
   return (
-    <div className="min-h-screen gradient-bg">
+    <div className="hero-bg">
       {/* Header */}
-      <header className="py-6 px-8">
-        <nav className="max-w-6xl mx-auto flex justify-between items-center">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2"
+      <header className="py-4 px-4 sm:px-6">
+        <nav className="max-w-5xl mx-auto flex justify-between items-center">
+          <motion.span 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="logo-text"
           >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-sage)] to-[var(--color-sage-dark)] flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-2xl font-display font-semibold text-[var(--color-charcoal)]">
-              Loftie
-            </span>
+            Loftie
+          </motion.span>
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center"
+          >
+            <a href="#features" className="nav-item hidden sm:block">
+              How it Works
+            </a>
+            <a href="/admin" className="nav-item">
+              Dashboard
+            </a>
           </motion.div>
-          <motion.a
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            href="/admin"
-            className="text-[var(--color-soft-gray)] hover:text-[var(--color-charcoal)] text-sm font-medium"
-          >
-            Admin
-          </motion.a>
         </nav>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-4xl mx-auto px-8 py-12">
+      {/* Hero */}
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="text-center mb-12"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-10"
         >
-          <h1 className="text-5xl md:text-6xl font-display text-[var(--color-charcoal)] mb-4">
-            Transform Your Space
+          <span className="promo-banner mb-6 inline-block">
+            Free to try — no credit card
+          </span>
+          
+          <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em]">
+            <span className="text-emphasis">Declutter</span> your home,<br />
+            <span className="text-emphasis">design</span> your life.
           </h1>
-          <p className="text-xl text-[var(--color-soft-gray)] max-w-2xl mx-auto leading-relaxed">
-            Upload a photo of your cluttered room and let our AI show you the possibilities. 
-            Get a photorealistic vision of your transformed space with step-by-step guidance.
+          
+          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto">
+            Upload a photo. Get an AI-powered vision of your space, clutter-free.
           </p>
         </motion.div>
+      </main>
 
-        {/* Upload Section */}
+      {/* Upload */}
+      <section id="upload" className="max-w-md mx-auto px-4 pb-16">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           className="card"
         >
           <AnimatePresence mode="wait">
@@ -170,9 +193,8 @@ export default function Home() {
                 exit={{ opacity: 0 }}
               >
                 <div
-                  className={`upload-zone rounded-2xl p-12 text-center cursor-pointer ${
-                    isDragging ? 'drag-over' : ''
-                  }`}
+                  className={`upload-zone p-6 sm:p-8 ${isDragging ? 'drag-over' : ''}`}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
@@ -185,14 +207,16 @@ export default function Home() {
                     className="hidden"
                     onChange={handleInputChange}
                   />
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[var(--color-sage-light)] flex items-center justify-center">
-                    <Upload className="w-8 h-8 text-[var(--color-sage-dark)]" />
+                  
+                  <div className="mb-4 w-12 h-12 rounded-full border border-dashed border-[var(--color-text-muted)] flex items-center justify-center">
+                    <ArrowUpRight className="w-5 h-5 text-[var(--color-text-muted)]" />
                   </div>
-                  <h3 className="text-2xl font-display text-[var(--color-charcoal)] mb-2">
-                    Drop your room photo here
-                  </h3>
-                  <p className="text-[var(--color-soft-gray)]">
-                    or click to browse • PNG, JPG up to 10MB
+                  
+                  <p className="text-sm text-[var(--color-text-primary)] mb-1 font-medium">
+                    Drop your room photo
+                  </p>
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    or click to browse
                   </p>
                 </div>
               </motion.div>
@@ -202,147 +226,133 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="space-y-6"
+                className="space-y-4"
               >
                 <div className="relative">
                   <img
                     src={selectedImage}
                     alt="Selected room"
-                    className="w-full rounded-2xl object-cover max-h-96"
+                    className="w-full rounded-lg object-cover max-h-56"
                   />
                   {!isProcessing && (
                     <button
                       onClick={clearImage}
-                      className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all"
+                      className="absolute top-2 right-2 btn-icon w-8 h-8"
                     >
-                      <X className="w-5 h-5 text-[var(--color-charcoal)]" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
-                  <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded-full flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-[var(--color-sage)]" />
-                    <span className="text-sm font-medium text-[var(--color-charcoal)]">
-                      {selectedFile?.name}
-                    </span>
+                  <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-xs text-white truncate max-w-[60%]">
+                    {selectedFile?.name}
                   </div>
                 </div>
 
-                {/* Email Input */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[var(--color-charcoal)]">
-                    Email (optional) - We&apos;ll send you the results
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    disabled={isProcessing}
-                    className="disabled:opacity-50"
-                  />
-                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email (optional)"
+                  disabled={isProcessing}
+                />
 
-                {/* Progress Bar */}
                 {isProcessing && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="space-y-2"
                   >
                     <div className="progress-bar">
-                      <div
-                        className="progress-bar-fill"
-                        style={{ width: `${progress}%` }}
-                      />
+                      <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
                     </div>
-                    <div className="flex items-center justify-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[var(--color-sage)] animate-pulse" />
-                      <p className="text-[var(--color-soft-gray)]">
-                        {progress < 30
-                          ? 'Analyzing your space...'
-                          : progress < 60
-                          ? 'Removing clutter and styling...'
-                          : progress < 90
-                          ? 'Creating your transformation plan...'
-                          : 'Almost there...'}
-                      </p>
-                    </div>
+                    <p className="text-[var(--color-text-muted)] text-xs text-center">
+                      {progress < 30 ? 'Analyzing...' : progress < 60 ? 'Styling...' : progress < 90 ? 'Creating plan...' : 'Almost there...'}
+                    </p>
                   </motion.div>
                 )}
 
-                {/* Error Message */}
                 {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm"
-                  >
+                  <div className="bg-[var(--color-error)]/10 border border-[var(--color-error)]/20 text-[var(--color-error)] px-3 py-2 rounded-lg text-xs text-center">
                     {error}
-                  </motion.div>
+                  </div>
                 )}
 
-                {/* Submit Button */}
                 <button
                   onClick={handleSubmit}
                   disabled={isProcessing}
-                  className="btn-primary w-full flex items-center justify-center gap-3"
+                  className="btn-primary w-full"
                 >
-                  {isProcessing ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Transforming...
-                    </>
-                  ) : (
-                    <>
-                      Transform My Space
-                      <ArrowRight className="w-5 h-5" />
-                    </>
+                  {isProcessing ? 'Transforming...' : (
+                    <>Transform <ArrowRight className="w-3.5 h-3.5" /></>
                   )}
                 </button>
               </motion.div>
             )}
           </AnimatePresence>
         </motion.div>
+      </section>
 
-        {/* Features */}
+      {/* Features */}
+      <section id="features" className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="grid md:grid-cols-3 gap-6 mt-16"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center mb-8"
         >
-          {[
-            {
-              icon: '✨',
-              title: 'AI-Powered Vision',
-              desc: 'See a photorealistic transformation of your decluttered space',
-            },
-            {
-              icon: '📋',
-              title: 'Step-by-Step Guide',
-              desc: 'Get personalized guidance to achieve your transformed look',
-            },
-            {
-              icon: '🎧',
-              title: 'Audio Companion',
-              desc: 'Listen to your decluttering plan with our friendly voice guide',
-            },
-          ].map((feature, i) => (
-            <div key={i} className="text-center p-6">
-              <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-display text-[var(--color-charcoal)] mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-[var(--color-soft-gray)] text-sm">
-                {feature.desc}
-              </p>
-            </div>
-          ))}
+          <h2 className="text-xl sm:text-2xl text-[var(--color-text-primary)] tracking-tight mb-2">
+            How it <span className="text-emphasis">works</span>
+          </h2>
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            Three simple steps to your dream space
+          </p>
         </motion.div>
-      </main>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {features.map((feature, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="feature-card"
+            >
+              <img src={feature.image} alt={feature.title} className="feature-card-image" />
+              <div className="feature-card-content">
+                <span className="text-[0.6rem] text-[var(--color-accent)] font-semibold uppercase tracking-wider">
+                  Step {i + 1}
+                </span>
+                <h3 className="text-sm text-[var(--color-text-primary)] font-medium mt-1 mb-1">
+                  {feature.title}
+                </h3>
+                <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                  {feature.desc}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="max-w-md mx-auto px-4 py-12 text-center">
+        <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] mb-2">
+          Ready to <span className="text-emphasis">transform</span>?
+        </h2>
+        <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+          Join thousands who&apos;ve decluttered with AI.
+        </p>
+        <button
+          onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}
+          className="btn-primary"
+        >
+          Get Started <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </section>
 
       {/* Footer */}
-      <footer className="py-8 text-center text-[var(--color-soft-gray)] text-sm">
-        <p>© 2024 Loftie AI • Transform your space, transform your life</p>
+      <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">
+        <p>© 2024 Loftie</p>
       </footer>
     </div>
   );

@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
+import { Roboto_Condensed } from "next/font/google";
 import "./globals.css";
+
+const robotoCondensed = Roboto_Condensed({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-roboto',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: "Loftie AI - Transform Your Space",
@@ -18,7 +26,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={robotoCondensed.variable}>
+      <head>
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        <link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,500,400i,500i,600i,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet" />
+      </head>
       <body className="antialiased">
         {children}
       </body>

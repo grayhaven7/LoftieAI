@@ -1,381 +1,278 @@
 'use client';
 
-import { useState, useEffect, useRef, use } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  Sparkles, 
-  Volume2, 
-  VolumeX, 
-  ArrowLeft, 
-  Download, 
-  Mail,
-  Check,
-  Share2
-} from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2 } from 'lucide-react';
 import Link from 'next/link';
-import { RoomTransformation } from '@/lib/types';
+import { use } from 'react';
+
+interface TransformationData {
+  id: string;
+  originalImage: string;
+  transformedImage: string;
+  declutterPlan: string;
+  audioUrl?: string;
+  userEmail?: string;
+  createdAt: string;
+}
 
 export default function ResultsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [transformation, setTransformation] = useState<RoomTransformation | null>(null);
+  const [data, setData] = useState<TransformationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showBefore, setShowBefore] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audioLoading, setAudioLoading] = useState(false);
+  const [showAfter, setShowAfter] = useState(true);
   const [email, setEmail] = useState('');
-  const [emailSent, setEmailSent] = useState(false);
   const [emailSending, setEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [planExpanded, setPlanExpanded] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    const fetchTransformation = async () => {
+    async function fetchData() {
       try {
         const response = await fetch(`/api/transformations/${id}`);
-        if (!response.ok) {
-          throw new Error('Transformation not found');
-        }
-        const data = await response.json();
-        setTransformation(data);
+        if (!response.ok) throw new Error('Transformation not found');
+        const result = await response.json();
+        setData(result);
+        if (result.userEmail) setEmail(result.userEmail);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load results');
+        setError(err instanceof Error ? err.message : 'Failed to load');
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchTransformation();
+    }
+    fetchData();
   }, [id]);
 
-  const handlePlayAudio = async () => {
-    if (isPlaying && audioRef.current) {
+  const toggleAudio = () => {
+    if (!audioRef.current || !data?.audioUrl) return;
+    if (isPlaying) {
       audioRef.current.pause();
-      setIsPlaying(false);
-      return;
+    } else {
+      audioRef.current.play();
     }
-
-    if (!transformation?.declutteringPlan) return;
-
-    setAudioLoading(true);
-    try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: transformation.declutteringPlan }),
-      });
-
-      if (!response.ok) throw new Error('Failed to generate audio');
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      if (audioRef.current) {
-        audioRef.current.src = audioUrl;
-        audioRef.current.play();
-        setIsPlaying(true);
-      }
-    } catch (err) {
-      console.error('Audio error:', err);
-    } finally {
-      setAudioLoading(false);
-    }
+    setIsPlaying(!isPlaying);
   };
 
-  const handleSendEmail = async () => {
-    if (!email || !transformation) return;
+  const handleDownload = async () => {
+    if (!data?.transformedImage) return;
+    const link = document.createElement('a');
+    link.href = data.transformedImage;
+    link.download = `loftie-${id}.png`;
+    link.click();
+  };
 
+  const handleEmailSend = async () => {
+    if (!email || !data) return;
     setEmailSending(true);
     try {
-      const response = await fetch('/api/send-email', {
+      await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transformationId: transformation.id,
-          email,
-        }),
+        body: JSON.stringify({ email, transformationId: id }),
       });
-
-      if (response.ok) {
-        setEmailSent(true);
-      }
+      setEmailSent(true);
     } catch (err) {
-      console.error('Email error:', err);
+      console.error('Failed to send email:', err);
     } finally {
       setEmailSending(false);
     }
   };
 
-  const handleDownload = async (imageUrl: string, type: 'before' | 'after') => {
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `loftie-${type}-${id}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Download error:', err);
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'My Room Transformation', url });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(url);
     }
   };
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'My Loftie Transformation',
-          text: 'Check out my room transformation!',
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.error('Share error:', err);
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
-    }
+  const parseSteps = (plan: string): string[] => {
+    return plan.split(/\d+\.\s+/).filter((step) => step.trim()).slice(0, 6);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen gradient-bg flex items-center justify-center">
+      <div className="gradient-bg min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[var(--color-sage-light)] flex items-center justify-center animate-pulse">
-            <Sparkles className="w-8 h-8 text-[var(--color-sage-dark)]" />
-          </div>
-          <p className="text-[var(--color-soft-gray)]">Loading your transformation...</p>
+          <div className="w-8 h-8 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[var(--color-text-muted)] text-sm">Loading...</p>
         </div>
       </div>
     );
   }
 
-  if (error || !transformation) {
+  if (error || !data) {
     return (
-      <div className="min-h-screen gradient-bg flex items-center justify-center">
-        <div className="text-center card max-w-md mx-4">
-          <h2 className="text-2xl font-display text-[var(--color-charcoal)] mb-4">
-            Oops! Something went wrong
-          </h2>
-          <p className="text-[var(--color-soft-gray)] mb-6">{error}</p>
-          <Link href="/" className="btn-primary inline-block">
-            Try Again
-          </Link>
+      <div className="gradient-bg min-h-screen flex items-center justify-center px-4">
+        <div className="card text-center max-w-sm">
+          <h2 className="text-lg text-[var(--color-text-primary)] mb-2 font-medium">Not Found</h2>
+          <p className="text-[var(--color-text-muted)] text-sm mb-4">{error || 'This transformation may have expired.'}</p>
+          <Link href="/" className="btn-primary inline-flex">Go Home</Link>
         </div>
       </div>
     );
   }
 
-  // Parse the decluttering plan into steps
-  const steps = transformation.declutteringPlan
-    .split(/\d+\.\s+/)
-    .filter(step => step.trim().length > 0);
+  const steps = parseSteps(data.declutterPlan);
 
   return (
-    <div className="min-h-screen gradient-bg">
-      {/* Hidden audio element */}
-      <audio
-        ref={audioRef}
-        onEnded={() => setIsPlaying(false)}
-        onPause={() => setIsPlaying(false)}
-      />
+    <div className="gradient-bg min-h-screen">
+      {data.audioUrl && <audio ref={audioRef} src={data.audioUrl} onEnded={() => setIsPlaying(false)} />}
 
       {/* Header */}
-      <header className="py-6 px-8">
-        <nav className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-sage)] to-[var(--color-sage-dark)] flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-2xl font-display font-semibold text-[var(--color-charcoal)]">
-              Loftie
-            </span>
-          </Link>
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-[var(--color-soft-gray)] hover:text-[var(--color-charcoal)]"
-          >
+      <header className="py-4 px-4 sm:px-6 border-b border-[rgba(255,255,255,0.04)]">
+        <nav className="max-w-4xl mx-auto flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
-            New Transformation
+            <span className="hidden sm:inline">Back</span>
           </Link>
+          
+          <span className="logo-text">Loftie</span>
+          
+          <div className="w-16 flex justify-end">
+            {data.audioUrl && (
+              <button onClick={toggleAudio} className={`voice-btn ${isPlaying ? 'playing' : ''}`}>
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+            )}
+          </div>
         </nav>
       </header>
 
-      <main className="max-w-6xl mx-auto px-8 py-8">
-        {/* Success Message */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="inline-flex items-center gap-2 bg-[var(--color-sage-light)] text-[var(--color-sage-dark)] px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <Check className="w-4 h-4" />
-            Transformation Complete
-          </div>
-          <h1 className="text-4xl md:text-5xl font-display text-[var(--color-charcoal)] mb-4">
-            Your Space, Reimagined
+      {/* Main */}
+      <main className="max-w-2xl mx-auto px-4 py-8 sm:py-10">
+        {/* Success */}
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+          <span className="badge badge-success mb-3 inline-flex">
+            <Check className="w-3 h-3" /> Complete
+          </span>
+          <h1 className="text-2xl sm:text-3xl text-[var(--color-text-primary)] tracking-tight mb-1">
+            Your <span className="text-emphasis">transformation</span>
           </h1>
-          <p className="text-xl text-[var(--color-soft-gray)]">
-            Here&apos;s your personalized decluttering vision and plan
-          </p>
+          <p className="text-sm text-[var(--color-text-secondary)]">See what your space could look like</p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Before/After Comparison */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <div className="card">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-display text-[var(--color-charcoal)]">
-                  {showBefore ? 'Before' : 'After'}
-                </h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowBefore(!showBefore)}
-                    className="btn-secondary text-sm py-2 px-4"
-                  >
-                    Show {showBefore ? 'After' : 'Before'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative overflow-hidden rounded-2xl aspect-square">
-                <motion.img
-                  key={showBefore ? 'before' : 'after'}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                  src={showBefore ? transformation.beforeImageUrl : transformation.afterImageUrl}
-                  alt={showBefore ? 'Before' : 'After'}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 mt-4">
-                <button
-                  onClick={() => handleDownload(transformation.beforeImageUrl, 'before')}
-                  className="flex-1 btn-secondary text-sm py-3 flex items-center justify-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  Before
-                </button>
-                <button
-                  onClick={() => handleDownload(transformation.afterImageUrl, 'after')}
-                  className="flex-1 btn-primary text-sm py-3 flex items-center justify-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  After
-                </button>
-                <button
-                  onClick={handleShare}
-                  className="btn-secondary text-sm py-3 px-4"
-                  title="Share"
-                >
-                  <Share2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Email Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="card mt-6"
-            >
-              <h3 className="text-xl font-display text-[var(--color-charcoal)] mb-4 flex items-center gap-2">
-                <Mail className="w-5 h-5 text-[var(--color-sage)]" />
-                Save to Email
-              </h3>
-              {emailSent ? (
-                <div className="flex items-center gap-2 text-[var(--color-sage-dark)]">
-                  <Check className="w-5 h-5" />
-                  <span>Email sent successfully!</span>
-                </div>
-              ) : (
-                <div className="flex gap-3">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="flex-1"
-                  />
-                  <button
-                    onClick={handleSendEmail}
-                    disabled={!email || emailSending}
-                    className="btn-primary whitespace-nowrap"
-                  >
-                    {emailSending ? 'Sending...' : 'Send'}
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-
-          {/* Decluttering Plan */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="card"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-display text-[var(--color-charcoal)]">
-                Your Decluttering Plan
-              </h2>
+        {/* Image */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
+          <div className="card overflow-hidden p-0">
+            <div className="flex border-b border-[rgba(255,255,255,0.06)]">
               <button
-                onClick={handlePlayAudio}
-                disabled={audioLoading}
-                className={`voice-btn ${isPlaying ? 'playing' : ''}`}
-                title={isPlaying ? 'Stop' : 'Listen'}
+                onClick={() => setShowAfter(false)}
+                className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                  !showAfter ? 'text-[var(--color-text-primary)] bg-[rgba(255,255,255,0.04)]' : 'text-[var(--color-text-muted)]'
+                }`}
               >
-                {audioLoading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : isPlaying ? (
-                  <VolumeX className="w-6 h-6" />
-                ) : (
-                  <Volume2 className="w-6 h-6" />
-                )}
+                Before
+              </button>
+              <button
+                onClick={() => setShowAfter(true)}
+                className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                  showAfter ? 'text-[var(--color-text-primary)] bg-[rgba(255,255,255,0.04)]' : 'text-[var(--color-text-muted)]'
+                }`}
+              >
+                After
               </button>
             </div>
-
-            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-              {steps.map((step, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                  className="step-card"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-full bg-[var(--color-sage-light)] flex items-center justify-center flex-shrink-0 text-[var(--color-sage-dark)] font-medium">
-                      {index + 1}
-                    </div>
-                    <p className="text-[var(--color-charcoal)] leading-relaxed">
-                      {step.trim()}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
+            <div className="relative aspect-[4/3] overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={showAfter ? 'after' : 'before'}
+                  src={showAfter ? data.transformedImage : data.originalImage}
+                  alt={showAfter ? 'Transformed' : 'Original'}
+                  className="w-full h-full object-cover"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </AnimatePresence>
             </div>
-          </motion.div>
-        </div>
+          </div>
+
+          <div className="flex gap-2 mt-4">
+            <button onClick={handleDownload} className="btn-secondary">
+              <Download className="w-3.5 h-3.5" /> Download
+            </button>
+            <button onClick={handleShare} className="btn-secondary">
+              <Share2 className="w-3.5 h-3.5" /> Share
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Plan */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-6">
+          <div className="card">
+            <button onClick={() => setPlanExpanded(!planExpanded)} className="w-full flex items-center justify-between mb-3">
+              <h2 className="text-sm text-[var(--color-text-primary)] font-medium">Declutter Plan</h2>
+              <ChevronDown className={`w-4 h-4 text-[var(--color-text-muted)] transition-transform ${planExpanded ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {planExpanded && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
+                  <div className="space-y-2">
+                    {steps.map((step, i) => (
+                      <div key={i} className="step-card">
+                        <div className="flex gap-3">
+                          <span className="text-[var(--color-accent)] font-semibold text-xs">{String(i + 1).padStart(2, '0')}</span>
+                          <p className="text-[var(--color-text-secondary)] text-xs leading-relaxed flex-1">{step.trim()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {data.audioUrl && (
+                    <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+                      <button onClick={toggleAudio} className="btn-secondary w-full">
+                        {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                        {isPlaying ? 'Pause Audio' : 'Play Audio Guide'}
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        {/* Email */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card">
+          <div className="flex items-center gap-2 mb-3">
+            <Mail className="w-4 h-4 text-[var(--color-accent)]" />
+            <h3 className="text-sm text-[var(--color-text-primary)] font-medium">Save to Email</h3>
+          </div>
+          
+          {emailSent ? (
+            <div className="flex items-center gap-2 text-[var(--color-success)] text-sm">
+              <Check className="w-3.5 h-3.5" /> Sent to {email}
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="flex-1"
+                disabled={emailSending}
+              />
+              <button onClick={handleEmailSend} disabled={!email || emailSending} className="btn-primary">
+                {emailSending ? '...' : 'Send'}
+              </button>
+            </div>
+          )}
+        </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-8 text-center text-[var(--color-soft-gray)] text-sm">
-        <p>© 2024 Loftie AI • Transform your space, transform your life</p>
+      <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">
+        <p>© 2024 Loftie</p>
       </footer>
     </div>
   );
 }
-
