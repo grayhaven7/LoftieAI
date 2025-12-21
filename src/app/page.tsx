@@ -16,6 +16,34 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
+  // Soft notification sound using Web Audio API
+  const playNotificationSound = useCallback(() => {
+    try {
+      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      
+      // Create a soft, pleasant chime
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Gentle sine wave for a soft tone
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(830, audioContext.currentTime); // G5 note
+      oscillator.frequency.setValueAtTime(1046, audioContext.currentTime + 0.1); // C6 note
+      
+      // Soft volume with fade out
+      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.4);
+    } catch {
+      // Silently fail if audio is not supported
+    }
+  }, []);
+
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -95,6 +123,9 @@ export default function Home() {
 
       clearInterval(progressInterval);
       setProgress(100);
+
+      // Play soft notification sound before redirect
+      playNotificationSound();
 
       setTimeout(() => {
         router.push(`/results/${data.id}`);
