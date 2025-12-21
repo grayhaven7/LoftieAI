@@ -98,7 +98,7 @@ Style: Professional real estate photography, natural lighting, high quality, mag
 
     // Extract the generated image from response
     let afterImageUrl = '';
-    const generatedImageData = imageGenResponse.data[0]?.b64_json;
+    const generatedImageData = imageGenResponse.data?.[0]?.b64_json;
     
     if (generatedImageData) {
       const generatedImageBase64 = `data:image/png;base64,${generatedImageData}`;
