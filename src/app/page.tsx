@@ -193,7 +193,7 @@ export default function Home() {
           className="text-center mb-10"
         >
           <span className="promo-banner mb-6 inline-block">
-            Free to try — no credit card
+            Transform your space in seconds
           </span>
           
           <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em]">

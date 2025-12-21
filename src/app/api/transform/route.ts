@@ -4,6 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { saveImage, saveTransformation, saveAudio } from '@/lib/storage';
 import { RoomTransformation } from '@/lib/types';
 
+// Increase timeout for Vercel serverless functions
+// This route makes multiple OpenAI API calls which can take 30-60+ seconds
+export const maxDuration = 60; // seconds (requires Vercel Pro for >10s)
+
 function getOpenAIClient() {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY is not configured');

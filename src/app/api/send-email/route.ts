@@ -59,10 +59,10 @@ export async function POST(request: NextRequest) {
               <!-- Before/After Images -->
               <div style="margin-bottom: 24px;">
                 <p style="color: #3A3A3A; font-weight: 500; margin-bottom: 8px;">Before:</p>
-                <img src="${baseUrl}${transformation.beforeImageUrl}" alt="Before" style="width: 100%; border-radius: 16px; margin-bottom: 16px;">
+                <img src="${transformation.beforeImageUrl}" alt="Before" style="width: 100%; border-radius: 16px; margin-bottom: 16px;">
                 
                 <p style="color: #3A3A3A; font-weight: 500; margin-bottom: 8px;">After:</p>
-                <img src="${baseUrl}${transformation.afterImageUrl}" alt="After" style="width: 100%; border-radius: 16px;">
+                <img src="${transformation.afterImageUrl}" alt="After" style="width: 100%; border-radius: 16px;">
               </div>
 
               <!-- CTA Button -->
