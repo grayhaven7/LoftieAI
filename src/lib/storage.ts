@@ -11,8 +11,11 @@ function useLocalStorage(): boolean {
   const isVercel = process.env.VERCEL === '1';
   const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
   
+  console.log(`[Storage] VERCEL=${isVercel}, hasBlobToken=${hasBlobToken}, useLocalStorage=${!hasBlobToken && !isVercel}`);
+  
   if (isVercel && !hasBlobToken) {
     console.error('WARNING: Running on Vercel without BLOB_READ_WRITE_TOKEN!');
+    console.error('Please set BLOB_READ_WRITE_TOKEN in your Vercel environment variables.');
   }
   
   return !hasBlobToken && !isVercel;
@@ -50,16 +53,18 @@ export async function getTransformations(): Promise<RoomTransformation[]> {
   // Use Vercel Blob - each transformation is stored as its own file
   const token = getBlobToken();
   if (!token) {
-    console.error('BLOB_READ_WRITE_TOKEN not configured');
+    console.error('[Storage] BLOB_READ_WRITE_TOKEN not configured');
     return [];
   }
   
   try {
+    console.log('[Storage] Fetching transformations from Vercel Blob...');
     // List all transformation blobs
     const { blobs } = await list({ prefix: 'transformations/', token });
-    console.log(`Found ${blobs.length} transformation blobs`);
+    console.log(`[Storage] Found ${blobs.length} transformation blobs`);
     
     if (blobs.length === 0) {
+      console.log('[Storage] No transformations found in blob storage');
       return [];
     }
     
@@ -68,11 +73,14 @@ export async function getTransformations(): Promise<RoomTransformation[]> {
       blobs.map(async (blob) => {
         try {
           const response = await fetch(blob.url);
-          if (!response.ok) return null;
+          if (!response.ok) {
+            console.error(`[Storage] Failed to fetch blob ${blob.pathname}: ${response.status} ${response.statusText}`);
+            return null;
+          }
           const data = await response.json();
           return data as RoomTransformation;
-        } catch {
-          console.error(`Failed to fetch blob: ${blob.pathname}`);
+        } catch (error) {
+          console.error(`[Storage] Failed to fetch blob ${blob.pathname}:`, error);
           return null;
         }
       })
@@ -80,10 +88,13 @@ export async function getTransformations(): Promise<RoomTransformation[]> {
     
     // Filter out nulls and sort by createdAt
     const valid = transformations.filter((t): t is RoomTransformation => t !== null);
-    console.log(`Loaded ${valid.length} valid transformations`);
+    console.log(`[Storage] Loaded ${valid.length} valid transformations`);
     return valid;
   } catch (error) {
-    console.error('Error fetching transformations from blob:', error);
+    console.error('[Storage] Error fetching transformations from blob:', error);
+    if (error instanceof Error) {
+      console.error('[Storage] Error details:', error.message, error.stack);
+    }
     return [];
   }
 }
@@ -96,18 +107,33 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
 
   // Fetch single transformation directly from blob
   const token = getBlobToken();
-  if (!token) return null;
+  if (!token) {
+    console.error(`[Storage] BLOB_READ_WRITE_TOKEN not configured for transformation ${id}`);
+    return null;
+  }
   
   try {
+    console.log(`[Storage] Fetching transformation ${id} from blob...`);
     const { blobs } = await list({ prefix: `transformations/${id}.json`, token });
-    if (blobs.length === 0) return null;
+    if (blobs.length === 0) {
+      console.log(`[Storage] Transformation ${id} not found in blob storage`);
+      return null;
+    }
     
     const response = await fetch(blobs[0].url);
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.error(`[Storage] Failed to fetch transformation ${id}: ${response.status} ${response.statusText}`);
+      return null;
+    }
     
-    return await response.json() as RoomTransformation;
+    const data = await response.json() as RoomTransformation;
+    console.log(`[Storage] Successfully loaded transformation ${id} with status ${data.status}`);
+    return data;
   } catch (error) {
-    console.error(`Error fetching transformation ${id}:`, error);
+    console.error(`[Storage] Error fetching transformation ${id}:`, error);
+    if (error instanceof Error) {
+      console.error(`[Storage] Error details:`, error.message, error.stack);
+    }
     return null;
   }
 }
@@ -139,19 +165,24 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
   // Save as individual blob file - no race conditions!
   const token = getBlobToken();
   if (!token) {
-    throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
+    console.error('[Storage] BLOB_READ_WRITE_TOKEN is not configured');
+    throw new Error('BLOB_READ_WRITE_TOKEN is not configured. Please set it in your Vercel environment variables.');
   }
   
   try {
+    console.log(`[Storage] Saving transformation ${transformation.id} to Vercel Blob...`);
     await put(`transformations/${transformation.id}.json`, JSON.stringify(transformation, null, 2), {
       access: 'public',
       contentType: 'application/json',
       addRandomSuffix: false,
       token,
     });
-    console.log(`Saved transformation ${transformation.id} to Vercel Blob`);
+    console.log(`[Storage] Successfully saved transformation ${transformation.id} to Vercel Blob`);
   } catch (error) {
-    console.error('Error saving transformation to blob:', error);
+    console.error('[Storage] Error saving transformation to blob:', error);
+    if (error instanceof Error) {
+      console.error('[Storage] Error details:', error.message, error.stack);
+    }
     throw error;
   }
 }
@@ -211,20 +242,25 @@ export async function saveImage(base64Data: string, filename: string): Promise<s
   
   const token = getBlobToken();
   if (!token) {
-    throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
+    console.error('[Storage] BLOB_READ_WRITE_TOKEN is not configured');
+    throw new Error('BLOB_READ_WRITE_TOKEN is not configured. Please set it in your Vercel environment variables.');
   }
   
   try {
+    console.log(`[Storage] Saving image ${filename} to Vercel Blob...`);
     const blob = await put(`uploads/${filename}`, buffer, {
       access: 'public',
       contentType,
       addRandomSuffix: false,
       token,
     });
-    console.log(`Saved image to Vercel Blob: ${blob.url}`);
+    console.log(`[Storage] Successfully saved image to Vercel Blob: ${blob.url}`);
     return blob.url;
   } catch (error) {
-    console.error('Error saving image to blob:', error);
+    console.error('[Storage] Error saving image to blob:', error);
+    if (error instanceof Error) {
+      console.error('[Storage] Error details:', error.message, error.stack);
+    }
     throw error;
   }
 }
@@ -248,20 +284,25 @@ export async function saveAudio(audioBuffer: ArrayBuffer, filename: string): Pro
   
   const token = getBlobToken();
   if (!token) {
-    throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
+    console.error('[Storage] BLOB_READ_WRITE_TOKEN is not configured');
+    throw new Error('BLOB_READ_WRITE_TOKEN is not configured. Please set it in your Vercel environment variables.');
   }
   
   try {
+    console.log(`[Storage] Saving audio ${filename} to Vercel Blob...`);
     const blob = await put(`uploads/${filename}`, buffer, {
       access: 'public',
       contentType: 'audio/mpeg',
       addRandomSuffix: false,
       token,
     });
-    console.log(`Saved audio to Vercel Blob: ${blob.url}`);
+    console.log(`[Storage] Successfully saved audio to Vercel Blob: ${blob.url}`);
     return blob.url;
   } catch (error) {
-    console.error('Error saving audio to blob:', error);
+    console.error('[Storage] Error saving audio to blob:', error);
+    if (error instanceof Error) {
+      console.error('[Storage] Error details:', error.message, error.stack);
+    }
     throw error;
   }
 }
