@@ -15,11 +15,17 @@ function getGeminiClient(): GoogleGenerativeAI {
 }
 
 /**
- * Get the Gemini NanoBanana model for image editing/generation
- * This model can edit images while preserving the original appearance
+ * Get the Gemini 2.0 Flash Image Generation model
+ * This model can generate and edit images while preserving the original appearance
  */
-export function getGeminiNanoBanana(): GenerativeModel {
-  return getGeminiClient().getGenerativeModel({ model: 'gemini-nanobanana' });
+export function getGeminiImageGen(): GenerativeModel {
+  return getGeminiClient().getGenerativeModel({ 
+    model: 'gemini-2.0-flash-exp-image-generation',
+    generationConfig: {
+      // @ts-expect-error - responseModalities is valid but not in types yet
+      responseModalities: ['Text', 'Image'],
+    },
+  });
 }
 
 /**
@@ -112,12 +118,12 @@ export async function chatWithGemini(
 }
 
 /**
- * Declutter a room image using Gemini NanoBanana
+ * Declutter a room image using Gemini 2.0 Flash Image Generation
  * Returns the edited image as base64 while preserving the original room appearance
  * @param base64Image - Base64 encoded image (with or without data URL prefix)
  */
 export async function declutterImageWithGemini(base64Image: string): Promise<string> {
-  const model = getGeminiNanoBanana();
+  const model = getGeminiImageGen();
   
   // Remove data URL prefix if present
   const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
@@ -149,7 +155,7 @@ export async function declutterImageWithGemini(base64Image: string): Promise<str
   );
   
   if (!imagePart?.inlineData?.data) {
-    throw new Error('No image returned from Gemini NanoBanana');
+    throw new Error('No image returned from Gemini Image Generation model');
   }
   
   // Return as data URL
