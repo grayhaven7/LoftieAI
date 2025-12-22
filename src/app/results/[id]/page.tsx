@@ -159,10 +159,10 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
   };
 
   const formatStepWithEmoji = (step: string): string => {
-    // Replace **text** pattern with emoji + text (without bold markers)
+    // Replace **text** pattern with text + emoji (without bold markers)
     return step.replace(/\*\*([^*]+)\*\*/g, (_, content) => {
       const emoji = getEmojiForContext(content);
-      return `${emoji} ${content}`;
+      return `${content} ${emoji}`;
     });
   };
 
