@@ -36,7 +36,12 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
     
     async function fetchData() {
       try {
-        const response = await fetch(`/api/transformations/${id}`);
+        const response = await fetch(`/api/transformations/${id}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        });
         if (!response.ok) throw new Error('Transformation not found');
         const result = await response.json();
         setData(result);
@@ -53,7 +58,12 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
           
           const interval = setInterval(async () => {
             try {
-              const pollResponse = await fetch(`/api/transformations/${id}`);
+              const pollResponse = await fetch(`/api/transformations/${id}`, {
+                cache: 'no-store',
+                headers: {
+                  'Cache-Control': 'no-cache',
+                },
+              });
               if (pollResponse.ok) {
                 const pollResult = await pollResponse.json();
                 setData(pollResult);

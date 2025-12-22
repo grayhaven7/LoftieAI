@@ -3,9 +3,10 @@ import { getTransformations } from '@/lib/storage';
 
 export async function GET() {
   const isVercel = process.env.VERCEL === '1';
-  const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
-  const blobTokenPreview = hasBlobToken 
-    ? `${process.env.BLOB_READ_WRITE_TOKEN.substring(0, 20)}...` 
+  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  const hasBlobToken = !!blobToken;
+  const blobTokenPreview = blobToken 
+    ? `${blobToken.substring(0, 20)}...` 
     : 'NOT SET';
 
   try {

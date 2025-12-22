@@ -21,7 +21,12 @@ export default function AdminPage() {
 
   const fetchTransformations = async () => {
     try {
-      const response = await fetch('/api/transformations');
+      const response = await fetch('/api/transformations', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setTransformations(data);
