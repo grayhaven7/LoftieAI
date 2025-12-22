@@ -11,6 +11,7 @@ interface TransformationRecord {
   afterImageUrl: string;
   userEmail?: string;
   createdAt: string;
+  status: 'processing' | 'completed' | 'failed';
 }
 
 export default function AdminPage() {
@@ -49,11 +50,14 @@ export default function AdminPage() {
     });
   };
 
+  // Only show completed transformations in the main list
+  const completedTransformations = transformations.filter(t => t.status === 'completed');
+  
   const stats = [
-    { value: transformations.length, label: 'Total' },
-    { value: transformations.filter(t => t.userEmail).length, label: 'With Email' },
+    { value: completedTransformations.length, label: 'Completed' },
+    { value: transformations.filter(t => t.status === 'processing').length, label: 'Processing' },
     {
-      value: transformations.filter(t => {
+      value: completedTransformations.filter(t => {
         const d = new Date(t.createdAt);
         return d.toDateString() === new Date().toDateString();
       }).length,
@@ -106,7 +110,7 @@ export default function AdminPage() {
               <div className="w-8 h-8 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               <p className="text-[var(--color-text-muted)] text-sm">Loading...</p>
             </div>
-          ) : transformations.length === 0 ? (
+          ) : completedTransformations.length === 0 ? (
             <div className="card text-center py-12">
               <ImageIcon className="w-8 h-8 text-[var(--color-text-muted)] mx-auto mb-3" />
               <h3 className="text-sm text-[var(--color-text-primary)] font-medium mb-1">No transformations</h3>
@@ -128,7 +132,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {transformations.map((t) => (
+                    {completedTransformations.map((t) => (
                       <tr key={t.id}>
                         <td>
                           <img src={t.afterImageUrl} alt="" className="w-12 h-8 object-cover rounded" />
@@ -151,7 +155,7 @@ export default function AdminPage() {
 
               {/* Mobile */}
               <div className="md:hidden space-y-3">
-                {transformations.map((t, i) => (
+                {completedTransformations.map((t, i) => (
                   <motion.div
                     key={t.id}
                     initial={{ opacity: 0, y: 10 }}
