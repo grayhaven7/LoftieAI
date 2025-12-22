@@ -180,31 +180,34 @@ export async function declutterImageWithGemini(base64Image: string, _declutterin
     mimeType = mimeMatch[1];
   }
 
-  const prompt = `This is a photo editing task. Edit THIS EXACT photo to tidy up the room.
+  const prompt = `PHOTO EDIT TASK: Make this messy room look clean and tidy.
 
-PRESERVE EXACTLY (do not change):
-- The room itself (walls, floor, ceiling, windows, doors)
-- All furniture (bed, dresser, nightstands - keep in same positions)
-- The camera angle and perspective
-- The lighting and colors
+DO NOT CHANGE THE ROOM STRUCTURE:
+- Keep ALL windows exactly as they are (same size, same position, same number)
+- Keep ALL walls, doors, floor exactly the same
+- Keep ALL furniture in the exact same positions
+- Keep the exact same camera angle and lighting
 
-EDIT ONLY THE CLUTTER - tidy it up by:
-- Clothes on floor/bed → neatly folded in small stacks on the dresser or bed corner
-- Scattered items → gathered and arranged neatly on surfaces
-- Messy bedding → straightened and made neat
+TIDY UP THE MESS:
+- Make the bed neatly with smooth, flat bedding
+- Fold all clothes into neat small stacks and place on dresser or in a corner
+- Clear the floor completely - no items on the floor
+- Arrange any items on surfaces in neat, orderly rows
+- Everything should look clean, organized, and Instagram-worthy
 
-Keep everything in the photo. Just make it look tidy and organized. This should look like someone spent 10 minutes tidying up - same room, same stuff, just neat.`;
+The result should be EXACTLY this room, but looking like a professional cleaner just finished organizing it. Spotless, tidy, everything in its place.`;
 
   // Use retry logic for rate limit handling
+  // Put image FIRST, then prompt - this helps with image editing tasks
   const result = await withRetry(async () => {
     return await model.generateContent([
-      prompt,
       {
         inlineData: {
           mimeType,
           data: base64Data,
         },
       },
+      prompt,
     ]);
   });
 
