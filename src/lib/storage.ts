@@ -9,9 +9,16 @@ const LOCAL_UPLOADS_PATH = path.join(process.cwd(), 'public', 'uploads');
 
 // Check if we should use local storage (no blob token configured)
 function useLocalStorage(): boolean {
-  // Only use local storage if BLOB_READ_WRITE_TOKEN is not set
-  // In production on Vercel, this token should always be set
-  return !process.env.BLOB_READ_WRITE_TOKEN;
+  // Only use local storage if BLOB_READ_WRITE_TOKEN is not set AND we're not on Vercel
+  // On Vercel, the file system is read-only so we must use Blob storage
+  const isVercel = process.env.VERCEL === '1';
+  const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
+  
+  if (isVercel && !hasBlobToken) {
+    console.error('WARNING: Running on Vercel without BLOB_READ_WRITE_TOKEN. Storage will not work!');
+  }
+  
+  return !hasBlobToken && !isVercel;
 }
 
 function getBlobToken(): string | null {
@@ -31,7 +38,7 @@ function ensureLocalDirs(): void {
 }
 
 export async function getTransformations(): Promise<RoomTransformation[]> {
-  // Always try local storage first in development
+  // Use local storage in development
   if (useLocalStorage()) {
     try {
       ensureLocalDirs();
@@ -47,20 +54,29 @@ export async function getTransformations(): Promise<RoomTransformation[]> {
   }
 
   // Use Vercel Blob in production
+  const token = getBlobToken();
+  if (!token) {
+    console.error('BLOB_READ_WRITE_TOKEN is not configured - cannot read transformations');
+    return [];
+  }
+  
   try {
-    const token = getBlobToken();
-    if (!token) {
-      throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
-    }
-    
     const { blobs } = await list({ prefix: TRANSFORMATIONS_BLOB_KEY, token });
+    console.log(`Found ${blobs.length} blobs with prefix ${TRANSFORMATIONS_BLOB_KEY}`);
     
     if (blobs.length === 0) {
+      console.log('No transformations.json blob found, returning empty array');
       return [];
     }
     
     const response = await fetch(blobs[0].url);
+    if (!response.ok) {
+      console.error(`Failed to fetch transformations.json: ${response.status}`);
+      return [];
+    }
+    
     const data = await response.json();
+    console.log(`Loaded ${data.length} transformations from blob`);
     return data as RoomTransformation[];
   } catch (error) {
     console.error('Error fetching transformations from blob:', error);
@@ -74,6 +90,8 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
 }
 
 export async function saveTransformation(transformation: RoomTransformation): Promise<void> {
+  console.log(`Saving transformation ${transformation.id} with status ${transformation.status}`);
+  
   const transformations = await getTransformations();
   const existingIndex = transformations.findIndex(t => t.id === transformation.id);
   
@@ -88,6 +106,7 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
     try {
       ensureLocalDirs();
       fs.writeFileSync(LOCAL_DATA_PATH, JSON.stringify(transformations, null, 2));
+      console.log(`Saved transformation to local file`);
       return;
     } catch (error) {
       console.error('Error saving local transformation:', error);
@@ -98,17 +117,26 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
   // Use Vercel Blob in production
   const token = getBlobToken();
   if (!token) {
+    console.error('BLOB_READ_WRITE_TOKEN is not configured - cannot save transformation');
     throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
   }
   
-  await put(TRANSFORMATIONS_BLOB_KEY, JSON.stringify(transformations, null, 2), {
-    access: 'public',
-    addRandomSuffix: false,
-    token,
-  });
+  try {
+    await put(TRANSFORMATIONS_BLOB_KEY, JSON.stringify(transformations, null, 2), {
+      access: 'public',
+      addRandomSuffix: false,
+      token,
+    });
+    console.log(`Saved transformation to Vercel Blob`);
+  } catch (error) {
+    console.error('Error saving transformation to blob:', error);
+    throw error;
+  }
 }
 
 export async function saveImage(base64Data: string, filename: string): Promise<string> {
+  console.log(`Saving image: ${filename}`);
+  
   // Remove data URL prefix if present
   let base64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
   
@@ -127,6 +155,8 @@ export async function saveImage(base64Data: string, filename: string): Promise<s
     throw new Error('Failed to decode base64 image data');
   }
   
+  console.log(`Image buffer size: ${buffer.length} bytes`);
+  
   // Determine content type from filename
   const contentType = filename.endsWith('.png') ? 'image/png' : 'image/jpeg';
 
@@ -136,7 +166,7 @@ export async function saveImage(base64Data: string, filename: string): Promise<s
       ensureLocalDirs();
       const filePath = path.join(LOCAL_UPLOADS_PATH, filename);
       fs.writeFileSync(filePath, buffer);
-      // Return relative URL for local development
+      console.log(`Saved image to local file: ${filePath}`);
       return `/uploads/${filename}`;
     } catch (error) {
       console.error('Error saving local image:', error);
@@ -147,17 +177,23 @@ export async function saveImage(base64Data: string, filename: string): Promise<s
   // Use Vercel Blob in production
   const token = getBlobToken();
   if (!token) {
+    console.error('BLOB_READ_WRITE_TOKEN is not configured - cannot save image');
     throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
   }
   
-  const blob = await put(`uploads/${filename}`, buffer, {
-    access: 'public',
-    contentType,
-    addRandomSuffix: false,
-    token,
-  });
-  
-  return blob.url;
+  try {
+    const blob = await put(`uploads/${filename}`, buffer, {
+      access: 'public',
+      contentType,
+      addRandomSuffix: false,
+      token,
+    });
+    console.log(`Saved image to Vercel Blob: ${blob.url}`);
+    return blob.url;
+  } catch (error) {
+    console.error('Error saving image to blob:', error);
+    throw error;
+  }
 }
 
 export async function saveImageFromUrl(imageUrl: string, filename: string): Promise<string> {
