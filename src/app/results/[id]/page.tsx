@@ -29,6 +29,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
   const [planExpanded, setPlanExpanded] = useState(true);
   const [imageRetryCount, setImageRetryCount] = useState(0);
   const [afterImageLoaded, setAfterImageLoaded] = useState(false);
+  const [afterImageError, setAfterImageError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Get image URL with cache-busting if needed
@@ -44,17 +45,23 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
 
   // Handle image load error with retry logic
   const handleImageError = useCallback((isAfter: boolean) => {
-    if (isAfter && imageRetryCount < 5) {
-      // Retry loading the after image with increasing delays
-      const delay = Math.min(1000 * (imageRetryCount + 1), 3000);
-      setTimeout(() => {
-        setImageRetryCount(prev => prev + 1);
-      }, delay);
+    if (isAfter) {
+      if (imageRetryCount < 5) {
+        // Retry loading the after image with increasing delays
+        const delay = Math.min(1000 * (imageRetryCount + 1), 3000);
+        setTimeout(() => {
+          setImageRetryCount(prev => prev + 1);
+        }, delay);
+      } else {
+        // Retries exhausted, show error state
+        setAfterImageError(true);
+      }
     }
   }, [imageRetryCount]);
 
   const handleAfterImageLoad = useCallback(() => {
     setAfterImageLoaded(true);
+    setAfterImageError(false);
   }, []);
 
   useEffect(() => {
@@ -221,20 +228,40 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
             </div>
             <div className="relative aspect-[4/3] overflow-hidden">
               <AnimatePresence mode="wait">
-                <motion.img
-                  key={showAfter ? `after-${imageRetryCount}` : 'before'}
-                  src={showAfter ? getImageUrl(data.afterImageUrl, true) : getImageUrl(data.beforeImageUrl, false)}
-                  alt={showAfter ? 'Transformed' : 'Original'}
-                  className="w-full h-full object-cover"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  onLoad={showAfter ? handleAfterImageLoad : undefined}
-                  onError={() => handleImageError(showAfter)}
-                />
+                {showAfter && (!data.afterImageUrl || afterImageError) ? (
+                  <motion.div
+                    key="error"
+                    className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <div className="text-center px-4">
+                      <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
+                        <svg className="w-6 h-6 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-[var(--color-text-secondary)] text-sm mb-1">Image unavailable</p>
+                      <p className="text-[var(--color-text-muted)] text-xs">The transformed image could not be loaded</p>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.img
+                    key={showAfter ? `after-${imageRetryCount}` : 'before'}
+                    src={showAfter ? getImageUrl(data.afterImageUrl, true) : getImageUrl(data.beforeImageUrl, false)}
+                    alt={showAfter ? 'Transformed' : 'Original'}
+                    className="w-full h-full object-cover"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    onLoad={showAfter ? handleAfterImageLoad : undefined}
+                    onError={() => handleImageError(showAfter)}
+                  />
+                )}
               </AnimatePresence>
-              {showAfter && !afterImageLoaded && imageRetryCount > 0 && (
+              {showAfter && !afterImageLoaded && !afterImageError && imageRetryCount > 0 && (
                 <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]">
                   <div className="text-center">
                     <div className="w-6 h-6 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -246,7 +273,11 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
           </div>
 
           <div className="flex gap-2 mt-4">
-            <button onClick={handleDownload} className="btn-secondary">
+            <button 
+              onClick={handleDownload} 
+              className="btn-secondary"
+              disabled={!data?.afterImageUrl || afterImageError}
+            >
               <Download className="w-3.5 h-3.5" /> Download
             </button>
             <button onClick={handleShare} className="btn-secondary">
