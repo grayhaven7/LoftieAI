@@ -36,14 +36,30 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
     
     async function fetchData() {
       try {
-        const response = await fetch(`/api/transformations/${id}`, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-          },
-        });
-        if (!response.ok) throw new Error('Transformation not found');
-        const result = await response.json();
+        // Transformations can be created and persisted asynchronously; on some stores (e.g. blob),
+        // the record may briefly appear as "not found" right after creation. Retry a bit before failing.
+        const maxAttempts = 6;
+        let response: Response | null = null;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          response = await fetch(`/api/transformations/${id}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache',
+            },
+          });
+
+          if (response.ok) break;
+
+          // Retry only on "not found" during the initial grace window.
+          if (response.status !== 404 || attempt === maxAttempts) {
+            throw new Error('Transformation not found');
+          }
+
+          await new Promise((r) => setTimeout(r, Math.min(1000, 75 * Math.pow(2, attempt - 1))));
+        }
+
+        const result = await response!.json();
         setData(result);
         if (result.userEmail) setEmail(result.userEmail);
         

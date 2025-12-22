@@ -35,6 +35,10 @@ function ensureLocalDirs(): void {
   }
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function getTransformations(): Promise<RoomTransformation[]> {
   if (useLocalStorage()) {
     try {
@@ -114,21 +118,42 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
   
   try {
     console.log(`[Storage] Fetching transformation ${id} from blob...`);
-    const { blobs } = await list({ prefix: `transformations/${id}.json`, token });
-    if (blobs.length === 0) {
-      console.log(`[Storage] Transformation ${id} not found in blob storage`);
-      return null;
+
+    // NOTE: Vercel Blob `list()` can be briefly eventually-consistent right after a `put()`.
+    // This can cause transient "not found" during the first couple seconds after creation.
+    const maxAttempts = 6;
+    let lastListCount = 0;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const { blobs } = await list({
+        prefix: `transformations/${id}.json`,
+        limit: 1,
+        token,
+      });
+      lastListCount = blobs.length;
+
+      if (blobs.length > 0) {
+        const response = await fetch(blobs[0].url, { cache: 'no-store' });
+        if (!response.ok) {
+          console.error(`[Storage] Failed to fetch transformation ${id}: ${response.status} ${response.statusText}`);
+          return null;
+        }
+
+        const data = await response.json() as RoomTransformation;
+        console.log(`[Storage] Successfully loaded transformation ${id} with status ${data.status}`);
+        return data;
+      }
+
+      // Backoff a bit and retry.
+      // Total wait ~= 75ms + 150ms + 300ms + 600ms + 1000ms + 1000ms  (max ~3.1s)
+      if (attempt < maxAttempts) {
+        const delayMs = Math.min(1000, Math.round(75 * Math.pow(2, attempt - 1)));
+        await sleep(delayMs);
+      }
     }
-    
-    const response = await fetch(blobs[0].url);
-    if (!response.ok) {
-      console.error(`[Storage] Failed to fetch transformation ${id}: ${response.status} ${response.statusText}`);
-      return null;
-    }
-    
-    const data = await response.json() as RoomTransformation;
-    console.log(`[Storage] Successfully loaded transformation ${id} with status ${data.status}`);
-    return data;
+
+    console.log(`[Storage] Transformation ${id} not found in blob storage after retries (last list count=${lastListCount})`);
+    return null;
   } catch (error) {
     console.error(`[Storage] Error fetching transformation ${id}:`, error);
     if (error instanceof Error) {
