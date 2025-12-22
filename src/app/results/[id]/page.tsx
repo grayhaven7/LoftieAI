@@ -32,6 +32,8 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    let processingTriggered = false;
+    
     async function fetchData() {
       try {
         const response = await fetch(`/api/transformations/${id}`);
@@ -40,8 +42,15 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
         setData(result);
         if (result.userEmail) setEmail(result.userEmail);
         
-        // If still processing, poll for updates every 3 seconds
+        // If still processing, trigger the processing endpoint and poll for updates
         if (result.status === 'processing') {
+          // Trigger processing if not already triggered
+          if (!processingTriggered) {
+            processingTriggered = true;
+            // Fire and forget - start processing in background
+            fetch(`/api/process/${id}`, { method: 'POST' }).catch(console.error);
+          }
+          
           const interval = setInterval(async () => {
             try {
               const pollResponse = await fetch(`/api/transformations/${id}`);
@@ -111,6 +120,40 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
     } else {
       await navigator.clipboard.writeText(url);
     }
+  };
+
+  const getEmojiForContext = (text: string): string => {
+    const lowerText = text.toLowerCase();
+    
+    // Match keywords to emojis
+    if (lowerText.includes('sunshine') || lowerText.includes('blanket') || lowerText.includes('bright')) return '☀️';
+    if (lowerText.includes('window') || lowerText.includes('shine') || lowerText.includes('sparkle')) return '✨';
+    if (lowerText.includes('bedside') || lowerText.includes('nightstand') || lowerText.includes('table')) return '🛏️';
+    if (lowerText.includes('love') || lowerText.includes('care')) return '💕';
+    if (lowerText.includes('wrangle') || lowerText.includes('rogue') || lowerText.includes('gather') || lowerText.includes('collect')) return '📦';
+    if (lowerText.includes('clothes') || lowerText.includes('fold') || lowerText.includes('hang') || lowerText.includes('wardrobe')) return '👕';
+    if (lowerText.includes('home') || lowerText.includes('belong') || lowerText.includes('place')) return '🏠';
+    if (lowerText.includes('book') || lowerText.includes('read')) return '📚';
+    if (lowerText.includes('plant') || lowerText.includes('green')) return '🌿';
+    if (lowerText.includes('clean') || lowerText.includes('tidy') || lowerText.includes('fresh')) return '🧹';
+    if (lowerText.includes('relax') || lowerText.includes('calm') || lowerText.includes('peace')) return '🧘';
+    if (lowerText.includes('storage') || lowerText.includes('bin') || lowerText.includes('container')) return '🗂️';
+    if (lowerText.includes('desk') || lowerText.includes('work') || lowerText.includes('office')) return '💼';
+    if (lowerText.includes('kitchen') || lowerText.includes('cook')) return '🍳';
+    if (lowerText.includes('bathroom') || lowerText.includes('shower')) return '🚿';
+    if (lowerText.includes('start') || lowerText.includes('begin') || lowerText.includes('first')) return '🎯';
+    if (lowerText.includes('final') || lowerText.includes('last') || lowerText.includes('finish')) return '🎉';
+    
+    // Default emoji for general organizing
+    return '✅';
+  };
+
+  const formatStepWithEmoji = (step: string): string => {
+    // Replace **text** pattern with emoji + text (without bold markers)
+    return step.replace(/\*\*([^*]+)\*\*/g, (_, content) => {
+      const emoji = getEmojiForContext(content);
+      return `${emoji} ${content}`;
+    });
   };
 
   const parseSteps = (plan: string | undefined): string[] => {
@@ -310,7 +353,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
                       <div key={i} className="step-card">
                         <div className="flex gap-3">
                           <span className="text-[var(--color-accent)] font-semibold text-xs">{String(i + 1).padStart(2, '0')}</span>
-                          <p className="text-[var(--color-text-secondary)] text-xs leading-relaxed flex-1">{step.trim()}</p>
+                          <p className="text-[var(--color-text-secondary)] text-xs leading-relaxed flex-1">{formatStepWithEmoji(step.trim())}</p>
                         </div>
                       </div>
                     ))}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, X, ArrowUpRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -11,38 +11,9 @@ export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [email, setEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-
-  // Soft notification sound using Web Audio API
-  const playNotificationSound = useCallback(() => {
-    try {
-      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      
-      // Create a soft, pleasant chime
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      // Gentle sine wave for a soft tone
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(830, audioContext.currentTime); // G5 note
-      oscillator.frequency.setValueAtTime(1046, audioContext.currentTime + 0.1); // C6 note
-      
-      // Soft volume with fade out
-      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.4);
-    } catch {
-      // Silently fail if audio is not supported
-    }
-  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -92,18 +63,7 @@ export default function Home() {
     if (!selectedImage) return;
 
     setIsProcessing(true);
-    setProgress(0);
     setError(null);
-
-    const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return prev;
-        }
-        return prev + Math.random() * 15;
-      });
-    }, 500);
 
     try {
       const response = await fetch('/api/transform', {
@@ -118,23 +78,14 @@ export default function Home() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to transform image');
+        throw new Error(data.error || 'Failed to create transformation');
       }
 
-      clearInterval(progressInterval);
-      setProgress(100);
-
-      // Play soft notification sound before redirect
-      playNotificationSound();
-
-      setTimeout(() => {
-        router.push(`/results/${data.id}`);
-      }, 400);
+      // Navigate immediately to the results page - processing happens there
+      router.push(`/results/${data.id}`);
     } catch (err) {
-      clearInterval(progressInterval);
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setIsProcessing(false);
-      setProgress(0);
     }
   };
 
@@ -290,23 +241,10 @@ export default function Home() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="space-y-2"
+                    className="flex items-center justify-center gap-2 py-2"
                   >
-                    <div className="progress-bar">
-                      <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
-                    </div>
-                    <p className="text-[var(--color-text-muted)] text-xs text-center">
-                      {progress < 30 ? 'Analyzing...' : progress < 60 ? 'Styling...' : progress < 90 ? 'Creating plan...' : 'Almost there...'}
-                    </p>
-                    {progress >= 60 && (
-                      <motion.p 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-[var(--color-text-muted)] text-[10px] text-center opacity-70"
-                      >
-                        Please don&apos;t refresh — this may take up to a minute
-                      </motion.p>
-                    )}
+                    <div className="w-4 h-4 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
+                    <p className="text-[var(--color-text-muted)] text-xs">Uploading...</p>
                   </motion.div>
                 )}
 

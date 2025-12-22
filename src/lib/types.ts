@@ -7,6 +7,7 @@ export interface RoomTransformation {
   userEmail?: string;
   createdAt: string;
   status: 'processing' | 'completed' | 'failed';
+  originalImageBase64?: string; // Stored temporarily for processing
 }
 
 export interface TransformationRequest {
