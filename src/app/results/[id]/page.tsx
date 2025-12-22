@@ -14,6 +14,7 @@ interface TransformationData {
   audioUrl?: string;
   userEmail?: string;
   createdAt: string;
+  status: 'processing' | 'completed' | 'failed';
 }
 
 export default function ResultsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -38,6 +39,25 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
         const result = await response.json();
         setData(result);
         if (result.userEmail) setEmail(result.userEmail);
+        
+        // If still processing, poll for updates every 3 seconds
+        if (result.status === 'processing') {
+          const interval = setInterval(async () => {
+            try {
+              const pollResponse = await fetch(`/api/transformations/${id}`);
+              if (pollResponse.ok) {
+                const pollResult = await pollResponse.json();
+                setData(pollResult);
+                if (pollResult.status !== 'processing') {
+                  clearInterval(interval);
+                }
+              }
+            } catch {
+              // Ignore polling errors
+            }
+          }, 3000);
+          return () => clearInterval(interval);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load');
       } finally {
@@ -149,15 +169,39 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
 
       {/* Main */}
       <main className="max-w-2xl mx-auto px-4 py-8 sm:py-10">
-        {/* Success */}
+        {/* Status */}
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-          <span className="badge badge-success mb-3 inline-flex">
-            <Check className="w-3 h-3" /> Complete
-          </span>
-          <h1 className="text-2xl sm:text-3xl text-[var(--color-text-primary)] tracking-tight mb-1">
-            Your <span className="text-emphasis">transformation</span>
-          </h1>
-          <p className="text-sm text-[var(--color-text-secondary)]">See what your space could look like</p>
+          {data.status === 'processing' ? (
+            <>
+              <span className="badge mb-3 inline-flex" style={{ background: 'rgba(251, 191, 36, 0.15)', color: 'rgb(251, 191, 36)' }}>
+                <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" /> Processing
+              </span>
+              <h1 className="text-2xl sm:text-3xl text-[var(--color-text-primary)] tracking-tight mb-1">
+                Creating your <span className="text-emphasis">transformation</span>
+              </h1>
+              <p className="text-sm text-[var(--color-text-secondary)]">This may take a minute...</p>
+            </>
+          ) : data.status === 'failed' ? (
+            <>
+              <span className="badge mb-3 inline-flex" style={{ background: 'rgba(239, 68, 68, 0.15)', color: 'rgb(239, 68, 68)' }}>
+                Failed
+              </span>
+              <h1 className="text-2xl sm:text-3xl text-[var(--color-text-primary)] tracking-tight mb-1">
+                Transformation <span className="text-emphasis">failed</span>
+              </h1>
+              <p className="text-sm text-[var(--color-text-secondary)]">Please try uploading your image again</p>
+            </>
+          ) : (
+            <>
+              <span className="badge badge-success mb-3 inline-flex">
+                <Check className="w-3 h-3" /> Complete
+              </span>
+              <h1 className="text-2xl sm:text-3xl text-[var(--color-text-primary)] tracking-tight mb-1">
+                Your <span className="text-emphasis">transformation</span>
+              </h1>
+              <p className="text-sm text-[var(--color-text-secondary)]">See what your space could look like</p>
+            </>
+          )}
         </motion.div>
 
         {/* Image */}
@@ -183,7 +227,23 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
             </div>
             <div className="relative aspect-[4/3] overflow-hidden">
               <AnimatePresence mode="wait">
-                {showAfter && (!data.afterImageUrl || afterImageError) ? (
+                {showAfter && data.status === 'processing' ? (
+                  <motion.div
+                    key="processing"
+                    className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <div className="text-center px-4">
+                      <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[rgba(251,191,36,0.1)] flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-[rgb(251,191,36)] border-t-transparent rounded-full animate-spin" />
+                      </div>
+                      <p className="text-[var(--color-text-secondary)] text-sm mb-1">Generating...</p>
+                      <p className="text-[var(--color-text-muted)] text-xs">Your transformation is being created</p>
+                    </div>
+                  </motion.div>
+                ) : showAfter && (data.status === 'failed' || !data.afterImageUrl || afterImageError) ? (
                   <motion.div
                     key="error"
                     className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]"

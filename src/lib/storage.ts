@@ -9,7 +9,9 @@ const LOCAL_UPLOADS_PATH = path.join(process.cwd(), 'public', 'uploads');
 
 // Check if we should use local storage (no blob token configured)
 function useLocalStorage(): boolean {
-  return !process.env.BLOB_READ_WRITE_TOKEN || process.env.NODE_ENV === 'development';
+  // Only use local storage if BLOB_READ_WRITE_TOKEN is not set
+  // In production on Vercel, this token should always be set
+  return !process.env.BLOB_READ_WRITE_TOKEN;
 }
 
 function getBlobToken(): string | null {
