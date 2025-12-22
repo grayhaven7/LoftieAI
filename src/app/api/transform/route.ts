@@ -17,6 +17,8 @@ function getOpenAIClient() {
 }
 
 export async function POST(request: NextRequest) {
+  let transformation: RoomTransformation | null = null;
+  
   try {
     const { imageBase64, userEmail } = await request.json();
 
@@ -29,15 +31,18 @@ export async function POST(request: NextRequest) {
 
     const id = uuidv4();
     const timestamp = Date.now();
+    
+    console.log(`Starting transformation ${id}`);
 
     // Save the before image
     const beforeImageUrl = await saveImage(
       imageBase64,
       `before-${id}-${timestamp}.jpg`
     );
+    console.log(`Saved before image: ${beforeImageUrl}`);
 
     // Create initial transformation record
-    const transformation: RoomTransformation = {
+    transformation = {
       id,
       beforeImageUrl,
       afterImageUrl: '',
@@ -47,6 +52,7 @@ export async function POST(request: NextRequest) {
       status: 'processing',
     };
     await saveTransformation(transformation);
+    console.log(`Created transformation record with status: processing`);
 
     const openai = getOpenAIClient();
     
@@ -55,20 +61,24 @@ export async function POST(request: NextRequest) {
       ? imageBase64 
       : `data:image/jpeg;base64,${imageBase64}`;
 
-    // Use Gemini NanoBanana to declutter the image while keeping it looking the same
+    // Use Gemini to declutter the image
+    console.log(`Calling Gemini to declutter image...`);
     const declutteredImageBase64 = await declutterImageWithGemini(imageUrl);
+    console.log(`Gemini returned decluttered image`);
     
     // Save the decluttered image
     const afterImageUrl = await saveImage(
       declutteredImageBase64,
       `after-${id}-${timestamp}.png`
     );
+    console.log(`Saved after image: ${afterImageUrl}`);
 
     if (!afterImageUrl) {
-      throw new Error('Failed to generate image');
+      throw new Error('Failed to save decluttered image');
     }
 
     // Generate the decluttering plan using Gemini
+    console.log(`Generating decluttering plan...`);
     const planPrompt = `You are a warm, friendly, and encouraging home organization expert. Your name is Loftie. You help people transform their spaces with compassion and positivity.
 
 Create a personalized decluttering plan based on this room image. Your tone should be:
@@ -87,11 +97,13 @@ End with a motivational closing message.
 Be specific about what you see in this room and what should be done.`;
 
     const declutteringPlan = await analyzeImageWithGemini(imageUrl, planPrompt);
+    console.log(`Generated decluttering plan (${declutteringPlan.length} chars)`);
 
     // Generate TTS audio for the decluttering plan
     let audioUrl = '';
     if (declutteringPlan) {
       try {
+        console.log(`Generating TTS audio...`);
         const ttsResponse = await openai.audio.speech.create({
           model: 'tts-1',
           voice: 'nova',
@@ -101,6 +113,7 @@ Be specific about what you see in this room and what should be done.`;
 
         const audioBuffer = await ttsResponse.arrayBuffer();
         audioUrl = await saveAudio(audioBuffer, `audio-${id}-${timestamp}.mp3`);
+        console.log(`Saved audio: ${audioUrl}`);
       } catch (ttsError) {
         console.error('TTS generation failed:', ttsError);
         // Don't fail the whole request if TTS fails
@@ -113,6 +126,7 @@ Be specific about what you see in this room and what should be done.`;
     transformation.audioUrl = audioUrl;
     transformation.status = 'completed';
     await saveTransformation(transformation);
+    console.log(`Transformation ${id} completed successfully`);
 
     // Send email if provided
     if (userEmail) {
@@ -127,7 +141,6 @@ Be specific about what you see in this room and what should be done.`;
         });
       } catch (emailError) {
         console.error('Failed to send email:', emailError);
-        // Don't fail the whole request if email fails
       }
     }
 
@@ -138,6 +151,18 @@ Be specific about what you see in this room and what should be done.`;
     });
   } catch (error) {
     console.error('Transform error:', error);
+    
+    // Mark transformation as failed if we created one
+    if (transformation) {
+      try {
+        transformation.status = 'failed';
+        await saveTransformation(transformation);
+        console.log(`Marked transformation ${transformation.id} as failed`);
+      } catch (saveError) {
+        console.error('Failed to save failed status:', saveError);
+      }
+    }
+    
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to transform image' },
       { status: 500 }

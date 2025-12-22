@@ -75,9 +75,27 @@ export async function getTransformations(): Promise<RoomTransformation[]> {
       return [];
     }
     
-    const data = await response.json();
-    console.log(`Loaded ${data.length} transformations from blob`);
-    return data as RoomTransformation[];
+    const text = await response.text();
+    
+    // Handle empty or invalid JSON
+    if (!text || text.trim() === '') {
+      console.log('transformations.json is empty, returning empty array');
+      return [];
+    }
+    
+    try {
+      const data = JSON.parse(text);
+      if (!Array.isArray(data)) {
+        console.error('transformations.json is not an array, returning empty array');
+        return [];
+      }
+      console.log(`Loaded ${data.length} transformations from blob`);
+      return data as RoomTransformation[];
+    } catch (parseError) {
+      console.error('Failed to parse transformations.json:', parseError);
+      console.error('Raw content:', text.substring(0, 200));
+      return [];
+    }
   } catch (error) {
     console.error('Error fetching transformations from blob:', error);
     return [];
