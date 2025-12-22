@@ -61,23 +61,8 @@ export async function POST(request: NextRequest) {
       ? imageBase64 
       : `data:image/jpeg;base64,${imageBase64}`;
 
-    // Use Gemini to declutter the image
-    console.log(`Calling Gemini to declutter image...`);
-    const declutteredImageBase64 = await declutterImageWithGemini(imageUrl);
-    console.log(`Gemini returned decluttered image`);
-    
-    // Save the decluttered image
-    const afterImageUrl = await saveImage(
-      declutteredImageBase64,
-      `after-${id}-${timestamp}.png`
-    );
-    console.log(`Saved after image: ${afterImageUrl}`);
-
-    if (!afterImageUrl) {
-      throw new Error('Failed to save decluttered image');
-    }
-
-    // Generate the decluttering plan using Gemini
+    // STEP 1: Generate the decluttering plan FIRST
+    // This plan will guide the image generation so the after image matches the plan
     console.log(`Generating decluttering plan...`);
     const planPrompt = `You are a warm, friendly, and encouraging home organization expert. Your name is Loftie. You help people transform their spaces with compassion and positivity.
 
@@ -87,17 +72,39 @@ Create a personalized decluttering plan based on this room image. Your tone shou
 - Practical and actionable
 - Celebratory of small wins
 
+IMPORTANT: Focus on ORGANIZING items, not removing them. Every item in the room should stay - just be tidied up and put in its proper place.
+
 Format your response as a numbered list of 5-8 specific, actionable steps. Each step should:
 1. Start with an encouraging phrase
-2. Give a specific action
+2. Give a specific action about WHERE to put or HOW to organize specific items you see
 3. Explain the benefit
 
-End with a motivational closing message.
+Be VERY SPECIFIC about what items you see and exactly where they should go when organized. For example:
+- "Fold the blue blanket on the floor and drape it over the armchair"
+- "Gather the scattered books and stack them neatly on the nightstand"
+- "Pick up the clothes near the bed and fold them into the dresser drawer"
 
-Be specific about what you see in this room and what should be done.`;
+End with a motivational closing message.`;
 
     const declutteringPlan = await analyzeImageWithGemini(imageUrl, planPrompt);
     console.log(`Generated decluttering plan (${declutteringPlan.length} chars)`);
+
+    // STEP 2: Generate the organized room image based on the decluttering plan
+    // The after image will show the results of following the specific plan
+    console.log(`Calling Gemini to generate organized room based on plan...`);
+    const declutteredImageBase64 = await declutterImageWithGemini(imageUrl, declutteringPlan);
+    console.log(`Gemini returned organized room image`);
+    
+    // Save the organized image
+    const afterImageUrl = await saveImage(
+      declutteredImageBase64,
+      `after-${id}-${timestamp}.png`
+    );
+    console.log(`Saved after image: ${afterImageUrl}`);
+
+    if (!afterImageUrl) {
+      throw new Error('Failed to save organized image');
+    }
 
     // Generate TTS audio for the decluttering plan
     let audioUrl = '';

@@ -162,11 +162,13 @@ export async function chatWithGemini(
 }
 
 /**
- * Declutter a room image using Gemini 2.0 Flash Image Generation
- * Returns the edited image as base64 while preserving the original room appearance
+ * Organize a messy room image using Gemini 2.0 Flash Image Generation
+ * Returns the edited image showing the same room with all items tidied and organized
+ * following the specific decluttering plan provided
  * @param base64Image - Base64 encoded image (with or without data URL prefix)
+ * @param declutteringPlan - The specific organization plan to follow when generating the after image
  */
-export async function declutterImageWithGemini(base64Image: string): Promise<string> {
+export async function declutterImageWithGemini(base64Image: string, declutteringPlan: string): Promise<string> {
   const model = getGeminiImageGen();
   
   // Remove data URL prefix if present
@@ -179,26 +181,33 @@ export async function declutterImageWithGemini(base64Image: string): Promise<str
     mimeType = mimeMatch[1];
   }
 
-  const prompt = `Edit this room image to remove ONLY clutter and mess. 
+  const prompt = `Edit this room image to show the RESULT of following this specific decluttering plan:
 
-KEEP EVERYTHING IN THESE CATEGORIES (do NOT remove):
-- All furniture (beds, couches, chairs, tables, desks, dressers, nightstands, shelves, cabinets, etc.)
-- All decorations (art, plants, lamps, mirrors, rugs, curtains, pillows, throws, etc.)
-- Built-in features (windows, doors, closets, outlets, vents, etc.)
-- Mounted items (TVs, shelves, wall decor)
+=== DECLUTTERING PLAN TO FOLLOW ===
+${declutteringPlan}
+=== END OF PLAN ===
 
-REMOVE ONLY THESE ITEMS (clutter/mess):
-- Clothes on the floor or draped over furniture
-- Trash, wrappers, and garbage
-- Random papers and mail scattered around
-- Items that clearly don't belong (dishes in bedroom, tools in living room, etc.)
-- Boxes and bags that appear to be clutter (not storage furniture)
-- Toys scattered on the floor
-- Shoes and accessories left out
-- Food containers and drink cups
-- Cords and cables that are messy (but keep electronics)
+CRITICAL INSTRUCTIONS:
+1. DO NOT REMOVE ANY ITEMS - organize and tidy them instead
+2. Every item in the messy room should still be visible in the organized version
+3. Follow the specific steps in the decluttering plan above to show what the room looks like AFTER completing those actions
+4. The after image should be visual proof that the plan was executed
 
-The result must look like the EXACT same room with the EXACT same furniture, just tidied up. Maintain the same camera angle, lighting, wall colors, and room layout. Only remove obvious clutter and mess while preserving everything else.`;
+SHOW THE ORGANIZED RESULT:
+- Clothes mentioned in the plan → show them folded, hung up, or put away neatly
+- Items on the floor → show them picked up and placed in proper locations
+- Scattered objects → show them gathered and organized
+- Messy surfaces → show them cleared and items arranged neatly
+- Any specific items mentioned in the plan → show them organized as described
+
+THE RESULT MUST SHOW:
+- The EXACT same room with ALL the same items (nothing removed)
+- Everything organized exactly as described in the decluttering plan
+- A clean, tidy appearance demonstrating the plan was followed
+- Same camera angle, lighting, wall colors, and room layout
+- The transformation from messy to organized (not messy to empty)
+
+This is the "after" photo that proves the decluttering plan was completed successfully.`;
 
   // Use retry logic for rate limit handling
   const result = await withRetry(async () => {
