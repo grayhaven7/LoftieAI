@@ -15,6 +15,14 @@ function getGeminiClient(): GoogleGenerativeAI {
 }
 
 /**
+ * Get the Gemini NanoBanana model for image editing/generation
+ * This model can edit images while preserving the original appearance
+ */
+export function getGeminiNanoBanana(): GenerativeModel {
+  return getGeminiClient().getGenerativeModel({ model: 'gemini-nanobanana' });
+}
+
+/**
  * Get the Gemini 2.0 Flash model for fast, multimodal tasks
  */
 export function getGeminiFlash(): GenerativeModel {
@@ -101,6 +109,52 @@ export async function chatWithGemini(
   const lastMessage = messages[messages.length - 1];
   const result = await chat.sendMessage(lastMessage.parts);
   return result.response.text();
+}
+
+/**
+ * Declutter a room image using Gemini NanoBanana
+ * Returns the edited image as base64 while preserving the original room appearance
+ * @param base64Image - Base64 encoded image (with or without data URL prefix)
+ */
+export async function declutterImageWithGemini(base64Image: string): Promise<string> {
+  const model = getGeminiNanoBanana();
+  
+  // Remove data URL prefix if present
+  const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+  
+  // Detect mime type from data URL or default to jpeg
+  let mimeType = 'image/jpeg';
+  const mimeMatch = base64Image.match(/^data:(image\/\w+);base64,/);
+  if (mimeMatch) {
+    mimeType = mimeMatch[1];
+  }
+
+  const prompt = `Clean and declutter this room image. Remove all clutter, mess, and disorganized items while keeping the room's structure, furniture, and original appearance exactly the same. The result should look like a tidy, organized version of the exact same room from the exact same angle. Do not change the room layout, furniture positions, wall colors, or lighting - only remove clutter and mess.`;
+
+  const result = await model.generateContent([
+    prompt,
+    {
+      inlineData: {
+        mimeType,
+        data: base64Data,
+      },
+    },
+  ]);
+
+  const response = result.response;
+  
+  // Extract the image from the response
+  const imagePart = response.candidates?.[0]?.content?.parts?.find(
+    (part: { inlineData?: { mimeType: string; data: string } }) => part.inlineData?.mimeType?.startsWith('image/')
+  );
+  
+  if (!imagePart?.inlineData?.data) {
+    throw new Error('No image returned from Gemini NanoBanana');
+  }
+  
+  // Return as data URL
+  const outputMimeType = imagePart.inlineData.mimeType || 'image/png';
+  return `data:${outputMimeType};base64,${imagePart.inlineData.data}`;
 }
 
 export { getGeminiClient };

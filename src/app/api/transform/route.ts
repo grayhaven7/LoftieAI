@@ -3,9 +3,10 @@ import OpenAI from 'openai';
 import { v4 as uuidv4 } from 'uuid';
 import { saveImage, saveTransformation, saveAudio } from '@/lib/storage';
 import { RoomTransformation } from '@/lib/types';
+import { declutterImageWithGemini, analyzeImageWithGemini } from '@/lib/gemini';
 
 // Increase timeout for Vercel serverless functions
-// This route makes multiple OpenAI API calls which can take 30-60+ seconds
+// This route makes multiple API calls which can take 30-60+ seconds
 export const maxDuration = 60; // seconds (requires Vercel Pro for >10s)
 
 function getOpenAIClient() {
@@ -54,84 +55,23 @@ export async function POST(request: NextRequest) {
       ? imageBase64 
       : `data:image/jpeg;base64,${imageBase64}`;
 
-    // Use GPT-4o for vision analysis to create image generation prompt
-    const analysisResponse = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: { url: imageUrl },
-            },
-            {
-              type: 'text',
-              text: `You are an expert interior designer and home stager. Analyze this room image and create a detailed prompt for generating a decluttered, styled version of the same room.
-
-IMPORTANT: The prompt should describe:
-1. The same room from the exact same angle/perspective
-2. All major furniture pieces should remain (sofas, beds, tables, etc.)
-3. All clutter, mess, and excessive items should be removed
-4. Minimal, tasteful decor additions (artwork, plants, lamps, throw pillows)
-5. Clean, organized surfaces
-6. Natural lighting enhanced
-7. Cohesive color palette
-
-Return ONLY the image generation prompt, nothing else. Make it detailed and specific.`,
-            },
-          ],
-        },
-      ],
-      max_tokens: 1000,
-    });
-
-    const imagePrompt = analysisResponse.choices[0]?.message?.content || '';
-
-    // Generate the styled image using DALL-E 3
-    const imageGenResponse = await openai.images.generate({
-      model: 'dall-e-3',
-      prompt: `Photorealistic interior photography of: ${imagePrompt}
-
-Style: Professional real estate photography, natural lighting, high quality, magazine-worthy home staging. The image should look like a real photograph, not a render or AI-generated. Clean, inviting, and aspirational.`,
-      n: 1,
-      size: '1024x1024',
-      quality: 'hd',
-      response_format: 'b64_json',
-    });
-
-    // Extract the generated image from response
-    let afterImageUrl = '';
-    const generatedImageData = imageGenResponse.data?.[0]?.b64_json;
+    // Use Gemini NanoBanana to declutter the image while keeping it looking the same
+    const declutteredImageBase64 = await declutterImageWithGemini(imageUrl);
     
-    if (generatedImageData) {
-      const generatedImageBase64 = `data:image/png;base64,${generatedImageData}`;
-      afterImageUrl = await saveImage(
-        generatedImageBase64,
-        `after-${id}-${timestamp}.png`
-      );
-    }
+    // Save the decluttered image
+    const afterImageUrl = await saveImage(
+      declutteredImageBase64,
+      `after-${id}-${timestamp}.png`
+    );
 
     if (!afterImageUrl) {
       throw new Error('Failed to generate image');
     }
 
-    // Generate the decluttering plan using GPT-4o
-    const planResponse = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: { url: imageUrl },
-            },
-            {
-              type: 'text',
-              text: `You are a warm, friendly, and encouraging home organization expert. Your name is Loftie. You help people transform their spaces with compassion and positivity.
+    // Generate the decluttering plan using Gemini
+    const planPrompt = `You are a warm, friendly, and encouraging home organization expert. Your name is Loftie. You help people transform their spaces with compassion and positivity.
 
-Create a personalized decluttering plan based on the before image. Your tone should be:
+Create a personalized decluttering plan based on this room image. Your tone should be:
 - Warm and supportive (like a helpful friend)
 - Encouraging without being condescending
 - Practical and actionable
@@ -144,15 +84,9 @@ Format your response as a numbered list of 5-8 specific, actionable steps. Each 
 
 End with a motivational closing message.
 
-Be specific about what you see in this room and what should be done.`,
-            },
-          ],
-        },
-      ],
-      max_tokens: 1500,
-    });
+Be specific about what you see in this room and what should be done.`;
 
-    const declutteringPlan = planResponse.choices[0]?.message?.content || '';
+    const declutteringPlan = await analyzeImageWithGemini(imageUrl, planPrompt);
 
     // Generate TTS audio for the decluttering plan
     let audioUrl = '';
