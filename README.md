@@ -16,7 +16,8 @@ AI-powered decluttering and home styling MVP. Upload a photo of your cluttered r
 - **Next.js 15** with App Router
 - **TypeScript**
 - **Tailwind CSS** for styling
-- **OpenAI API** for image generation (DALL-E 3) and GPT-4o for analysis
+- **Google Gemini API** for vision analysis and text generation
+- **OpenAI API** for image generation (DALL-E 3) and TTS
 - **Framer Motion** for animations
 - **Resend** for transactional emails
 - **ElevenLabs** (optional) for premium voice TTS
@@ -36,8 +37,15 @@ npm install
 Create a `.env.local` file in the root directory:
 
 ```env
-# Required: OpenAI API Key
+# Required: Google Gemini API Key
+# Get your key at: https://aistudio.google.com/app/apikey
+GEMINI_API_KEY=your-gemini-api-key
+
+# Required: OpenAI API Key (for DALL-E image generation and TTS)
 OPENAI_API_KEY=sk-your-openai-api-key
+
+# Required: Vercel Blob Storage Token
+BLOB_READ_WRITE_TOKEN=vercel_blob_your-token
 
 # Required: Resend API Key (for emails)
 RESEND_API_KEY=re_your-resend-api-key
@@ -98,11 +106,12 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 Per transformation:
 - **DALL-E 3 HD**: ~$0.08 per image
-- **GPT-4o Vision**: ~$0.01 per analysis
+- **Gemini 2.0 Flash**: Free tier available, then ~$0.0001/1K tokens
+- **Gemini 1.5 Pro** (optional): ~$0.00125/1K input tokens
 - **OpenAI TTS**: ~$0.015 per 1K characters
 - **Resend Email**: Free up to 3K/month
 
-**Total**: ~$0.10-0.15 per transformation
+**Total**: ~$0.08-0.12 per transformation (with Gemini for analysis)
 
 ## License
 
