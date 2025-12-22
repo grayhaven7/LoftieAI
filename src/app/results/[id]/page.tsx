@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2 } from 'lucide-react';
 import Link from 'next/link';
@@ -27,42 +27,8 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
   const [emailSent, setEmailSent] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [planExpanded, setPlanExpanded] = useState(true);
-  const [imageRetryCount, setImageRetryCount] = useState(0);
-  const [afterImageLoaded, setAfterImageLoaded] = useState(false);
   const [afterImageError, setAfterImageError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Get image URL with cache-busting if needed
-  const getImageUrl = useCallback((url: string, isAfter: boolean) => {
-    if (!url) return url;
-    // Add cache-busting for after image if it hasn't loaded yet and we've retried
-    if (isAfter && !afterImageLoaded && imageRetryCount > 0) {
-      const separator = url.includes('?') ? '&' : '?';
-      return `${url}${separator}v=${imageRetryCount}`;
-    }
-    return url;
-  }, [afterImageLoaded, imageRetryCount]);
-
-  // Handle image load error with retry logic
-  const handleImageError = useCallback((isAfter: boolean) => {
-    if (isAfter) {
-      if (imageRetryCount < 5) {
-        // Retry loading the after image with increasing delays
-        const delay = Math.min(1000 * (imageRetryCount + 1), 3000);
-        setTimeout(() => {
-          setImageRetryCount(prev => prev + 1);
-        }, delay);
-      } else {
-        // Retries exhausted, show error state
-        setAfterImageError(true);
-      }
-    }
-  }, [imageRetryCount]);
-
-  const handleAfterImageLoad = useCallback(() => {
-    setAfterImageLoaded(true);
-    setAfterImageError(false);
-  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -72,17 +38,6 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
         const result = await response.json();
         setData(result);
         if (result.userEmail) setEmail(result.userEmail);
-        
-        // Preload the after image to check if it's available
-        if (result.afterImageUrl) {
-          const img = new Image();
-          img.onload = () => setAfterImageLoaded(true);
-          img.onerror = () => {
-            // Start retry loop if image fails to load initially
-            setImageRetryCount(1);
-          };
-          img.src = result.afterImageUrl;
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load');
       } finally {
@@ -248,27 +203,20 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
                   </motion.div>
                 ) : (
                   <motion.img
-                    key={showAfter ? `after-${imageRetryCount}` : 'before'}
-                    src={showAfter ? getImageUrl(data.afterImageUrl, true) : getImageUrl(data.beforeImageUrl, false)}
+                    key={showAfter ? 'after' : 'before'}
+                    src={showAfter ? data.afterImageUrl : data.beforeImageUrl}
                     alt={showAfter ? 'Transformed' : 'Original'}
                     className="w-full h-full object-cover"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    onLoad={showAfter ? handleAfterImageLoad : undefined}
-                    onError={() => handleImageError(showAfter)}
+                    onError={() => {
+                      if (showAfter) setAfterImageError(true);
+                    }}
                   />
                 )}
               </AnimatePresence>
-              {showAfter && !afterImageLoaded && !afterImageError && imageRetryCount > 0 && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]">
-                  <div className="text-center">
-                    <div className="w-6 h-6 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    <p className="text-[var(--color-text-muted)] text-xs">Loading image...</p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -276,7 +224,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
             <button 
               onClick={handleDownload} 
               className="btn-secondary"
-              disabled={!data?.afterImageUrl || afterImageError}
+              disabled={!data?.afterImageUrl}
             >
               <Download className="w-3.5 h-3.5" /> Download
             </button>
