@@ -2,6 +2,48 @@ import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 
 let genAI: GoogleGenerativeAI | null = null;
 
+/**
+ * Sleep for a specified number of milliseconds
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Retry a function with exponential backoff
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelayMs: number = 10000
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      const errorMessage = lastError.message || '';
+      
+      // Check if it's a rate limit error
+      if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('Too Many Requests')) {
+        if (attempt < maxRetries) {
+          const delay = baseDelayMs * Math.pow(2, attempt);
+          console.log(`Rate limited. Retrying in ${delay / 1000}s... (attempt ${attempt + 1}/${maxRetries})`);
+          await sleep(delay);
+          continue;
+        }
+      }
+      
+      // For non-rate-limit errors, throw immediately
+      throw error;
+    }
+  }
+  
+  throw lastError;
+}
+
 function getGeminiClient(): GoogleGenerativeAI {
   if (!process.env.GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY is not configured');
@@ -70,15 +112,17 @@ export async function analyzeImageWithGemini(
     mimeType = mimeMatch[1];
   }
 
-  const result = await model.generateContent([
-    {
-      inlineData: {
-        mimeType,
-        data: base64Data,
+  const result = await withRetry(async () => {
+    return await model.generateContent([
+      {
+        inlineData: {
+          mimeType,
+          data: base64Data,
+        },
       },
-    },
-    prompt,
-  ]);
+      prompt,
+    ]);
+  });
 
   const response = result.response;
   return response.text();
@@ -135,17 +179,39 @@ export async function declutterImageWithGemini(base64Image: string): Promise<str
     mimeType = mimeMatch[1];
   }
 
-  const prompt = `Clean and declutter this room image. Remove all clutter, mess, and disorganized items while keeping the room's structure, furniture, and original appearance exactly the same. The result should look like a tidy, organized version of the exact same room from the exact same angle. Do not change the room layout, furniture positions, wall colors, or lighting - only remove clutter and mess.`;
+  const prompt = `Edit this room image to remove ONLY clutter and mess. 
 
-  const result = await model.generateContent([
-    prompt,
-    {
-      inlineData: {
-        mimeType,
-        data: base64Data,
+KEEP EVERYTHING IN THESE CATEGORIES (do NOT remove):
+- All furniture (beds, couches, chairs, tables, desks, dressers, nightstands, shelves, cabinets, etc.)
+- All decorations (art, plants, lamps, mirrors, rugs, curtains, pillows, throws, etc.)
+- Built-in features (windows, doors, closets, outlets, vents, etc.)
+- Mounted items (TVs, shelves, wall decor)
+
+REMOVE ONLY THESE ITEMS (clutter/mess):
+- Clothes on the floor or draped over furniture
+- Trash, wrappers, and garbage
+- Random papers and mail scattered around
+- Items that clearly don't belong (dishes in bedroom, tools in living room, etc.)
+- Boxes and bags that appear to be clutter (not storage furniture)
+- Toys scattered on the floor
+- Shoes and accessories left out
+- Food containers and drink cups
+- Cords and cables that are messy (but keep electronics)
+
+The result must look like the EXACT same room with the EXACT same furniture, just tidied up. Maintain the same camera angle, lighting, wall colors, and room layout. Only remove obvious clutter and mess while preserving everything else.`;
+
+  // Use retry logic for rate limit handling
+  const result = await withRetry(async () => {
+    return await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType,
+          data: base64Data,
+        },
       },
-    },
-  ]);
+    ]);
+  });
 
   const response = result.response;
   
