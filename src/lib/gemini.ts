@@ -164,11 +164,10 @@ export async function chatWithGemini(
 /**
  * Organize a messy room image using Gemini 2.0 Flash Image Generation
  * Returns the edited image showing the same room with all items tidied and organized
- * following the specific decluttering plan provided
  * @param base64Image - Base64 encoded image (with or without data URL prefix)
- * @param declutteringPlan - The specific organization plan to follow when generating the after image
+ * @param _declutteringPlan - Optional organization plan (currently using simplified prompt for better image preservation)
  */
-export async function declutterImageWithGemini(base64Image: string, declutteringPlan: string): Promise<string> {
+export async function declutterImageWithGemini(base64Image: string, _declutteringPlan?: string): Promise<string> {
   const model = getGeminiImageGen();
   
   // Remove data URL prefix if present
@@ -181,33 +180,20 @@ export async function declutterImageWithGemini(base64Image: string, decluttering
     mimeType = mimeMatch[1];
   }
 
-  const prompt = `Edit this room image to show the RESULT of following this specific decluttering plan:
+  const prompt = `This is a photo editing task. Edit THIS EXACT photo to tidy up the room.
 
-=== DECLUTTERING PLAN TO FOLLOW ===
-${declutteringPlan}
-=== END OF PLAN ===
+PRESERVE EXACTLY (do not change):
+- The room itself (walls, floor, ceiling, windows, doors)
+- All furniture (bed, dresser, nightstands - keep in same positions)
+- The camera angle and perspective
+- The lighting and colors
 
-CRITICAL INSTRUCTIONS:
-1. DO NOT REMOVE ANY ITEMS - organize and tidy them instead
-2. Every item in the messy room should still be visible in the organized version
-3. Follow the specific steps in the decluttering plan above to show what the room looks like AFTER completing those actions
-4. The after image should be visual proof that the plan was executed
+EDIT ONLY THE CLUTTER - tidy it up by:
+- Clothes on floor/bed → neatly folded in small stacks on the dresser or bed corner
+- Scattered items → gathered and arranged neatly on surfaces
+- Messy bedding → straightened and made neat
 
-SHOW THE ORGANIZED RESULT:
-- Clothes mentioned in the plan → show them folded, hung up, or put away neatly
-- Items on the floor → show them picked up and placed in proper locations
-- Scattered objects → show them gathered and organized
-- Messy surfaces → show them cleared and items arranged neatly
-- Any specific items mentioned in the plan → show them organized as described
-
-THE RESULT MUST SHOW:
-- The EXACT same room with ALL the same items (nothing removed)
-- Everything organized exactly as described in the decluttering plan
-- A clean, tidy appearance demonstrating the plan was followed
-- Same camera angle, lighting, wall colors, and room layout
-- The transformation from messy to organized (not messy to empty)
-
-This is the "after" photo that proves the decluttering plan was completed successfully.`;
+Keep everything in the photo. Just make it look tidy and organized. This should look like someone spent 10 minutes tidying up - same room, same stuff, just neat.`;
 
   // Use retry logic for rate limit handling
   const result = await withRetry(async () => {
