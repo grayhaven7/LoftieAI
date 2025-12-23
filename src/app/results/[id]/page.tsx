@@ -53,7 +53,14 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
 
           // Retry only on "not found" during the initial grace window.
           if (response.status !== 404 || attempt === maxAttempts) {
-            throw new Error('Transformation not found');
+            let msg = `Failed to load transformation (HTTP ${response.status})`;
+            try {
+              const body = await response.json();
+              msg = body?.error || msg;
+            } catch {
+              // ignore
+            }
+            throw new Error(msg);
           }
 
           await new Promise((r) => setTimeout(r, Math.min(1000, 75 * Math.pow(2, attempt - 1))));
@@ -72,6 +79,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
             fetch(`/api/process/${id}`, { method: 'POST' }).catch(console.error);
           }
           
+          let consecutivePollFailures = 0;
           const interval = setInterval(async () => {
             try {
               const pollResponse = await fetch(`/api/transformations/${id}`, {
@@ -80,15 +88,34 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
                   'Cache-Control': 'no-cache',
                 },
               });
-              if (pollResponse.ok) {
-                const pollResult = await pollResponse.json();
-                setData(pollResult);
-                if (pollResult.status !== 'processing') {
+              if (!pollResponse.ok) {
+                consecutivePollFailures += 1;
+                if (consecutivePollFailures >= 3) {
                   clearInterval(interval);
+                  let msg = `Trouble fetching updates (HTTP ${pollResponse.status}).`;
+                  try {
+                    const body = await pollResponse.json();
+                    msg = body?.error || msg;
+                  } catch {
+                    // ignore
+                  }
+                  setError(msg);
                 }
+                return;
+              }
+
+              consecutivePollFailures = 0;
+              const pollResult = await pollResponse.json();
+              setData(pollResult);
+              if (pollResult.status !== 'processing') {
+                clearInterval(interval);
               }
             } catch {
-              // Ignore polling errors
+              consecutivePollFailures += 1;
+              if (consecutivePollFailures >= 3) {
+                clearInterval(interval);
+                setError('Trouble fetching updates. Please refresh the page.');
+              }
             }
           }, 3000);
           return () => clearInterval(interval);

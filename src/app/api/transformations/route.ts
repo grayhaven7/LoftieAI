@@ -36,7 +36,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching transformations:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch transformations' },
+      { error: error instanceof Error ? error.message : 'Failed to fetch transformations' },
       { status: 500 }
     );
   }

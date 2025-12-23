@@ -57,8 +57,10 @@ export async function getTransformations(): Promise<RoomTransformation[]> {
   // Use Vercel Blob - each transformation is stored as its own file
   const token = getBlobToken();
   if (!token) {
+    // On Vercel, returning [] makes the UI look "empty" and hides the real issue.
+    // Fail loudly so callers can surface a useful error message.
     console.error('[Storage] BLOB_READ_WRITE_TOKEN not configured');
-    return [];
+    throw new Error('Storage is not configured: BLOB_READ_WRITE_TOKEN is missing');
   }
   
   try {

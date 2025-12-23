@@ -18,21 +18,39 @@ export default function AdminPage() {
   const [transformations, setTransformations] = useState<TransformationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchTransformations = async () => {
     try {
+      setError(null);
       const response = await fetch('/api/transformations', {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache',
         },
       });
-      if (response.ok) {
-        const data = await response.json();
-        setTransformations(data);
+
+      let body: any = null;
+      try {
+        body = await response.json();
+      } catch {
+        // ignore
       }
+
+      if (!response.ok) {
+        const msg =
+          body?.error ||
+          `Failed to load transformations (HTTP ${response.status})`;
+        setError(msg);
+        setTransformations([]);
+        return;
+      }
+
+      setTransformations(Array.isArray(body) ? body : []);
     } catch (err) {
       console.error('Failed to fetch:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch transformations');
+      setTransformations([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -114,6 +132,17 @@ export default function AdminPage() {
             <div className="text-center py-12">
               <div className="w-8 h-8 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               <p className="text-[var(--color-text-muted)] text-sm">Loading...</p>
+            </div>
+          ) : error ? (
+            <div className="card text-center py-10">
+              <h3 className="text-sm text-[var(--color-text-primary)] font-medium mb-2">Dashboard error</h3>
+              <p className="text-xs text-[var(--color-text-muted)] mb-4">{error}</p>
+              <div className="flex gap-2 justify-center">
+                <button onClick={handleRefresh} className="btn-secondary">Retry</button>
+                <a href="/api/debug/storage" className="btn-primary" target="_blank" rel="noreferrer">
+                  Storage Debug
+                </a>
+              </div>
             </div>
           ) : completedTransformations.length === 0 ? (
             <div className="card text-center py-12">
