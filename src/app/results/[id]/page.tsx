@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2 } from 'lucide-react';
+import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X } from 'lucide-react';
 import Link from 'next/link';
 import { use } from 'react';
 
