@@ -99,6 +99,7 @@ CORE DIRECTIVES:
 1. TOTAL PRESERVATION: Every object from the original image MUST remain. Do not add or remove anything. The final space must have the same inventory as the original.
 2. NOTHING ON THE FLOOR: The floor must be completely clear of all items. Move every single item currently on the floor to a shelf, table, or other existing surface.
 3. CATEGORICAL GROUPING: Group similar items together into single, neat, orderly arrangements.
+4. NO HTML: Use only plain text. Do not include any HTML tags like <br>, <p>, or <div>. Use regular line breaks for formatting.
 
 Step Format: 
 - Start with a warm, encouraging phrase.
@@ -108,7 +109,11 @@ Step Format:
 
 Close with a motivational message.`;
 
-    const declutteringPlan = await analyzeImageWithGemini(imageUrl, planPrompt);
+    let declutteringPlan = await analyzeImageWithGemini(imageUrl, planPrompt);
+    
+    // Clean up any potential HTML tags just in case
+    declutteringPlan = declutteringPlan.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, "");
+    
     console.log(`Generated decluttering plan (${declutteringPlan.length} chars)`);
 
     // STEP 2: Generate the organized room image based on the decluttering plan
