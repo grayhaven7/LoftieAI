@@ -14,8 +14,8 @@ function sleep(ms: number): Promise<void> {
  */
 async function withRetry<T>(
   fn: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelayMs: number = 10000
+  maxRetries: number = 4,
+  baseDelayMs: number = 2000
 ): Promise<T> {
   let lastError: Error | null = null;
   
@@ -27,16 +27,23 @@ async function withRetry<T>(
       const errorMessage = lastError.message || '';
       
       // Check if it's a rate limit error
-      if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('Too Many Requests')) {
+      if (
+        errorMessage.includes('429') || 
+        errorMessage.includes('quota') || 
+        errorMessage.includes('Too Many Requests') ||
+        errorMessage.includes('limit reached')
+      ) {
         if (attempt < maxRetries) {
-          const delay = baseDelayMs * Math.pow(2, attempt);
-          console.log(`Rate limited. Retrying in ${delay / 1000}s... (attempt ${attempt + 1}/${maxRetries})`);
+          // Exponential backoff with jitter
+          const delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 1000;
+          console.log(`Rate limited. Retrying in ${Math.round(delay / 1000)}s... (attempt ${attempt + 1}/${maxRetries})`);
           await sleep(delay);
           continue;
         }
       }
       
       // For non-rate-limit errors, throw immediately
+      console.error(`Gemini error (attempt ${attempt + 1}):`, errorMessage);
       throw error;
     }
   }
@@ -185,7 +192,8 @@ export async function declutterImageWithGemini(base64Image: string, decluttering
 STRICT RULES:
 - NO ADDITIONS: Do not add any new furniture, drawers, storage units, or items.
 - NO DELETIONS: Every object from the original photo must remain.
-- IDENTICAL STRUCTURE: Keep the room layout, walls, and existing furniture exactly as they are.
+- IDENTICAL STRUCTURE: Keep the room layout, walls, and existing furniture exactly as they are. This includes keeping curtains (open or closed as in original), island size/position, and window positions identical.
+- NO DESIGN CHANGES: Do not change the style of the room or furniture.
 
 TIDYING SPECIFICATIONS:
 - ORGANIZE EXISTING SPACE: Move items from the floor or messy piles to the nearest logical existing surface or existing storage spot.

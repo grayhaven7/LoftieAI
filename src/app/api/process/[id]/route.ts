@@ -52,13 +52,13 @@ export async function POST(
 
     // CLAIM LOGIC: Prevent concurrent processing runs
     const now = Date.now();
-    const CLAIM_TIMEOUT = 2 * 60 * 1000; // 2 minutes
+    const CLAIM_TIMEOUT = 5 * 60 * 1000; // Increase to 5 minutes
     if (
       transformation.processingStartedAt && 
       (now - transformation.processingStartedAt < CLAIM_TIMEOUT) &&
       transformation.status === 'processing'
     ) {
-      console.log(`Transformation ${id} is already being processed (started ${now - transformation.processingStartedAt}ms ago)`);
+      console.log(`Transformation ${id} is already being processed (started ${now - transformation.processingStartedAt}ms ago). Returning current status.`);
       return NextResponse.json({
         id,
         status: 'processing',
@@ -69,7 +69,7 @@ export async function POST(
     // Mark as started processing to lock other requests
     transformation.processingStartedAt = now;
     await saveTransformation(transformation);
-    console.log(`Claimed transformation ${id} for processing`);
+    console.log(`Claimed transformation ${id} for processing. Image size: ${transformation.originalImageBase64?.length || 0} chars`);
 
     // Check if we have the original image to process
     if (!transformation.originalImageBase64) {
@@ -105,6 +105,7 @@ Step Format:
 - Start with a warm, encouraging phrase.
 - Give a specific action based ONLY on what you see in the room (e.g., "Let's gather the items from the floor and place them neatly on the shelf").
 - Briefly explain the benefit.
+- IMPORTANT: Put a DOUBLE LINE BREAK between each step. Each step should be a numbered item (e.g. 1. Step content).
 
 Close with a motivational message.`;
 
@@ -161,7 +162,12 @@ Close with a motivational message.`;
     // Send email if provided
     if (transformation.userEmail) {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/send-email`, {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+        
+        console.log(`Sending email for transformation ${id} to ${transformation.userEmail} via ${baseUrl}/api/send-email`);
+        
+        const emailResponse = await fetch(`${baseUrl}/api/send-email`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -169,6 +175,13 @@ Close with a motivational message.`;
             email: transformation.userEmail,
           }),
         });
+        
+        if (!emailResponse.ok) {
+          const errorData = await emailResponse.json();
+          console.error('Email API responded with error:', errorData);
+        } else {
+          console.log(`Email sent successfully for transformation ${id}`);
+        }
       } catch (emailError) {
         console.error('Failed to send email:', emailError);
       }

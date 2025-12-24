@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { saveImage, saveTransformation } from '@/lib/storage';
 import { RoomTransformation } from '@/lib/types';
+import { analyzeImageWithGemini } from '@/lib/gemini';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,6 +11,21 @@ export async function POST(request: NextRequest) {
     if (!imageBase64) {
       return NextResponse.json(
         { error: 'No image provided' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the image is a room
+    console.log('Detecting if image is a room...');
+    const roomCheckPrompt = "Is this an image of a room, kitchen, bathroom, bedroom, living space, office, or any indoor/outdoor residential area? Answer with 'yes' if it is a room/living space, and 'no' if it is anything else (like a person, an object, a landscape with no buildings, a document, etc.). Answer with only the word 'yes' or 'no'.";
+    const isRoom = await analyzeImageWithGemini(imageBase64, roomCheckPrompt);
+    console.log(`Room detection result: ${isRoom}`);
+
+    // Robust check for 'no' - only if it's clearly 'no' and not 'yes'
+    const normalizedResult = isRoom.toLowerCase().trim();
+    if (normalizedResult.startsWith('no') || (normalizedResult.includes('no') && !normalizedResult.includes('yes'))) {
+      return NextResponse.json(
+        { error: "We'd love to help, but that doesn't look like a room! Please upload a photo of a room you'd like to declutter." },
         { status: 400 }
       );
     }

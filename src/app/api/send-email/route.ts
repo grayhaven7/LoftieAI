@@ -28,8 +28,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
     const resend = getResendClient();
+
+    // Format the decluttering plan for HTML
+    const formattedPlan = transformation.declutteringPlan
+      ? transformation.declutteringPlan
+          .split('\n')
+          .filter(line => line.trim())
+          .map(line => `<p style="margin-bottom: 8px;">${line}</p>`)
+          .join('')
+      : '';
 
     await resend.emails.send({
       from: process.env.EMAIL_FROM || 'Loftie AI <onboarding@resend.dev>',
@@ -57,19 +67,33 @@ export async function POST(request: NextRequest) {
               </p>
 
               <!-- Before/After Images -->
-              <div style="margin-bottom: 24px;">
-                <p style="color: #3A3A3A; font-weight: 500; margin-bottom: 8px;">Before:</p>
-                <img src="${transformation.beforeImageUrl}" alt="Before" style="width: 100%; border-radius: 16px; margin-bottom: 16px;">
+              <div style="margin-bottom: 32px;">
+                <div style="margin-bottom: 20px;">
+                  <p style="color: #3A3A3A; font-weight: 600; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Before:</p>
+                  <img src="${transformation.beforeImageUrl}" alt="Before" style="width: 100%; border-radius: 16px; border: 1px solid #EEEEEE;">
+                </div>
                 
-                <p style="color: #3A3A3A; font-weight: 500; margin-bottom: 8px;">After:</p>
-                <img src="${transformation.afterImageUrl}" alt="After" style="width: 100%; border-radius: 16px;">
+                <div>
+                  <p style="color: #3A3A3A; font-weight: 600; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">After:</p>
+                  <img src="${transformation.afterImageUrl}" alt="After" style="width: 100%; border-radius: 16px; border: 1px solid #EEEEEE;">
+                </div>
               </div>
 
+              <!-- Decluttering Plan -->
+              ${formattedPlan ? `
+              <div style="background-color: #F9F9F9; border-radius: 16px; padding: 24px; margin-bottom: 32px; border-left: 4px solid #9CAF88;">
+                <h2 style="font-size: 18px; color: #3A3A3A; margin-top: 0; margin-bottom: 16px; font-weight: 600;">Your Decluttering Plan:</h2>
+                <div style="color: #555555; font-size: 15px; line-height: 1.6;">
+                  ${formattedPlan}
+                </div>
+              </div>
+              ` : ''}
+
               <!-- CTA Button -->
-              <div style="text-align: center; margin-top: 32px;">
+              <div style="text-align: center;">
                 <a href="${baseUrl}/results/${transformation.id}" 
-                   style="display: inline-block; background: linear-gradient(135deg, #9CAF88 0%, #7A9166 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 50px; font-weight: 500; font-size: 16px;">
-                  View Your Full Plan →
+                   style="display: inline-block; background: linear-gradient(135deg, #9CAF88 0%, #7A9166 100%); color: white !important; text-decoration: none; padding: 18px 36px; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(156, 175, 136, 0.3);">
+                  View Full Transformation →
                 </a>
               </div>
             </div>
