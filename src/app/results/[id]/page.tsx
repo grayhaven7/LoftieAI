@@ -30,10 +30,9 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
   const [planExpanded, setPlanExpanded] = useState(true);
   const [afterImageError, setAfterImageError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const processingRequestFired = useRef(false);
 
   useEffect(() => {
-    let processingTriggered = false;
-    
     async function fetchData() {
       try {
         // Transformations can be created and persisted asynchronously; on some stores (e.g. blob),
@@ -72,9 +71,9 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
         
         // If still processing, trigger the processing endpoint and poll for updates
         if (result.status === 'processing') {
-          // Trigger processing if not already triggered
-          if (!processingTriggered) {
-            processingTriggered = true;
+          // Trigger processing if not already triggered in this session
+          if (!processingRequestFired.current) {
+            processingRequestFired.current = true;
             // Fire and forget - start processing in background
             fetch(`/api/process/${id}`, { method: 'POST' }).catch(console.error);
           }

@@ -8,6 +8,7 @@ export interface RoomTransformation {
   createdAt: string;
   status: 'processing' | 'completed' | 'failed';
   originalImageBase64?: string; // Stored temporarily for processing
+  processingStartedAt?: number; // Timestamp when processing began to prevent concurrent runs
 }
 
 export interface TransformationRequest {

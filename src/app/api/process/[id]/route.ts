@@ -50,6 +50,27 @@ export async function POST(
       });
     }
 
+    // CLAIM LOGIC: Prevent concurrent processing runs
+    const now = Date.now();
+    const CLAIM_TIMEOUT = 2 * 60 * 1000; // 2 minutes
+    if (
+      transformation.processingStartedAt && 
+      (now - transformation.processingStartedAt < CLAIM_TIMEOUT) &&
+      transformation.status === 'processing'
+    ) {
+      console.log(`Transformation ${id} is already being processed (started ${now - transformation.processingStartedAt}ms ago)`);
+      return NextResponse.json({
+        id,
+        status: 'processing',
+        message: 'Processing is already in progress',
+      });
+    }
+
+    // Mark as started processing to lock other requests
+    transformation.processingStartedAt = now;
+    await saveTransformation(transformation);
+    console.log(`Claimed transformation ${id} for processing`);
+
     // Check if we have the original image to process
     if (!transformation.originalImageBase64) {
       // Try to use the beforeImageUrl if no base64 stored
@@ -71,27 +92,21 @@ export async function POST(
 
     // STEP 1: Generate the decluttering plan FIRST
     console.log(`Generating decluttering plan...`);
-    const planPrompt = `You are a warm, friendly, and encouraging home organization expert. Your name is Loftie. You help people transform their spaces with compassion and positivity.
+    const planPrompt = `You are Loftie, a professional space organizer with a "Marie Kondo" mindset. 
+Task: Create a 5-8 step professional organization plan for this space (e.g., room, kitchen, garden, or fridge).
 
-Create a personalized decluttering plan based on this room image. Your tone should be:
-- Warm and supportive (like a helpful friend)
-- Encouraging without being condescending
-- Practical and actionable
-- Celebratory of small wins
+CORE DIRECTIVES:
+1. TOTAL PRESERVATION: Every object from the original image MUST remain. Do not add or remove anything.
+2. TIDY PLACEMENT: Move items from the floor or messy piles to the nearest appropriate existing surface or storage spot (e.g., table, shelf, or inside existing cabinets).
+3. CATEGORICAL GROUPING: Group similar items together into single, neat, orderly arrangements.
+4. FINISHED LOOK: Ensure all existing cabinet doors and drawers are shown as closed.
 
-IMPORTANT: Focus on ORGANIZING items, not removing them. Every item in the room should stay - just be tidied up and put in its proper place.
+Step Format: 
+- Start with a warm, encouraging phrase.
+- Give a specific action based ONLY on what you see in the room (e.g., "Let's gather the items from the floor and place them neatly on the shelf").
+- Briefly explain the benefit.
 
-Format your response as a numbered list of 5-8 specific, actionable steps. Each step should:
-1. Start with an encouraging phrase
-2. Give a specific action about WHERE to put or HOW to organize specific items you see
-3. Explain the benefit
-
-Be VERY SPECIFIC about what items you see and exactly where they should go when organized. For example:
-- "Fold the blue blanket on the floor and drape it over the armchair"
-- "Gather the scattered books and stack them neatly on the nightstand"
-- "Pick up the clothes near the bed and fold them into the dresser drawer"
-
-End with a motivational closing message.`;
+Close with a motivational message.`;
 
     const declutteringPlan = await analyzeImageWithGemini(imageUrl, planPrompt);
     console.log(`Generated decluttering plan (${declutteringPlan.length} chars)`);
@@ -187,5 +202,7 @@ End with a motivational closing message.`;
     );
   }
 }
+
+
 
 
