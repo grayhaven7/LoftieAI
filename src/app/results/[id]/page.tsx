@@ -233,7 +233,11 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
           </div>
           <h2 className="text-lg text-[var(--color-text-primary)] mb-2 font-medium">Transformation Not Found</h2>
           <p className="text-[var(--color-text-muted)] text-sm mb-4">
-            {error || 'This transformation could not be found. It may have expired or the link may be incorrect.'}
+            {error ? (
+              <span className="text-[rgb(239,68,68)] font-medium">{error}</span>
+            ) : (
+              'This transformation could not be found. It may have expired or the link may be incorrect.'
+            )}
           </p>
           <div className="flex flex-col gap-2">
             <button 

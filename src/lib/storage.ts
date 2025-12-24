@@ -107,6 +107,7 @@ export async function getTransformations(): Promise<RoomTransformation[]> {
 
 export async function getTransformation(id: string): Promise<RoomTransformation | null> {
   const cleanId = id.trim();
+  const isVercel = process.env.VERCEL === '1';
   
   if (useLocalStorage()) {
     // Retry logic for local storage too, in case of file system latency or temporary locks
@@ -121,7 +122,7 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
       
       if (attempt < maxAttempts) {
         console.log(`[Storage] Local transformation ${cleanId} not found, retrying... (${attempt}/${maxAttempts})`);
-        await sleep(100);
+        await sleep(200);
       }
     }
     
@@ -132,54 +133,72 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
   // Fetch single transformation directly from blob
   const token = getBlobToken();
   if (!token) {
+    if (isVercel) {
+      console.error(`[Storage] CRITICAL: BLOB_READ_WRITE_TOKEN is missing on Vercel!`);
+      throw new Error('Storage is not configured: BLOB_READ_WRITE_TOKEN is missing. Please link a Vercel Blob store to your project.');
+    }
     console.error(`[Storage] BLOB_READ_WRITE_TOKEN not configured for transformation ${cleanId}`);
     return null;
   }
   
   try {
-    console.log(`[Storage] Fetching transformation ${cleanId} from blob...`);
+    console.log(`[Storage] Fetching transformation ${cleanId} from blob (attempting consistency-aware search)...`);
 
     // NOTE: Vercel Blob `list()` can be briefly eventually-consistent right after a `put()`.
-    // This can cause transient "not found" during the first couple seconds after creation.
-    const maxAttempts = 6;
+    // We'll use a more aggressive retry strategy and also try a broader search if the specific one fails.
+    const maxAttempts = 10; // Increased attempts
     let lastListCount = 0;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      // Attempt 1: Specific prefix search (fastest)
       const { blobs } = await list({
         prefix: `transformations/${cleanId}.json`,
         limit: 1,
         token,
       });
-      lastListCount = blobs.length;
-
+      
       if (blobs.length > 0) {
         const response = await fetch(blobs[0].url, { cache: 'no-store' });
         if (!response.ok) {
-          console.error(`[Storage] Failed to fetch transformation ${cleanId}: ${response.status} ${response.statusText}`);
-          return null;
+          console.error(`[Storage] Failed to fetch transformation ${cleanId} at ${blobs[0].url}: ${response.status}`);
+          // If fetch fails, maybe the URL changed or is invalid, keep trying
+        } else {
+          const data = await response.json() as RoomTransformation;
+          console.log(`[Storage] Successfully loaded transformation ${cleanId} (status: ${data.status})`);
+          return data;
         }
-
-        const data = await response.json() as RoomTransformation;
-        console.log(`[Storage] Successfully loaded transformation ${cleanId} with status ${data.status}`);
-        return data;
       }
 
-      // Backoff a bit and retry.
-      // Total wait ~= 75ms + 150ms + 300ms + 600ms + 1000ms + 1000ms  (max ~3.1s)
-      if (attempt < maxAttempts) {
-        const delayMs = Math.min(1000, Math.round(75 * Math.pow(2, attempt - 1)));
-        await sleep(delayMs);
+      // Attempt 2: If we're a few attempts in, try listing EVERYTHING in the transformations folder
+      // to bypass potential prefix-indexing lag
+      if (attempt > 3) {
+        console.log(`[Storage] Broad search for ${cleanId} (attempt ${attempt})...`);
+        const { blobs: allBlobs } = await list({
+          prefix: `transformations/`,
+          token,
+        });
+        
+        const matchingBlob = allBlobs.find(b => b.pathname.includes(cleanId));
+        if (matchingBlob) {
+          console.log(`[Storage] Found matching blob via broad search: ${matchingBlob.pathname}`);
+          const response = await fetch(matchingBlob.url, { cache: 'no-store' });
+          if (response.ok) {
+            const data = await response.json() as RoomTransformation;
+            return data;
+          }
+        }
       }
+
+      // Backoff and retry
+      const delayMs = Math.min(2000, Math.round(150 * Math.pow(1.5, attempt - 1)));
+      await sleep(delayMs);
     }
 
-    console.log(`[Storage] Transformation ${cleanId} not found in blob storage after retries (last list count=${lastListCount})`);
+    console.log(`[Storage] Transformation ${cleanId} not found in blob storage after ${maxAttempts} retries`);
     return null;
   } catch (error) {
     console.error(`[Storage] Error fetching transformation ${cleanId}:`, error);
-    if (error instanceof Error) {
-      console.error(`[Storage] Error details:`, error.message, error.stack);
-    }
-    return null;
+    throw error; // Re-throw so the API can return a 500 with the error message
   }
 }
 
