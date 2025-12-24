@@ -12,8 +12,21 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [configWarning, setConfigWarning] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    // Check if storage is configured
+    fetch('/api/debug/storage')
+      .then(res => res.json())
+      .then(data => {
+        if (data.environment?.isVercel && !data.environment?.hasBlobToken) {
+          setConfigWarning('Vercel Blob storage is not linked to this project. Transformations will not be saved.');
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -156,6 +169,17 @@ export default function Home() {
             Upload a photo. Get an AI-powered vision of your space, clutter-free.
           </p>
         </motion.div>
+        
+        {configWarning && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-md mx-auto mb-6 bg-amber-500/10 border border-amber-500/20 text-amber-500 px-4 py-3 rounded-xl text-xs text-center flex items-center justify-center gap-2"
+          >
+            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+            {configWarning}
+          </motion.div>
+        )}
       </main>
 
       {/* Upload */}

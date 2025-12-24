@@ -22,6 +22,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
   const [data, setData] = useState<TransformationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [showAfter, setShowAfter] = useState(true);
   const [email, setEmail] = useState('');
   const [emailSending, setEmailSending] = useState(false);
@@ -41,6 +42,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
         let response: Response | null = null;
 
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          setRetryCount(attempt);
           response = await fetch(`/api/transformations/${id}`, {
             cache: 'no-store',
             headers: {
@@ -218,7 +220,12 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
       <div className="gradient-bg min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-[var(--color-text-muted)] text-sm">Loading...</p>
+          <p className="text-[var(--color-text-muted)] text-sm">Searching for transformation...</p>
+          {retryCount > 1 && (
+            <p className="text-[var(--color-text-muted)] text-[10px] mt-2 uppercase tracking-widest">
+              Attempt {retryCount} of 6
+            </p>
+          )}
         </div>
       </div>
     );
@@ -250,9 +257,17 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
           </div>
           <div className="mt-6 pt-4 border-t border-[rgba(255,255,255,0.06)]">
             <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-2">Technical Info</p>
-            <code className="text-[10px] bg-[rgba(0,0,0,0.2)] px-2 py-1 rounded text-[var(--color-text-secondary)] break-all">
-              ID: {id}
-            </code>
+            <div className="flex flex-col gap-1">
+              <code className="text-[10px] bg-[rgba(0,0,0,0.2)] px-2 py-1 rounded text-[var(--color-text-secondary)] break-all">
+                ID: {id}
+              </code>
+              <code className="text-[10px] bg-[rgba(0,0,0,0.2)] px-2 py-1 rounded text-[var(--color-text-secondary)]">
+                Retries: {retryCount} / 6
+              </code>
+              <a href="/api/debug/storage" target="_blank" className="text-[10px] text-[var(--color-accent)] hover:underline mt-1">
+                View Storage Dashboard
+              </a>
+            </div>
           </div>
         </div>
       </div>

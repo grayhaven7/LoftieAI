@@ -4,6 +4,8 @@ import { saveImage, saveTransformation } from '@/lib/storage';
 import { RoomTransformation } from '@/lib/types';
 import { analyzeImageWithGemini } from '@/lib/gemini';
 
+export const maxDuration = 60; // Increase timeout for image upload and room check
+
 export async function POST(request: NextRequest) {
   try {
     const { imageBase64, userEmail } = await request.json();
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
       originalImageBase64: imageBase64,
     };
     await saveTransformation(transformation);
-    console.log(`Created transformation record with status: processing`);
+    console.log(`[API] Successfully created transformation ${id}. URL should be /results/${id}`);
 
     // Return immediately - processing will happen when the results page loads
     return NextResponse.json({
