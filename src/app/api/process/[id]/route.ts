@@ -97,12 +97,12 @@ Task: Create a 5-8 step professional organization plan for this space (e.g., roo
 
 CORE DIRECTIVES:
 1. TOTAL PRESERVATION: Every object from the original image MUST remain. Do not add or remove anything.
-2. TIDY PLACEMENT: Move items from the floor or messy piles to the nearest appropriate existing surface or storage spot (e.g., table or shelf).
+2. NOTHING ON THE FLOOR: The floor must be completely clear of all items. Move every single item currently on the floor to a shelf, table, or other existing surface.
 3. CATEGORICAL GROUPING: Group similar items together into single, neat, orderly arrangements.
 
 Step Format: 
 - Start with a warm, encouraging phrase.
-- Give a specific action based ONLY on what you see in the room (e.g., "Let's gather the items from the floor and place them neatly on the shelf").
+- Give a specific action based ONLY on what you see in the room (e.g., "Let's gather all those items from the floor and arrange them neatly on the shelf").
 - Briefly explain the benefit.
 - IMPORTANT: Put a DOUBLE LINE BREAK between each step. Each step should be a numbered item (e.g. 1. Step content).
 

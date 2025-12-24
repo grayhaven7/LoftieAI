@@ -187,7 +187,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
     if (lowerText.includes('home') || lowerText.includes('belong') || lowerText.includes('place')) return '🏠';
     if (lowerText.includes('book') || lowerText.includes('read')) return '📚';
     if (lowerText.includes('plant') || lowerText.includes('green')) return '🌿';
-    if (lowerText.includes('clean') || lowerText.includes('tidy') || lowerText.includes('fresh')) return '🧹';
+    if (lowerText.includes('clean') || lowerText.includes('tidy') || lowerText.includes('fresh') || lowerText.includes('floor')) return '🧹';
     if (lowerText.includes('relax') || lowerText.includes('calm') || lowerText.includes('peace')) return '🧘';
     if (lowerText.includes('storage') || lowerText.includes('bin') || lowerText.includes('container')) return '🗂️';
     if (lowerText.includes('desk') || lowerText.includes('work') || lowerText.includes('office')) return '💼';

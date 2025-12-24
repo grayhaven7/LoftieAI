@@ -26,6 +26,8 @@ export async function GET(
       if (now - createdTime > PROCESSING_TIMEOUT_MS) {
         console.log(`Marking stale transformation ${id} as failed (created ${transformation.createdAt})`);
         transformation.status = 'failed';
+        // Clear the original base64 to save space
+        delete transformation.originalImageBase64;
         await saveTransformation(transformation);
       }
     }

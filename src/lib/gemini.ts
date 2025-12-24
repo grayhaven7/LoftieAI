@@ -195,11 +195,11 @@ STRICT RULES:
 - IDENTICAL STRUCTURE: Keep the room layout, walls, and existing furniture exactly as they are.
 
 TIDYING SPECIFICATIONS:
-- ORGANIZE EXISTING SPACE: Move items from the floor or messy piles to the nearest logical existing surface or existing storage spot.
+- CLEAR THE FLOOR: Every single item currently on the floor must be moved to an existing surface (shelf, table, chair, etc.). The floor must be completely clear.
 - NEAT ARRANGEMENT: Group similar items into single, tidy, professional stacks or rows.
 - ALIGNMENT: Align remaining visible objects in clean, parallel rows.
 
-Goal: The exact same room and inventory, but with everything moved from "messy" to "tidy" positions using only the space already available. Follow this plan:
+Goal: The exact same room and inventory, but with everything moved from "messy" to "tidy" positions using only the space already available. NOTHING should be left on the floor. Follow this plan:
 ${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   // Use retry logic for rate limit handling
