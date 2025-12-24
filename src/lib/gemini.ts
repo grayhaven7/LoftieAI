@@ -197,7 +197,6 @@ STRICT RULES:
 TIDYING SPECIFICATIONS:
 - ORGANIZE EXISTING SPACE: Move items from the floor or messy piles to the nearest logical existing surface or existing storage spot.
 - NEAT ARRANGEMENT: Group similar items into single, tidy, professional stacks or rows.
-- CLOSED STORAGE: Ensure all existing cabinet doors and drawers are closed.
 - ALIGNMENT: Align remaining visible objects in clean, parallel rows.
 
 Goal: The exact same room and inventory, but with everything moved from "messy" to "tidy" positions using only the space already available. Follow this plan:

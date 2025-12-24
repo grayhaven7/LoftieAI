@@ -97,9 +97,8 @@ Task: Create a 5-8 step professional organization plan for this space (e.g., roo
 
 CORE DIRECTIVES:
 1. TOTAL PRESERVATION: Every object from the original image MUST remain. Do not add or remove anything.
-2. TIDY PLACEMENT: Move items from the floor or messy piles to the nearest appropriate existing surface or storage spot (e.g., table, shelf, or inside existing cabinets).
+2. TIDY PLACEMENT: Move items from the floor or messy piles to the nearest appropriate existing surface or storage spot (e.g., table or shelf).
 3. CATEGORICAL GROUPING: Group similar items together into single, neat, orderly arrangements.
-4. FINISHED LOOK: Ensure all existing cabinet doors and drawers are shown as closed.
 
 Step Format: 
 - Start with a warm, encouraging phrase.
