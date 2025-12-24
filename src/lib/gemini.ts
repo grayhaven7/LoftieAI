@@ -192,8 +192,7 @@ export async function declutterImageWithGemini(base64Image: string, decluttering
 STRICT RULES:
 - NO ADDITIONS: Do not add any new furniture, drawers, storage units, or items.
 - NO DELETIONS: Every object from the original photo must remain.
-- IDENTICAL STRUCTURE: Keep the room layout, walls, and existing furniture exactly as they are. This includes keeping curtains (open or closed as in original), island size/position, and window positions identical.
-- NO DESIGN CHANGES: Do not change the style of the room or furniture.
+- IDENTICAL STRUCTURE: Keep the room layout, walls, and existing furniture exactly as they are.
 
 TIDYING SPECIFICATIONS:
 - ORGANIZE EXISTING SPACE: Move items from the floor or messy piles to the nearest logical existing surface or existing storage spot.
