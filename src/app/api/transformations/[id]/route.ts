@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTransformation, saveTransformation } from '@/lib/storage';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Time in ms after which a "processing" transformation is considered stale and marked as failed
 const PROCESSING_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 

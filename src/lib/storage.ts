@@ -106,20 +106,38 @@ export async function getTransformations(): Promise<RoomTransformation[]> {
 }
 
 export async function getTransformation(id: string): Promise<RoomTransformation | null> {
+  const cleanId = id.trim();
+  
   if (useLocalStorage()) {
-    const transformations = await getTransformations();
-    return transformations.find(t => t.id === id) || null;
+    // Retry logic for local storage too, in case of file system latency or temporary locks
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const transformations = await getTransformations();
+      const found = transformations.find(t => t.id === cleanId);
+      
+      if (found) {
+        return found;
+      }
+      
+      if (attempt < maxAttempts) {
+        console.log(`[Storage] Local transformation ${cleanId} not found, retrying... (${attempt}/${maxAttempts})`);
+        await sleep(100);
+      }
+    }
+    
+    console.log(`[Storage] Local transformation ${cleanId} not found after ${maxAttempts} attempts`);
+    return null;
   }
 
   // Fetch single transformation directly from blob
   const token = getBlobToken();
   if (!token) {
-    console.error(`[Storage] BLOB_READ_WRITE_TOKEN not configured for transformation ${id}`);
+    console.error(`[Storage] BLOB_READ_WRITE_TOKEN not configured for transformation ${cleanId}`);
     return null;
   }
   
   try {
-    console.log(`[Storage] Fetching transformation ${id} from blob...`);
+    console.log(`[Storage] Fetching transformation ${cleanId} from blob...`);
 
     // NOTE: Vercel Blob `list()` can be briefly eventually-consistent right after a `put()`.
     // This can cause transient "not found" during the first couple seconds after creation.
@@ -128,7 +146,7 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const { blobs } = await list({
-        prefix: `transformations/${id}.json`,
+        prefix: `transformations/${cleanId}.json`,
         limit: 1,
         token,
       });
@@ -137,12 +155,12 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
       if (blobs.length > 0) {
         const response = await fetch(blobs[0].url, { cache: 'no-store' });
         if (!response.ok) {
-          console.error(`[Storage] Failed to fetch transformation ${id}: ${response.status} ${response.statusText}`);
+          console.error(`[Storage] Failed to fetch transformation ${cleanId}: ${response.status} ${response.statusText}`);
           return null;
         }
 
         const data = await response.json() as RoomTransformation;
-        console.log(`[Storage] Successfully loaded transformation ${id} with status ${data.status}`);
+        console.log(`[Storage] Successfully loaded transformation ${cleanId} with status ${data.status}`);
         return data;
       }
 
@@ -154,10 +172,10 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
       }
     }
 
-    console.log(`[Storage] Transformation ${id} not found in blob storage after retries (last list count=${lastListCount})`);
+    console.log(`[Storage] Transformation ${cleanId} not found in blob storage after retries (last list count=${lastListCount})`);
     return null;
   } catch (error) {
-    console.error(`[Storage] Error fetching transformation ${id}:`, error);
+    console.error(`[Storage] Error fetching transformation ${cleanId}:`, error);
     if (error instanceof Error) {
       console.error(`[Storage] Error details:`, error.message, error.stack);
     }

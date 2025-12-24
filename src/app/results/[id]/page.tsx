@@ -228,9 +228,28 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
     return (
       <div className="gradient-bg min-h-screen flex items-center justify-center px-4">
         <div className="card text-center max-w-sm">
-          <h2 className="text-lg text-[var(--color-text-primary)] mb-2 font-medium">Not Found</h2>
-          <p className="text-[var(--color-text-muted)] text-sm mb-4">{error || 'This transformation may have expired.'}</p>
-          <Link href="/" className="btn-primary inline-flex">Go Home</Link>
+          <div className="w-12 h-12 bg-[rgba(239,68,68,0.1)] rounded-full flex items-center justify-center mx-auto mb-4">
+            <X className="w-6 h-6 text-[rgb(239,68,68)]" />
+          </div>
+          <h2 className="text-lg text-[var(--color-text-primary)] mb-2 font-medium">Transformation Not Found</h2>
+          <p className="text-[var(--color-text-muted)] text-sm mb-4">
+            {error || 'This transformation could not be found. It may have expired or the link may be incorrect.'}
+          </p>
+          <div className="flex flex-col gap-2">
+            <button 
+              onClick={() => window.location.reload()} 
+              className="btn-primary"
+            >
+              Try Refreshing
+            </button>
+            <Link href="/" className="btn-secondary">Go Home</Link>
+          </div>
+          <div className="mt-6 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+            <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-2">Technical Info</p>
+            <code className="text-[10px] bg-[rgba(0,0,0,0.2)] px-2 py-1 rounded text-[var(--color-text-secondary)] break-all">
+              ID: {id}
+            </code>
+          </div>
         </div>
       </div>
     );
