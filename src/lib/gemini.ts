@@ -190,18 +190,18 @@ export async function declutterImageWithGemini(base64Image: string, decluttering
   const prompt = `PHOTO EDIT TASK: Professional Reorganization. 
 
 STRICT RULES:
-- PRESERVE BELONGINGS: Every meaningful object (books, clothes, toys, personal items) MUST remain in the edited photo. Deleting inventory is strictly forbidden.
-- REMOVE TRASH: Identify and remove obvious waste (crumpled paper, empty wrappers, scrap debris, empty cans/bottles).
+- PRESERVE BELONGINGS: Every meaningful object (books, clothes, toys, personal items) MUST remain in the edited photo. Deleting inventory is strictly forbidden. IF UNSURE IF AN ITEM IS TRASH, KEEP IT.
+- REMOVE TRASH: Only remove items that are clearly 100% garbage (crumpled paper, empty wrappers, scrap debris, empty cans/bottles).
 - NO ADDITIONS: Do not add any new furniture, drawers, or items that weren't there.
 - IDENTICAL STRUCTURE: Keep the room layout, walls, and existing furniture exactly as they are.
 
 TIDYING SPECIFICATIONS:
-- CLEAR THE FLOOR (PROTECT RUGS): Move all loose items (clutter, trash, clothes, etc.) from the floor to an existing surface (shelf, table, etc.). HOWEVER, the carpet, rugs, and floor mats ARE PART OF THE FLOOR and MUST REMAIN. Do not "clean" the floor by removing the rug. The rug must be visible in the final image.
+- CLEAR THE FLOOR (PROTECT RUGS): Move all loose items (clothes, books, clutter) from the floor to an existing surface (shelf, table, etc.). Keep rugs and carpets in their EXACT ORIGINAL POSITION AND SIZE. Do not expand or resize rugs to cover more floor than they originally did.
 - NEAT ARRANGEMENT: Group similar items into single, tidy, professional stacks or rows.
 - ALIGNMENT: Align remaining visible objects in clean, parallel rows.
 - VISIBILITY: Ensure every item that was moved is still clearly visible in its new, organized location.
 
-Goal: The exact same room but decluttered. Obvious trash is gone, belongings are neatly organized on surfaces, and the floor is clear of loose items while KEEPING all carpets, rugs, and floor coverings. The rug is part of the floor and must stay. Follow this plan:
+Goal: The exact same room but decluttered. Only obvious garbage is gone, all personal belongings are neatly organized on surfaces, and the floor is clear of loose items while KEEPING all rugs and carpets in their original size and position. Follow this plan:
 ${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   // Use retry logic for rate limit handling
