@@ -199,14 +199,14 @@ STRICT RULES:
 - 100% CLEAR FLOOR (LOOSE ITEMS ONLY): Move EVERY loose item on the floor (shoes, bags, clutter) to a shelf or surface. 
 - FOLD EVERY FABRIC: Every blanket, throw, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack. No messy or draped fabrics.
 - TRASH & BOTTLE REMOVAL: Identify and remove all trash, including empty bottles and cans.
-- FIXTURE CLEARANCE: Remove all items hanging off lamps, light fixtures, or radiators.
+- FIXTURE & WINDOW CLEARANCE: Move ALL items (sheets, towels, clothes, etc.) hanging off windows, radiators, light fixtures, or lamps. These areas must be completely clear of draped fabric.
 - IDENTICAL STRUCTURE: Keep walls, windows, and the specific original flooring texture exactly as they are.
 
 STYLING SPECIFICATIONS:
 - ALIGNMENT: Align all objects on surfaces in clean, parallel rows.
 - VISIBILITY: Ensure every item that was moved is still clearly visible in its new, organized location.
 
-Goal: A perfectly staged space. Rugs/carpets are preserved 100%, pillows are fluffed and styled beautifully, furniture is preserved, the floor is clear of loose clutter, and everything is neatly folded and aligned. Follow this plan:
+Goal: A perfectly staged space. Rugs/carpets are preserved 100%, pillows are fluffed and styled, the window and radiator are clear of draped fabrics, furniture is preserved, and everything is neatly folded. Follow this plan:
 ${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   // Use retry logic for rate limit handling
