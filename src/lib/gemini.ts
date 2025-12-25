@@ -187,22 +187,22 @@ export async function declutterImageWithGemini(base64Image: string, decluttering
     mimeType = mimeMatch[1];
   }
 
-  const prompt = `PHOTO EDIT TASK: Universal Space Staging. 
+  const prompt = `PHOTO EDIT TASK: Universal Professional Space Staging. 
 
 STRICT RULES:
-- PRESERVE BELONGINGS: Every meaningful object (books, clothes, toys, decor, personal items) MUST remain. Deleting inventory is strictly forbidden. IF UNSURE IF AN ITEM IS TRASH, KEEP IT.
-- REMOVE TRASH: Only remove items that are clearly 100% garbage (crumpled paper, empty wrappers, scrap debris, empty cans/bottles).
-- NO ADDITIONS: Do not add any new furniture or items that weren't there.
-- IDENTICAL STRUCTURE: Keep the walls, windows, and existing large furnishings exactly as they are.
+- PRESERVE ALL FURNITURE: Every piece of furniture (lamps, tables, chairs, shelving, plants, wall art) MUST remain exactly where it is. Deleting furniture or decor is strictly forbidden.
+- 100% CLEAR FLOOR: Every single loose item on the floor (shoes, bags, clutter, debris) MUST be moved to a shelf, table, or surface. The floor must be completely clear except for rugs and furniture legs.
+- FOLD EVERY FABRIC: Every single blanket, throw, towel, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack and placed on a surface. No draped or messy fabrics allowed.
+- DELETE TRASH: Identify and remove items that are clearly garbage (crumpled paper, empty wrappers, scrap debris). 
+- IDENTICAL STRUCTURE: Keep walls, windows, and floors (including rugs) exactly as they are.
 
 STYLING SPECIFICATIONS:
-- PROTECT FLOOR COVERINGS: Rugs, carpets, and floor mats ARE PART OF THE FLOOR and MUST REMAIN in their EXACT ORIGINAL POSITION AND SIZE. Do not remove or resize them.
-- FIXTURE CLEARANCE: Move all items hanging off light fixtures, lamps, radiators, wall art, or appliance handles. Nothing should be draped or hanging.
-- PROFESSIONAL FOLDING: Every fabric item (blankets, clothes, towels, pajamas) MUST be neatly FOLDED into crisp, rectangular stacks on available flat surfaces (tables, counters, shelves, or seating).
-- ALIGNMENT: Align all visible objects in clean, parallel rows. Group similar items together.
+- PROTECT FLOOR COVERINGS: Rugs and carpets MUST REMAIN in their EXACT ORIGINAL POSITION AND SIZE.
+- FIXTURE CLEARANCE: Remove all items hanging off light fixtures, lamps, radiators, or handles. The fixtures themselves must stay.
+- ALIGNMENT: Align all objects on surfaces in clean, parallel rows. Group similar items together.
 - VISIBILITY: Ensure every item that was moved is still clearly visible in its new, organized location.
 
-Goal: The exact same space but professionally staged for any room type. Only obvious garbage is gone, all floor coverings are preserved exactly, and all items are moved from fixtures and the floor into crisp, neat, parallel arrangements on surfaces. Follow this plan:
+Goal: A perfectly staged space for any room type. All furniture is preserved, the floor is 100% clear of loose items, all fabrics are crisply folded, and the room looks professionally organized. Follow this plan:
 ${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   // Use retry logic for rate limit handling

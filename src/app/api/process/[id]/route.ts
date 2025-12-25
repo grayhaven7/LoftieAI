@@ -93,15 +93,15 @@ export async function POST(
     // STEP 1: Generate the decluttering plan FIRST
     console.log(`Generating decluttering plan...`);
     const planPrompt = `You are Loftie, a professional space organizer with a "Marie Kondo" mindset. 
-Task: Create a 5-8 step professional organization plan for this space.
+Task: Create a 5-8 step universal professional organization plan for this space.
 
 CORE DIRECTIVES:
-1. TOTAL PRESERVATION: Every meaningful item (books, clothes, decor, personal belongings, tools) MUST remain. If unsure if an item is trash, KEEP IT.
-2. DISCARD TRASH: Only remove items that are clearly 100% garbage (crumpled wrappers, empty cans, scrap paper, debris). 
-3. FIXTURE CLEARANCE: Move all "rogue" items hanging off light fixtures, lamps, radiators, wall art, or appliance handles. No items should be draped or hanging where they don't belong.
-4. FLOOR COVERING PROTECTION: Rugs, carpets, and floor mats ARE PART OF THE FLOOR and MUST STAY in their EXACT ORIGINAL POSITION AND SIZE. Do not "clean" the floor by removing them.
-5. PROFESSIONAL STYLING: Every fabric item (blankets, clothes, towels) MUST be neatly folded into crisp, rectangular stacks. Move all loose items from the floor or fixtures to appropriate flat surfaces (tables, counters, shelves, or seating). 
-6. UNIVERSAL ALIGNMENT: Align all visible objects in clean, parallel rows. Group similar items by category.
+1. TOTAL FURNITURE PRESERVATION: Every piece of furniture (lamps, tables, chairs, shelving, plants, art) MUST remain exactly where it is. Do not delete furniture.
+2. 100% FLOOR CLEARANCE: Every single loose item currently on the floor (shoes, bags, toys, books, clutter) must be moved to an appropriate shelf, table, or seating surface. The floor must be perfectly clear except for rugs and furniture legs.
+3. MANDATORY FABRIC FOLDING: Every single piece of fabric (blankets, throws, clothes, pajamas) must be neatly folded into a crisp, rectangular stack and placed on a flat surface. No draped or messy fabrics.
+4. TRASH ELIMINATION: Identify and remove items that are clearly garbage (crumpled paper, empty cans, debris, small meaningless scraps).
+5. FIXTURE TIDYING: Remove any items hanging off lamps, radiators, or handles. The fixtures themselves must stay.
+6. UNIVERSAL ALIGNMENT: Align all items on surfaces in neat, parallel rows. Group similar items together.
 
 Step Format: 
 - Start with a warm, encouraging phrase.
