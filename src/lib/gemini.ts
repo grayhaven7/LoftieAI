@@ -191,11 +191,12 @@ export async function declutterImageWithGemini(base64Image: string, decluttering
 
 CRITICAL TOP PRIORITIES:
 - THE RUG MUST STAY: The rug/carpet is a permanent part of the room. It is NOT clutter. You MUST leave the rug in its exact original place, size, and color. Removing or editing the rug is strictly forbidden.
-- STYLE EXISTING PILLOWS ONLY: Fluff only the pillows that already exist in the photo. Do NOT add any new pillows. Place existing pillows perfectly upright in a beautiful arrangement.
+- PRESERVE PILLOW COUNT & STYLE: ONLY use the pillows that already exist. Do NOT add new pillows. Do NOT change their color or shape. Keep the exact same number of pillows as the original image. Do not stack them if they weren't stacked.
 
 STRICT RULES:
 - NO DELETIONS OF FURNITURE: Every piece of furniture, lamp, table, nightstand, lighting fixture, and plant MUST remain exactly where it is. Do NOT delete furniture.
 - STRICT NO ADDITIONS: Do NOT add any new objects, furniture, pillows, or wall decor.
+- NO HALLUCINATIONS: Each item must maintain its original visual identity. Do not replace original items with "cleaner" or different-colored versions.
 - 100% CLEAR FLOOR (LOOSE ITEMS ONLY): Move EVERY loose item on the floor (shoes, bags, clutter) to a shelf or surface. 
 - FOLD EVERY FABRIC: Every blanket, throw, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack. No messy or draped fabrics.
 - TRASH & BOTTLE REMOVAL: Identify and remove all trash, including empty bottles and cans.
