@@ -194,14 +194,15 @@ CRITICAL TOP PRIORITIES:
 - PRESERVE PILLOW COUNT & STYLE: ONLY use the pillows that already exist. Do NOT add new pillows. Do NOT change their color or shape. Keep the exact same number of pillows as the original image. Do not stack them if they weren't stacked.
 
 STRICT RULES:
-- NO DELETIONS OF FURNITURE: Every piece of furniture, lamp, table, nightstand, shelving unit, and plant MUST remain exactly where it is.
+- NO DELETIONS OF FURNITURE: Every piece of furniture, lamp, coffee table, nightstand, shelving unit, and plant MUST remain exactly where it is. Even if a table is cleared, THE TABLE MUST STAY.
 - STRICT NO ADDITIONS: Do NOT add any new objects, furniture, pillows, or wall decor.
 - NO HALLUCINATIONS: Each item must maintain its original visual identity.
-- 100% BARE FLOOR (LOOSE ITEMS ONLY): Move EVERY loose item on the floor (shoes, bags, folded clothes, blankets) to a shelf or surface. The floor must be completely clear except for rugs.
-- FOLD EVERY FABRIC: Every blanket, throw, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack and placed ON A SURFACE. Never leave items on the floor.
+- 100% BARE FLOOR (LOOSE ITEMS ONLY): Move EVERY loose item on the floor (shoes, bags, folded clothes, blankets) to a shelf or surface. THE RUG IS NOT A SURFACE for storage. Never leave items on the floor or rug.
+- FOLD EVERY FABRIC: Every blanket, throw, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack and placed ON A FURNITURE SURFACE OR SHELF. Never leave items on the floor/rug.
+- PILLOW STYLING: Every pillow must be fluffed to be full and voluminous. Place them perfectly upright.
 - TRASH & BOTTLE REMOVAL: Identify and remove all trash, including empty bottles and cans.
 - FIXTURE & WINDOW CLEARANCE: Move ALL items (sheets, towels, clothes, etc.) hanging off windows, radiators, light fixtures, or lamps.
-- IDENTICAL STRUCTURE: Keep walls, windows, and the specific original flooring texture exactly as they are.
+- IDENTICAL STRUCTURE: Keep walls, windows, and the specific original flooring texture exactly as they are. Rugs are part of the structural floor.
 
 STYLING SPECIFICATIONS:
 - ALIGNMENT: Align all objects on surfaces in clean, parallel rows.

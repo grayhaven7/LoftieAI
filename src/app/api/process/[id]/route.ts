@@ -100,13 +100,15 @@ CRITICAL TOP PRIORITIES (NEVER IGNORE):
 - PRESERVE PILLOW COUNT & STYLE: ONLY use the pillows that already exist. Do NOT add new pillows. Do NOT change their color or shape. Keep the exact same number of pillows as the original image.
 
 CORE DIRECTIVES:
-1. TOTAL FURNITURE PRESERVATION: Every piece of furniture (lamps, tables, nightstands, chairs, shelving units, bookcases, and plants) MUST remain exactly where it is. Even furniture in the background MUST stay.
+1. TOTAL FURNITURE PRESERVATION: Every piece of furniture (tables, coffee tables, nightstands, lamps, chairs, shelving units, bookcases, and plants) MUST remain exactly where it is. Even if you move items off a table, THE TABLE MUST STAY. Do NOT delete furniture.
 2. STRICT NO ADDITIONS: Do NOT add any new decor, wall art, plants, furniture, or objects. NO NEW PILLOWS.
-3. NO HALLUCINATIONS: Do not replace original items with "better" or "nicer" versions. A messy pillow stays the same pillow, just fluffed and placed neatly.
-4. 100% BARE FLOOR: Move EVERY loose item (shoes, bags, toys, bottles, folded clothes, blankets) from the floor to a proper flat surface (table, shelf, or seat). NOTHING should be left on the rug or floor.
-5. MANDATORY FABRIC FOLDING: Every fabric item (blankets, clothes) MUST be neatly folded into a crisp, rectangular stack. These stacks MUST be placed on a surface (not the floor).
-6. TRASH REMOVAL: Remove all items that are clearly garbage.
-7. FIXTURE & WINDOW CLEARANCE: Clear all items (sheets, towels, clothes) hanging off or draped over windows, radiators, lamps, or handles. These areas must be perfectly clear of any loose fabric.
+3. NO HALLUCINATIONS: Do not replace original items with "better" or "nicer" versions.
+4. 100% BARE FLOOR: Move EVERY loose item from the floor to a proper flat surface (shelf, counter, or seat). THE RUG IS NOT A SURFACE for storage. Do NOT place items, folded or otherwise, on the rug or floor.
+5. MANDATORY FABRIC FOLDING: Every fabric item (blankets, clothes) MUST be neatly folded into a crisp, rectangular stack. These stacks MUST be placed on a shelf or furniture surface (NEVER ON THE FLOOR/RUG).
+6. PILLOW STYLING: Fluff every existing pillow to be full and voluminous. Place them perfectly upright.
+7. TRASH REMOVAL: Remove all items that are clearly garbage.
+8. FIXTURE & WINDOW CLEARANCE: Clear all items hanging off or draped over windows, radiators, lamps, or handles. 
+9. RUG PRESERVATION: The rug must stay exactly as it is. It is part of the floor.
 
 Step Format: 
 - Start with a warm, encouraging phrase.
