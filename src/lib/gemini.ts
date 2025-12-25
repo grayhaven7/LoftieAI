@@ -189,13 +189,15 @@ export async function declutterImageWithGemini(base64Image: string, decluttering
 
   const prompt = `PHOTO EDIT TASK: Universal Professional Space Staging. 
 
+CRITICAL TOP PRIORITIES:
+- THE RUG MUST STAY: The rug/carpet is a permanent part of the room. It is NOT clutter. You MUST leave the rug in its exact original place, size, and color. Removing or editing the rug is strictly forbidden.
+- PILLOW STYLING: Fluff every pillow and place it perfectly upright and centered in a professional, symmetrical arrangement on the furniture. 
+
 STRICT RULES:
-- PROTECT ALL RUGS & CARPETS: Rugs and carpets ARE NOT CLUTTER. They are structural. They MUST REMAIN in their EXACT ORIGINAL POSITION AND SIZE. Do not delete or edit the rug/carpet.
 - NO DELETIONS OF FURNITURE: Every piece of furniture, lamp, lighting fixture, and plant MUST remain exactly where it is.
 - STRICT NO ADDITIONS: Do NOT add any new objects, furniture, or wall decor.
 - 100% CLEAR FLOOR (LOOSE ITEMS ONLY): Move EVERY loose item on the floor (shoes, bags, clutter) to a shelf or surface. 
 - FOLD EVERY FABRIC: Every blanket, throw, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack. No messy or draped fabrics.
-- PILLOW STYLING: Every pillow and cushion must be fluffed and placed perfectly upright.
 - TRASH & BOTTLE REMOVAL: Identify and remove all trash, including empty bottles and cans.
 - FIXTURE CLEARANCE: Remove all items hanging off lamps, light fixtures, or radiators.
 - IDENTICAL STRUCTURE: Keep walls, windows, and the specific original flooring texture exactly as they are.
@@ -204,7 +206,7 @@ STYLING SPECIFICATIONS:
 - ALIGNMENT: Align all objects on surfaces in clean, parallel rows.
 - VISIBILITY: Ensure every item that was moved is still clearly visible in its new, organized location.
 
-Goal: A perfectly staged space using only the original inventory. Rugs/carpets are preserved 100%, furniture is preserved, the floor is clear of loose clutter, and everything is neatly folded and aligned. Follow this plan:
+Goal: A perfectly staged space. Rugs/carpets are preserved 100%, pillows are fluffed and styled beautifully, furniture is preserved, the floor is clear of loose clutter, and everything is neatly folded and aligned. Follow this plan:
 ${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   // Use retry logic for rate limit handling
