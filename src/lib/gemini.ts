@@ -196,13 +196,14 @@ STRICT RULES:
 - IDENTICAL STRUCTURE: Keep the room layout, walls, and existing furniture exactly as they are.
 
 TIDYING SPECIFICATIONS:
-- CLEAR THE FLOOR (PROTECT RUGS): Move all loose items (clothes, books, clutter) from the floor to an existing surface (shelf, table, etc.). Keep rugs and carpets in their EXACT ORIGINAL POSITION AND SIZE. Do not expand or resize rugs to cover more floor than they originally did.
-- PROFESSIONAL STYLING: Every item must be neatly styled. FOLD blankets and clothes into crisp, rectangular shapes. FLUFF and center pillows on sofas or beds. Center objects on tables or shelves with intentional spacing.
-- NEAT ARRANGEMENT: Group similar items into single, tidy, professional stacks or rows.
+- CLEAR SURFACES & FIXTURES: Move all loose items from the floor, light fixtures, walls, radiators, and furniture edges. No items (like clothes or pajamas) should be hanging off lamps or radiators.
+- PROFESSIONAL STYLING: Every fabric item (blankets, throws, clothes, pajamas) MUST be neatly FOLDED into crisp, rectangular stacks. Do not leave blankets draped or messy. FLUFF and center pillows on sofas or beds.
+- NEAT ARRANGEMENT: Group similar items into single, tidy, professional stacks or rows on flat surfaces.
+- PROTECT RUGS: Keep rugs and carpets in their EXACT ORIGINAL POSITION AND SIZE. Do not expand or resize them.
 - ALIGNMENT: Align remaining visible objects in clean, parallel rows.
 - VISIBILITY: Ensure every item that was moved is still clearly visible in its new, organized location.
 
-Goal: The exact same room but professionally staged. Only obvious garbage is gone, all personal belongings are CRISPLY FOLDED and neatly organized on surfaces, and the floor is clear of loose items while KEEPING all rugs and carpets in their original size and position. Follow this plan:
+Goal: The exact same room but professionally staged. Only obvious garbage is gone, all fabric items (including blankets and hanging clothes) are CRISPLY FOLDED and neatly organized on surfaces, and all "rogue" items are moved from light fixtures and edges to proper storage. Follow this plan:
 ${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   // Use retry logic for rate limit handling

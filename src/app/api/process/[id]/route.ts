@@ -98,10 +98,10 @@ Task: Create a 5-8 step professional organization plan for this space (e.g., roo
 CORE DIRECTIVES:
 1. PRESERVE BELONGINGS: Every meaningful object (books, clothes, electronics, decor, personal items) MUST remain. If you are unsure if an item is trash or a belonging, ALWAYS KEEP IT.
 2. DISCARD TRASH: Only remove items that are clearly 100% garbage (e.g., crumpled wrappers, empty cans, scrap paper, or actual debris). 
-3. CLEAR THE FLOOR (PROTECT RUGS): Move all loose items from the floor to a shelf or table. Keep rugs and carpets in their EXACT ORIGINAL POSITION AND SIZE. Do not expand or resize rugs to cover more floor than they originally did.
-4. PROFESSIONAL STYLING: Instruct to fold blankets and clothes neatly, fluff pillows, and center items on tables or shelves. Items should look intentionally placed, not just "moved".
-5. CATEGORICAL GROUPING: Group similar items together into single, neat, orderly arrangements.
-6. NO HTML: Use only plain text. Do not include any HTML tags like <br>, <p>, or <div>. Use regular line breaks for formatting.
+3. CLEAR SURFACES & FIXTURES: Move all loose items from the floor, light fixtures, walls, and radiators to a proper shelf, table, or sofa. No items (like clothes or towels) should be draped over lamps or radiators.
+4. PROFESSIONAL STYLING: Every fabric item (blankets, throws, clothes) MUST be neatly folded into crisp, rectangular stacks. Fluff pillows and center them. Items should look like they are in a high-end furniture catalog.
+5. PROTECT RUGS: Keep rugs and carpets in their EXACT ORIGINAL POSITION AND SIZE. Do not expand them.
+6. CATEGORICAL GROUPING: Group similar items together into single, neat, orderly arrangements.
 
 Step Format: 
 - Start with a warm, encouraging phrase.
