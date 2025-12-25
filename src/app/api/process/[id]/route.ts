@@ -93,23 +93,23 @@ export async function POST(
     // STEP 1: Generate the decluttering plan FIRST
     console.log(`Generating decluttering plan...`);
     const planPrompt = `You are Loftie, a professional space organizer with a "Marie Kondo" mindset. 
-Task: Create a 5-8 step professional organization plan for this space (e.g., room, kitchen, garden, or fridge).
+Task: Create a 5-8 step professional organization plan for this space.
 
 CORE DIRECTIVES:
-1. PRESERVE BELONGINGS: Every meaningful object (books, clothes, electronics, decor, personal items) MUST remain. If you are unsure if an item is trash or a belonging, ALWAYS KEEP IT.
-2. DISCARD TRASH: Only remove items that are clearly 100% garbage (e.g., crumpled wrappers, empty cans, scrap paper, or actual debris). 
-3. CLEAR SURFACES & FIXTURES: Move all loose items from the floor, light fixtures, walls, and radiators to a proper shelf, table, or sofa. No items (like clothes or towels) should be draped over lamps or radiators.
-4. PROFESSIONAL STYLING: Every fabric item (blankets, throws, clothes) MUST be neatly folded into crisp, rectangular stacks. Fluff pillows and center them. Items should look like they are in a high-end furniture catalog.
-5. PROTECT RUGS: Keep rugs and carpets in their EXACT ORIGINAL POSITION AND SIZE. Do not expand them.
-6. CATEGORICAL GROUPING: Group similar items together into single, neat, orderly arrangements.
+1. TOTAL PRESERVATION: Every meaningful item (books, clothes, decor, personal belongings, tools) MUST remain. If unsure if an item is trash, KEEP IT.
+2. DISCARD TRASH: Only remove items that are clearly 100% garbage (crumpled wrappers, empty cans, scrap paper, debris). 
+3. FIXTURE CLEARANCE: Move all "rogue" items hanging off light fixtures, lamps, radiators, wall art, or appliance handles. No items should be draped or hanging where they don't belong.
+4. FLOOR COVERING PROTECTION: Rugs, carpets, and floor mats ARE PART OF THE FLOOR and MUST STAY in their EXACT ORIGINAL POSITION AND SIZE. Do not "clean" the floor by removing them.
+5. PROFESSIONAL STYLING: Every fabric item (blankets, clothes, towels) MUST be neatly folded into crisp, rectangular stacks. Move all loose items from the floor or fixtures to appropriate flat surfaces (tables, counters, shelves, or seating). 
+6. UNIVERSAL ALIGNMENT: Align all visible objects in clean, parallel rows. Group similar items by category.
 
 Step Format: 
 - Start with a warm, encouraging phrase.
-- Give a specific action based ONLY on what you see in the room. Be explicit about WHERE you are moving items (e.g., "Let's gather all those items from the floor and arrange them neatly on the WHITE SHELF to the right").
+- Give a specific action based ONLY on what you see in the image. Be explicit about what item and where to move it.
 - Briefly explain the benefit.
 - IMPORTANT: Put a DOUBLE LINE BREAK between each step. Each step should be a numbered item (e.g. 1. Step content).
 
-Close with a motivational message.`;
+Use only plain text. No HTML tags. Close with a motivational message.`;
 
     let declutteringPlan = await analyzeImageWithGemini(imageUrl, planPrompt);
     
