@@ -96,13 +96,14 @@ export async function POST(
 Task: Create a 5-8 step universal professional organization plan for this space.
 
 CORE DIRECTIVES:
-1. NO DELETIONS OF FURNITURE: Lamps, lighting, tables, chairs, shelving, and plants are FURNITURE and must remain. Do not delete them.
-2. NO ADDITIONS: Do not add any new decor, wall art, or objects.
-3. 100% FLOOR & SURFACE CLEARANCE: Move EVERY loose item (shoes, bags, toys, bottles, clutter) from the floor and surfaces. The floor must be clear except for furniture and rugs.
-4. MANDATORY FABRIC FOLDING: Every fabric item (blankets, clothes) MUST be neatly folded into a crisp, rectangular stack on a flat surface. Do not leave items draped over furniture or fixtures.
-5. PILLOW & CUSHION STYLING: Fluff every pillow and place it perfectly upright.
-6. TRASH & BOTTLE REMOVAL: Remove all items that are clearly garbage, including empty bottles, cans, and scrap debris.
-7. FIXTURE CLEARANCE: Clear all items hanging off lamps or radiators.
+1. PROTECT ALL RUGS & CARPETS: Rugs, carpets, and mats ARE PART OF THE ROOM STRUCTURE and must stay exactly where they are. Do not remove, resize, or delete any floor coverings.
+2. NO DELETIONS OF FURNITURE: Lamps, lighting, tables, chairs, shelving, and plants are FURNITURE and must remain. Do not delete them.
+3. NO ADDITIONS: Do not add any new decor, wall art, or objects.
+4. 100% CLUTTER REMOVAL FROM FLOOR: Move EVERY loose item (shoes, bags, toys, bottles, clutter) from the floor to a surface. The rug itself is NOT clutter—it must stay.
+5. MANDATORY FABRIC FOLDING: Every fabric item (blankets, clothes) MUST be neatly folded into a crisp, rectangular stack on a flat surface. 
+6. PILLOW & CUSHION STYLING: Fluff every pillow and place it perfectly upright.
+7. TRASH & BOTTLE REMOVAL: Remove all items that are clearly garbage, including empty bottles and cans.
+8. FIXTURE CLEARANCE: Clear all items hanging off lamps or radiators.
 
 Step Format: 
 - Start with a warm, encouraging phrase.
