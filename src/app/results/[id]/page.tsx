@@ -34,109 +34,91 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
   const processingRequestFired = useRef(false);
 
   useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
     async function fetchData() {
       try {
-        // Transformations can be created and persisted asynchronously; on some stores (e.g. blob),
-        // the record may briefly appear as "not found" right after creation. Retry a bit before failing.
-        const maxAttempts = 5; // Reduced attempts but longer wait
-        let response: Response | null = null;
+        const maxAttempts = 5;
+        let lastResponse: Response | null = null;
 
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
           setRetryCount(attempt);
           
           try {
-            response = await fetch(`/api/transformations/${id}`, {
+            const response = await fetch(`/api/transformations/${id}`, {
               cache: 'no-store',
-              headers: {
-                'Cache-Control': 'no-cache',
-              },
+              headers: { 'Cache-Control': 'no-cache' },
             });
 
-            if (response.ok) break;
+            lastResponse = response;
 
-            // If we get a 404, the record might still be propagating in storage.
-            // Retry only on 404; other errors (500, 401, etc.) should fail immediately.
-            if (response.status !== 404 || attempt === maxAttempts) {
-              let msg = `Failed to load transformation (HTTP ${response.status})`;
-              try {
-                const body = await response.json();
-                msg = body?.error || msg;
-              } catch {
-                // ignore
+            if (response.ok) {
+              const result = await response.json();
+              setData(result);
+              if (result.userEmail) setEmail(result.userEmail);
+              
+              if (result.status === 'processing') {
+                if (!processingRequestFired.current) {
+                  processingRequestFired.current = true;
+                  fetch(`/api/process/${id}`, { method: 'POST' }).catch(console.error);
+                }
+                
+                let consecutivePollFailures = 0;
+                interval = setInterval(async () => {
+                  try {
+                    const pollResponse = await fetch(`/api/transformations/${id}`, {
+                      cache: 'no-store',
+                      headers: { 'Cache-Control': 'no-cache' },
+                    });
+                    
+                    if (!pollResponse.ok) {
+                      consecutivePollFailures++;
+                      if (consecutivePollFailures >= 3) {
+                        if (interval) clearInterval(interval);
+                        setError(`Trouble fetching updates (HTTP ${pollResponse.status})`);
+                      }
+                      return;
+                    }
+
+                    consecutivePollFailures = 0;
+                    const pollResult = await pollResponse.json();
+                    setData(pollResult);
+                    if (pollResult.status !== 'processing') {
+                      if (interval) clearInterval(interval);
+                    }
+                  } catch (e) {
+                    consecutivePollFailures++;
+                    if (consecutivePollFailures >= 3) {
+                      if (interval) clearInterval(interval);
+                      setError('Trouble fetching updates. Please refresh.');
+                    }
+                  }
+                }, 3000);
               }
-              throw new Error(msg);
+              return; // Success!
+            }
+
+            if (response.status !== 404 || attempt === maxAttempts) {
+              const body = await response.json().catch(() => ({}));
+              throw new Error(body.error || `Failed to load (HTTP ${response.status})`);
             }
           } catch (err) {
-            // If it's a fetch error or we already threw an error above, check if we should retry
             if (attempt === maxAttempts) throw err;
           }
 
-          // Exponential backoff: 1s, 2s, 4s, 8s...
-          const waitTime = Math.pow(2, attempt - 1) * 1000;
-          await new Promise((r) => setTimeout(r, waitTime));
+          await new Promise((r) => setTimeout(r, Math.pow(2, attempt - 1) * 1000));
         }
 
-        const result = await response!.json();
-        setData(result);
-        if (result.userEmail) setEmail(result.userEmail);
-        
-        // If still processing, trigger the processing endpoint and poll for updates
-        if (result.status === 'processing') {
-          // Trigger processing if not already triggered in this session
-          if (!processingRequestFired.current) {
-            processingRequestFired.current = true;
-            // Fire and forget - start processing in background
-            fetch(`/api/process/${id}`, { method: 'POST' }).catch(console.error);
-          }
-          
-          let consecutivePollFailures = 0;
-          const interval = setInterval(async () => {
-            try {
-              const pollResponse = await fetch(`/api/transformations/${id}`, {
-                cache: 'no-store',
-                headers: {
-                  'Cache-Control': 'no-cache',
-                },
-              });
-              if (!pollResponse.ok) {
-                consecutivePollFailures += 1;
-                if (consecutivePollFailures >= 3) {
-                  clearInterval(interval);
-                  let msg = `Trouble fetching updates (HTTP ${pollResponse.status}).`;
-                  try {
-                    const body = await pollResponse.json();
-                    msg = body?.error || msg;
-                  } catch {
-                    // ignore
-                  }
-                  setError(msg);
-                }
-                return;
-              }
-
-              consecutivePollFailures = 0;
-              const pollResult = await pollResponse.json();
-              setData(pollResult);
-              if (pollResult.status !== 'processing') {
-                clearInterval(interval);
-              }
-            } catch {
-              consecutivePollFailures += 1;
-              if (consecutivePollFailures >= 3) {
-                clearInterval(interval);
-                setError('Trouble fetching updates. Please refresh the page.');
-              }
-            }
-          }, 3000);
-          return () => clearInterval(interval);
-        }
+        if (!lastResponse?.ok) throw new Error('Transformation not found');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load');
       } finally {
         setLoading(false);
       }
     }
+
     fetchData();
+    return () => { if (interval) clearInterval(interval); };
   }, [id]);
 
   const toggleAudio = () => {
