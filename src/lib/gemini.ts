@@ -190,17 +190,18 @@ export async function declutterImageWithGemini(base64Image: string, decluttering
   const prompt = `PHOTO EDIT TASK: Professional Reorganization. 
 
 STRICT RULES:
-- NO DELETIONS: Every single object, book, piece of clothing, and item from the original photo MUST remain in the edited photo. Removing items is strictly forbidden.
-- NO ADDITIONS: Do not add any new furniture, drawers, storage units, or items.
+- PRESERVE BELONGINGS: Every meaningful object (books, clothes, toys, personal items) MUST remain in the edited photo. Deleting inventory is strictly forbidden.
+- REMOVE TRASH: Identify and remove obvious waste (crumpled paper, empty wrappers, scrap debris, empty cans/bottles).
+- NO ADDITIONS: Do not add any new furniture, drawers, or items that weren't there.
 - IDENTICAL STRUCTURE: Keep the room layout, walls, and existing furniture exactly as they are.
 
 TIDYING SPECIFICATIONS:
-- CLEAR THE FLOOR: Every single item currently on the floor must be moved to an existing surface (shelf, table, chair, etc.). The floor must be completely clear.
+- CLEAR THE FLOOR (EXCEPT RUGS): Move all small items from the floor to an existing surface (shelf, table, etc.). HOWEVER, do NOT remove or move rugs, carpets, or large furniture.
 - NEAT ARRANGEMENT: Group similar items into single, tidy, professional stacks or rows.
 - ALIGNMENT: Align remaining visible objects in clean, parallel rows.
 - VISIBILITY: Ensure every item that was moved is still clearly visible in its new, organized location.
 
-Goal: The exact same room and inventory, but with everything moved from "messy" to "tidy" positions using only the space already available. NOTHING should be left on the floor, and NOTHING should be deleted. If the final image is empty or missing original items, it is a total failure. Follow this plan:
+Goal: The exact same room but decluttered. Obvious trash is gone, belongings are neatly organized on surfaces, and the floor is clear of clutter while KEEPING all carpets and rugs. Follow this plan:
 ${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   // Use retry logic for rate limit handling
