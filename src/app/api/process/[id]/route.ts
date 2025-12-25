@@ -97,12 +97,12 @@ Task: Create a 5-8 step universal professional organization plan for this space.
 
 CRITICAL TOP PRIORITIES (NEVER IGNORE):
 - THE RUG MUST STAY: The rug/carpet is the soul of the room. It is NOT clutter. You MUST leave the rug in its exact original place, size, and color. Removing the rug is a 100% failure.
-- PILLOW STYLING: Every pillow and cushion must be fluffed and placed perfectly upright in a beautiful, symmetrical arrangement on the seating. Do not leave them lying flat.
+- STYLE EXISTING PILLOWS ONLY: Fluff only the pillows that already exist in the photo. Do NOT add any new pillows. Place existing pillows perfectly upright in a beautiful arrangement.
 
 CORE DIRECTIVES:
-1. TOTAL FURNITURE PRESERVATION: Lamps, tables, chairs, shelving, and plants are FURNITURE and must remain. Do not delete them.
-2. NO ADDITIONS: Do not add any new decor, wall art, or objects.
-3. CLEAR CLUTTER: Move EVERY loose item (shoes, bags, toys, bottles, clutter) from the floor to a proper surface. 
+1. TOTAL FURNITURE PRESERVATION: Every piece of furniture (lamps, tables, nightstands, chairs, shelving, and plants) MUST remain exactly where it is. Do NOT delete or remove furniture.
+2. STRICT NO ADDITIONS: Do NOT add any new decor, wall art, plants, furniture, or objects. NO NEW PILLOWS.
+3. 100% FLOOR CLEARANCE: Move EVERY loose item (shoes, bags, toys, bottles, clutter) from the floor to a proper surface. The floor must be clear except for rugs and furniture legs.
 4. MANDATORY FABRIC FOLDING: Every fabric item (blankets, clothes) MUST be neatly folded into a crisp, rectangular stack on a flat surface. 
 5. TRASH REMOVAL: Remove all items that are clearly garbage.
 6. FIXTURE & WINDOW CLEARANCE: Clear all items (sheets, towels, clothes) hanging off or draped over windows, radiators, lamps, or handles. These areas must be perfectly clear of any loose fabric.

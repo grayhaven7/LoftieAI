@@ -191,11 +191,11 @@ export async function declutterImageWithGemini(base64Image: string, decluttering
 
 CRITICAL TOP PRIORITIES:
 - THE RUG MUST STAY: The rug/carpet is a permanent part of the room. It is NOT clutter. You MUST leave the rug in its exact original place, size, and color. Removing or editing the rug is strictly forbidden.
-- PILLOW STYLING: Fluff every pillow and place it perfectly upright and centered in a professional, symmetrical arrangement on the furniture. 
+- STYLE EXISTING PILLOWS ONLY: Fluff only the pillows that already exist in the photo. Do NOT add any new pillows. Place existing pillows perfectly upright in a beautiful arrangement.
 
 STRICT RULES:
-- NO DELETIONS OF FURNITURE: Every piece of furniture, lamp, lighting fixture, and plant MUST remain exactly where it is.
-- STRICT NO ADDITIONS: Do NOT add any new objects, furniture, or wall decor.
+- NO DELETIONS OF FURNITURE: Every piece of furniture, lamp, table, nightstand, lighting fixture, and plant MUST remain exactly where it is. Do NOT delete furniture.
+- STRICT NO ADDITIONS: Do NOT add any new objects, furniture, pillows, or wall decor.
 - 100% CLEAR FLOOR (LOOSE ITEMS ONLY): Move EVERY loose item on the floor (shoes, bags, clutter) to a shelf or surface. 
 - FOLD EVERY FABRIC: Every blanket, throw, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack. No messy or draped fabrics.
 - TRASH & BOTTLE REMOVAL: Identify and remove all trash, including empty bottles and cans.
@@ -206,7 +206,7 @@ STYLING SPECIFICATIONS:
 - ALIGNMENT: Align all objects on surfaces in clean, parallel rows.
 - VISIBILITY: Ensure every item that was moved is still clearly visible in its new, organized location.
 
-Goal: A perfectly staged space. Rugs/carpets are preserved 100%, pillows are fluffed and styled, the window and radiator are clear of draped fabrics, furniture is preserved, and everything is neatly folded. Follow this plan:
+Goal: A perfectly staged space using only the original inventory. Rugs/carpets are preserved 100%, existing pillows are fluffed and styled, no new items are added, no furniture (including tables) is deleted, and everything is neatly folded. Follow this plan:
 ${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   // Use retry logic for rate limit handling
