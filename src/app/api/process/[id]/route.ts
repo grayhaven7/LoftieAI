@@ -96,12 +96,13 @@ export async function POST(
 Task: Create a 5-8 step universal professional organization plan for this space.
 
 CORE DIRECTIVES:
-1. TOTAL FURNITURE PRESERVATION: Every piece of furniture (lamps, tables, chairs, shelving, plants, art) MUST remain exactly where it is. Do not delete furniture.
-2. 100% FLOOR CLEARANCE: Every single loose item currently on the floor (shoes, bags, toys, books, clutter) must be moved to an appropriate shelf, table, or seating surface. The floor must be perfectly clear except for rugs and furniture legs.
-3. MANDATORY FABRIC FOLDING: Every single piece of fabric (blankets, throws, clothes, pajamas) must be neatly folded into a crisp, rectangular stack and placed on a flat surface. No draped or messy fabrics.
-4. TRASH ELIMINATION: Identify and remove items that are clearly garbage (crumpled paper, empty cans, debris, small meaningless scraps).
-5. FIXTURE TIDYING: Remove any items hanging off lamps, radiators, or handles. The fixtures themselves must stay.
-6. UNIVERSAL ALIGNMENT: Align all items on surfaces in neat, parallel rows. Group similar items together.
+1. STRICT NO ADDITIONS: Do NOT add any new furniture, wall art, paintings, plants, or decor. The inventory of items must stay the same or decrease (only trash is removed).
+2. TOTAL PRESERVATION: Every piece of furniture and existing decor MUST remain. Do not delete original belongings.
+3. PRIORITIZE STORAGE: Move items from the floor or surfaces into available storage units (baskets, shelves, bins, drawers) visible in the image. 
+4. 100% FLOOR CLEARANCE: Every loose item on the floor must be moved to an appropriate shelf, basket, or surface. The floor must be clear except for rugs and furniture legs.
+5. MANDATORY FABRIC FOLDING: Every fabric item (blankets, clothes) must be neatly folded into crisp, rectangular stacks. 
+6. TRASH ELIMINATION: Identify and remove items that are clearly 100% garbage.
+7. WALL & STRUCTURE INTEGRITY: Keep the walls, windows, and architecture exactly as they are. Do not "decorate" empty walls.
 
 Step Format: 
 - Start with a warm, encouraging phrase.
