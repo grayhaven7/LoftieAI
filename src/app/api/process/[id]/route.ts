@@ -96,13 +96,13 @@ export async function POST(
 Task: Create a 5-8 step universal professional organization plan for this space.
 
 CORE DIRECTIVES:
-1. STRICT NO ADDITIONS: Do NOT add any new furniture, wall art, paintings, plants, or decor. The inventory of items must stay the same or decrease (only trash is removed).
-2. TOTAL PRESERVATION: Every piece of furniture and existing decor MUST remain. Do not delete original belongings.
-3. PRIORITIZE STORAGE: Move items from the floor or surfaces into available storage units (baskets, shelves, bins, drawers) visible in the image. 
-4. 100% FLOOR CLEARANCE: Every loose item on the floor must be moved to an appropriate shelf, basket, or surface. The floor must be clear except for rugs and furniture legs.
-5. MANDATORY FABRIC FOLDING: Every fabric item (blankets, clothes) must be neatly folded into crisp, rectangular stacks. 
-6. TRASH ELIMINATION: Identify and remove items that are clearly 100% garbage.
-7. WALL & STRUCTURE INTEGRITY: Keep the walls, windows, and architecture exactly as they are. Do not "decorate" empty walls.
+1. NO DELETIONS OF FURNITURE: Lamps, lighting, tables, chairs, shelving, and plants are FURNITURE and must remain. Do not delete them.
+2. NO ADDITIONS: Do not add any new decor, wall art, or objects.
+3. 100% FLOOR & SURFACE CLEARANCE: Move EVERY loose item (shoes, bags, toys, bottles, clutter) from the floor and surfaces. The floor must be clear except for furniture and rugs.
+4. MANDATORY FABRIC FOLDING: Every fabric item (blankets, clothes) MUST be neatly folded into a crisp, rectangular stack on a flat surface. Do not leave items draped over furniture or fixtures.
+5. PILLOW & CUSHION STYLING: Fluff every pillow and place it perfectly upright.
+6. TRASH & BOTTLE REMOVAL: Remove all items that are clearly garbage, including empty bottles, cans, and scrap debris.
+7. FIXTURE CLEARANCE: Clear all items hanging off lamps or radiators.
 
 Step Format: 
 - Start with a warm, encouraging phrase.
