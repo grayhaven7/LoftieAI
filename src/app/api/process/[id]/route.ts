@@ -98,7 +98,7 @@ Task: Create a 5-8 step professional organization plan for this space (e.g., roo
 CORE DIRECTIVES:
 1. PRESERVE BELONGINGS: Every meaningful object (books, clothes, electronics, decor, etc.) MUST remain. Do not remove any personal items or furniture.
 2. DISCARD TRASH: Identify and remove obvious waste (crumpled wrappers, empty cans, scrap paper, or actual debris). 
-3. CLEAR THE FLOOR (EXCEPT RUGS): The floor must be clear of clutter. Move all small items from the floor to a shelf, table, or surface. HOWEVER, rugs, carpets, and large furniture MUST stay exactly where they are.
+3. CLEAR THE FLOOR (PROTECT RUGS): Move all loose items (clutter, trash, books, clothes) from the floor to a shelf or table. HOWEVER, the carpet, rugs, and floor mats ARE PART OF THE FLOOR and MUST REMAIN. Do not "clean" the floor by removing the rug. The rug must be visible in the final image.
 4. CATEGORICAL GROUPING: Group similar items together into single, neat, orderly arrangements.
 5. NO HTML: Use only plain text. Do not include any HTML tags like <br>, <p>, or <div>. Use regular line breaks for formatting.
 

@@ -196,12 +196,12 @@ STRICT RULES:
 - IDENTICAL STRUCTURE: Keep the room layout, walls, and existing furniture exactly as they are.
 
 TIDYING SPECIFICATIONS:
-- CLEAR THE FLOOR (EXCEPT RUGS): Move all small items from the floor to an existing surface (shelf, table, etc.). HOWEVER, do NOT remove or move rugs, carpets, or large furniture.
+- CLEAR THE FLOOR (PROTECT RUGS): Move all loose items (clutter, trash, clothes, etc.) from the floor to an existing surface (shelf, table, etc.). HOWEVER, the carpet, rugs, and floor mats ARE PART OF THE FLOOR and MUST REMAIN. Do not "clean" the floor by removing the rug. The rug must be visible in the final image.
 - NEAT ARRANGEMENT: Group similar items into single, tidy, professional stacks or rows.
 - ALIGNMENT: Align remaining visible objects in clean, parallel rows.
 - VISIBILITY: Ensure every item that was moved is still clearly visible in its new, organized location.
 
-Goal: The exact same room but decluttered. Obvious trash is gone, belongings are neatly organized on surfaces, and the floor is clear of clutter while KEEPING all carpets and rugs. Follow this plan:
+Goal: The exact same room but decluttered. Obvious trash is gone, belongings are neatly organized on surfaces, and the floor is clear of loose items while KEEPING all carpets, rugs, and floor coverings. The rug is part of the floor and must stay. Follow this plan:
 ${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   // Use retry logic for rate limit handling
