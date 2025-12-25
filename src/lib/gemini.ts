@@ -194,13 +194,13 @@ CRITICAL TOP PRIORITIES:
 - PRESERVE PILLOW COUNT & STYLE: ONLY use the pillows that already exist. Do NOT add new pillows. Do NOT change their color or shape. Keep the exact same number of pillows as the original image. Do not stack them if they weren't stacked.
 
 STRICT RULES:
-- NO DELETIONS OF FURNITURE: Every piece of furniture, lamp, table, nightstand, lighting fixture, and plant MUST remain exactly where it is. Do NOT delete furniture.
+- NO DELETIONS OF FURNITURE: Every piece of furniture, lamp, table, nightstand, shelving unit, and plant MUST remain exactly where it is.
 - STRICT NO ADDITIONS: Do NOT add any new objects, furniture, pillows, or wall decor.
-- NO HALLUCINATIONS: Each item must maintain its original visual identity. Do not replace original items with "cleaner" or different-colored versions.
-- 100% CLEAR FLOOR (LOOSE ITEMS ONLY): Move EVERY loose item on the floor (shoes, bags, clutter) to a shelf or surface. 
-- FOLD EVERY FABRIC: Every blanket, throw, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack. No messy or draped fabrics.
+- NO HALLUCINATIONS: Each item must maintain its original visual identity.
+- 100% BARE FLOOR (LOOSE ITEMS ONLY): Move EVERY loose item on the floor (shoes, bags, folded clothes, blankets) to a shelf or surface. The floor must be completely clear except for rugs.
+- FOLD EVERY FABRIC: Every blanket, throw, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack and placed ON A SURFACE. Never leave items on the floor.
 - TRASH & BOTTLE REMOVAL: Identify and remove all trash, including empty bottles and cans.
-- FIXTURE & WINDOW CLEARANCE: Move ALL items (sheets, towels, clothes, etc.) hanging off windows, radiators, light fixtures, or lamps. These areas must be completely clear of draped fabric.
+- FIXTURE & WINDOW CLEARANCE: Move ALL items (sheets, towels, clothes, etc.) hanging off windows, radiators, light fixtures, or lamps.
 - IDENTICAL STRUCTURE: Keep walls, windows, and the specific original flooring texture exactly as they are.
 
 STYLING SPECIFICATIONS:
