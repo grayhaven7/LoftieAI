@@ -38,33 +38,42 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
       try {
         // Transformations can be created and persisted asynchronously; on some stores (e.g. blob),
         // the record may briefly appear as "not found" right after creation. Retry a bit before failing.
-        const maxAttempts = 6;
+        const maxAttempts = 5; // Reduced attempts but longer wait
         let response: Response | null = null;
 
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
           setRetryCount(attempt);
-          response = await fetch(`/api/transformations/${id}`, {
-            cache: 'no-store',
-            headers: {
-              'Cache-Control': 'no-cache',
-            },
-          });
+          
+          try {
+            response = await fetch(`/api/transformations/${id}`, {
+              cache: 'no-store',
+              headers: {
+                'Cache-Control': 'no-cache',
+              },
+            });
 
-          if (response.ok) break;
+            if (response.ok) break;
 
-          // Retry only on "not found" during the initial grace window.
-          if (response.status !== 404 || attempt === maxAttempts) {
-            let msg = `Failed to load transformation (HTTP ${response.status})`;
-            try {
-              const body = await response.json();
-              msg = body?.error || msg;
-            } catch {
-              // ignore
+            // If we get a 404, the record might still be propagating in storage.
+            // Retry only on 404; other errors (500, 401, etc.) should fail immediately.
+            if (response.status !== 404 || attempt === maxAttempts) {
+              let msg = `Failed to load transformation (HTTP ${response.status})`;
+              try {
+                const body = await response.json();
+                msg = body?.error || msg;
+              } catch {
+                // ignore
+              }
+              throw new Error(msg);
             }
-            throw new Error(msg);
+          } catch (err) {
+            // If it's a fetch error or we already threw an error above, check if we should retry
+            if (attempt === maxAttempts) throw err;
           }
 
-          await new Promise((r) => setTimeout(r, Math.min(1000, 75 * Math.pow(2, attempt - 1))));
+          // Exponential backoff: 1s, 2s, 4s, 8s...
+          const waitTime = Math.pow(2, attempt - 1) * 1000;
+          await new Promise((r) => setTimeout(r, waitTime));
         }
 
         const result = await response!.json();
@@ -223,7 +232,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
           <p className="text-[var(--color-text-muted)] text-sm">Searching for transformation...</p>
           {retryCount > 1 && (
             <p className="text-[var(--color-text-muted)] text-[10px] mt-2 uppercase tracking-widest">
-              Attempt {retryCount} of 6
+              Attempt {retryCount} of 5
             </p>
           )}
         </div>
@@ -262,7 +271,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
                 ID: {id}
               </code>
               <code className="text-[10px] bg-[rgba(0,0,0,0.2)] px-2 py-1 rounded text-[var(--color-text-secondary)]">
-                Retries: {retryCount} / 6
+                Retries: {retryCount} / 5
               </code>
               <a href="/api/debug/storage" target="_blank" className="text-[10px] text-[var(--color-accent)] hover:underline mt-1">
                 View Storage Dashboard
