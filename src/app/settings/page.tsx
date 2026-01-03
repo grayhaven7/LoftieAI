@@ -143,7 +143,11 @@ export default function SettingsPage() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to save');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save');
+      }
 
       setSaved(key);
       setTimeout(() => setSaved(null), 2000);
@@ -174,7 +178,11 @@ export default function SettingsPage() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to save');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save');
+      }
 
       setSaved('models');
       setTimeout(() => setSaved(null), 2000);
