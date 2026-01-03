@@ -147,17 +147,24 @@ export function getSettings(): AppSettings {
 }
 
 export function saveSettings(settings: Partial<AppSettings>): AppSettings {
-  ensureDataDir();
-  
-  const currentSettings = getSettings();
-  const newSettings: AppSettings = {
-    prompts: { ...currentSettings.prompts, ...settings.prompts },
-    models: { ...currentSettings.models, ...settings.models },
-    updatedAt: new Date().toISOString(),
-  };
-  
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(newSettings, null, 2));
-  return newSettings;
+  try {
+    ensureDataDir();
+    
+    const currentSettings = getSettings();
+    const newSettings: AppSettings = {
+      prompts: { ...currentSettings.prompts, ...settings.prompts },
+      models: { ...currentSettings.models, ...settings.models },
+      updatedAt: new Date().toISOString(),
+    };
+    
+    console.log('Saving settings to:', SETTINGS_FILE);
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(newSettings, null, 2));
+    console.log('Settings saved successfully');
+    return newSettings;
+  } catch (error) {
+    console.error('saveSettings error:', error);
+    throw error;
+  }
 }
 
 export function resetToDefaults(): AppSettings {

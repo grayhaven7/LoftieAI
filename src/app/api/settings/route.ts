@@ -74,8 +74,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error saving settings:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to save settings' },
+      { error: `Failed to save settings: ${errorMessage}` },
       { status: 500 }
     );
   }
