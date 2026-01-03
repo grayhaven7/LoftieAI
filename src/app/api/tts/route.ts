@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { getSettings } from '@/lib/settings';
 
 // Increase timeout for TTS generation
 export const maxDuration = 30;
@@ -59,9 +60,10 @@ export async function POST(request: NextRequest) {
 
     // Fallback to OpenAI TTS
     const openai = getOpenAIClient();
+    const settings = getSettings();
     const mp3 = await openai.audio.speech.create({
-      model: 'tts-1',
-      voice: 'nova', // Warm, friendly female voice
+      model: settings.models.ttsModel as 'tts-1' | 'tts-1-hd',
+      voice: settings.models.ttsVoice as 'nova' | 'alloy' | 'echo' | 'fable' | 'onyx' | 'shimmer',
       input: text,
       speed: 0.95, // Slightly slower for clarity
     });

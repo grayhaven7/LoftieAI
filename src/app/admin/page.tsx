@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, RefreshCw, ExternalLink, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ExternalLink, Image as ImageIcon, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 interface TransformationRecord {
@@ -217,7 +217,16 @@ export default function AdminPage() {
       </main>
 
       <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">
-        <p>© 2024 Loftie</p>
+        <div className="flex items-center justify-center gap-4">
+          <p>© 2024 Loftie</p>
+          <Link 
+            href="/settings" 
+            className="opacity-50 hover:opacity-100 transition-opacity"
+            title="AI Settings"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </footer>
     </div>
   );

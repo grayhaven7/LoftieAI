@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+import { getSettings } from './settings';
 
 let genAI: GoogleGenerativeAI | null = null;
 
@@ -176,6 +177,7 @@ export async function chatWithGemini(
  */
 export async function declutterImageWithGemini(base64Image: string, declutteringPlan?: string): Promise<string> {
   const model = getGeminiImageGen();
+  const settings = getSettings();
   
   // Remove data URL prefix if present
   const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
@@ -187,28 +189,11 @@ export async function declutterImageWithGemini(base64Image: string, decluttering
     mimeType = mimeMatch[1];
   }
 
-  const prompt = `PHOTO EDIT TASK: Universal Professional Space Staging. 
+  // Use the prompt from settings, appending the decluttering plan
+  const basePrompt = settings.prompts.imageTransformation;
+  const prompt = `${basePrompt}
 
-CRITICAL TOP PRIORITIES:
-- THE RUG MUST STAY: The rug/carpet is a permanent part of the room. It is NOT clutter. You MUST leave the rug in its exact original place, size, and color. Removing or editing the rug is strictly forbidden.
-- PRESERVE PILLOW COUNT & STYLE: ONLY use the pillows that already exist. Do NOT add new pillows. Do NOT change their color or shape. Keep the exact same number of pillows as the original image. Do not stack them if they weren't stacked.
-
-STRICT RULES:
-- NO DELETIONS OF FURNITURE: Every piece of furniture, lamp, coffee table, nightstand, shelving unit, and plant MUST remain exactly where it is. Even if a table is cleared, THE TABLE MUST STAY.
-- STRICT NO ADDITIONS: Do NOT add any new objects, furniture, pillows, or wall decor.
-- NO HALLUCINATIONS: Each item must maintain its original visual identity.
-- 100% BARE FLOOR (LOOSE ITEMS ONLY): Move EVERY loose item on the floor (shoes, bags, folded clothes, blankets) to a shelf or surface. THE RUG IS NOT A SURFACE for storage. Never leave items on the floor or rug.
-- FOLD EVERY FABRIC: Every blanket, throw, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack and placed ON A FURNITURE SURFACE OR SHELF. Never leave items on the floor/rug.
-- PILLOW STYLING: Every pillow must be fluffed to be full and voluminous. Place them perfectly upright.
-- TRASH & BOTTLE REMOVAL: Identify and remove all trash, including empty bottles and cans.
-- FIXTURE & WINDOW CLEARANCE: Move ALL items (sheets, towels, clothes, etc.) hanging off windows, radiators, light fixtures, or lamps.
-- IDENTICAL STRUCTURE: Keep walls, windows, and the specific original flooring texture exactly as they are. Rugs are part of the structural floor.
-
-STYLING SPECIFICATIONS:
-- ALIGNMENT: Align all objects on surfaces in clean, parallel rows.
-- VISIBILITY: Ensure every item that was moved is still clearly visible in its new, organized location.
-
-Goal: A perfectly staged space using only the original inventory. Rugs/carpets are preserved 100%, existing pillows are fluffed and styled, no new items are added, no furniture (including tables) is deleted, and everything is neatly folded. Follow this plan:
+Follow this plan:
 ${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   // Use retry logic for rate limit handling

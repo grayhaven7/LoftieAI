@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X } from 'lucide-react';
+import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { use } from 'react';
 
@@ -484,7 +484,16 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
       </main>
 
       <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">
-        <p>© 2024 Loftie</p>
+        <div className="flex items-center justify-center gap-4">
+          <p>© 2024 Loftie</p>
+          <Link 
+            href="/settings" 
+            className="opacity-50 hover:opacity-100 transition-opacity"
+            title="AI Settings"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </footer>
     </div>
   );

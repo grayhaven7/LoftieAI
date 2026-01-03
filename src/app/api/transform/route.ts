@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { saveImage, saveTransformation } from '@/lib/storage';
 import { RoomTransformation } from '@/lib/types';
 import { analyzeImageWithGemini } from '@/lib/gemini';
+import { getSettings } from '@/lib/settings';
 
 export const maxDuration = 60; // Increase timeout for image upload and room check
 
@@ -19,7 +20,8 @@ export async function POST(request: NextRequest) {
 
     // Check if the image is a room
     console.log('Detecting if image is a room...');
-    const roomCheckPrompt = "Is this an image of a room, kitchen, bathroom, bedroom, living space, office, or any indoor/outdoor residential area? Answer with 'yes' if it is a room/living space, and 'no' if it is anything else (like a person, an object, a landscape with no buildings, a document, etc.). Answer with only the word 'yes' or 'no'.";
+    const settings = getSettings();
+    const roomCheckPrompt = settings.prompts.roomDetection;
     const isRoom = await analyzeImageWithGemini(imageBase64, roomCheckPrompt);
     console.log(`Room detection result: ${isRoom}`);
 

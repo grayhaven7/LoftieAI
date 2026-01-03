@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { getTransformation, saveImage, saveTransformation, saveAudio } from '@/lib/storage';
 import { declutterImageWithGemini, analyzeImageWithGemini } from '@/lib/gemini';
+import { getSettings } from '@/lib/settings';
 
 // Increase timeout for Vercel serverless functions
 // This route makes multiple API calls which can take 30-60+ seconds
@@ -85,6 +86,9 @@ export async function POST(
     const openai = getOpenAIClient();
     const timestamp = Date.now();
     
+    // Get current settings for prompts and models
+    const settings = getSettings();
+    
     // Ensure proper base64 data URL format
     const imageUrl = transformation.originalImageBase64.startsWith('data:') 
       ? transformation.originalImageBase64 
@@ -92,31 +96,7 @@ export async function POST(
 
     // STEP 1: Generate the decluttering plan FIRST
     console.log(`Generating decluttering plan...`);
-    const planPrompt = `You are Loftie, a professional space organizer with a "Marie Kondo" mindset. 
-Task: Create a 5-8 step universal professional organization plan for this space.
-
-CRITICAL TOP PRIORITIES (NEVER IGNORE):
-- THE RUG MUST STAY: The rug/carpet is the soul of the room. It is NOT clutter. You MUST leave the rug in its exact original place, size, and color. Removing the rug is a 100% failure.
-- PRESERVE PILLOW COUNT & STYLE: ONLY use the pillows that already exist. Do NOT add new pillows. Do NOT change their color or shape. Keep the exact same number of pillows as the original image.
-
-CORE DIRECTIVES:
-1. TOTAL FURNITURE PRESERVATION: Every piece of furniture (tables, coffee tables, nightstands, lamps, chairs, shelving units, bookcases, and plants) MUST remain exactly where it is. Even if you move items off a table, THE TABLE MUST STAY. Do NOT delete furniture.
-2. STRICT NO ADDITIONS: Do NOT add any new decor, wall art, plants, furniture, or objects. NO NEW PILLOWS.
-3. NO HALLUCINATIONS: Do not replace original items with "better" or "nicer" versions.
-4. 100% BARE FLOOR: Move EVERY loose item from the floor to a proper flat surface (shelf, counter, or seat). THE RUG IS NOT A SURFACE for storage. Do NOT place items, folded or otherwise, on the rug or floor.
-5. MANDATORY FABRIC FOLDING: Every fabric item (blankets, clothes) MUST be neatly folded into a crisp, rectangular stack. These stacks MUST be placed on a shelf or furniture surface (NEVER ON THE FLOOR/RUG).
-6. PILLOW STYLING: Fluff every existing pillow to be full and voluminous. Place them perfectly upright.
-7. TRASH REMOVAL: Remove all items that are clearly garbage.
-8. FIXTURE & WINDOW CLEARANCE: Clear all items hanging off or draped over windows, radiators, lamps, or handles. 
-9. RUG PRESERVATION: The rug must stay exactly as it is. It is part of the floor.
-
-Step Format: 
-- Start with a warm, encouraging phrase.
-- Give a specific action based ONLY on what you see in the image. Be explicit about what item and where to move it (e.g. "Let's gather that sheet draped over the window and fold it neatly into the storage bin").
-- Briefly explain the benefit.
-- IMPORTANT: Put a DOUBLE LINE BREAK between each step. Each step should be a numbered item (e.g. 1. Step content).
-
-Use only plain text. No HTML tags. Close with a motivational message.`;
+    const planPrompt = settings.prompts.declutteringPlan;
 
     let declutteringPlan = await analyzeImageWithGemini(imageUrl, planPrompt);
     
@@ -147,8 +127,8 @@ Use only plain text. No HTML tags. Close with a motivational message.`;
       try {
         console.log(`Generating TTS audio...`);
         const ttsResponse = await openai.audio.speech.create({
-          model: 'tts-1',
-          voice: 'nova',
+          model: settings.models.ttsModel as 'tts-1' | 'tts-1-hd',
+          voice: settings.models.ttsVoice as 'nova' | 'alloy' | 'echo' | 'fable' | 'onyx' | 'shimmer',
           input: declutteringPlan,
           speed: 0.95,
         });
