@@ -168,6 +168,9 @@ export default function Home() {
           <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto">
             Upload a photo. Get an AI-powered vision of your space, clutter-free.
           </p>
+          <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] max-w-md mx-auto mt-2">
+            No signup needed. Give Loftie a try with one room photo.
+          </p>
         </motion.div>
         
         {configWarning && (
@@ -223,6 +226,9 @@ export default function Home() {
                   </p>
                   <p className="text-xs text-[var(--color-text-muted)]">
                     or click to browse
+                  </p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-2 opacity-75">
+                    Well-lit, straight-on photos work best
                   </p>
                 </div>
               </motion.div>
@@ -342,7 +348,7 @@ export default function Home() {
           Ready to <span className="text-emphasis">transform</span>?
         </h2>
         <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-          Join thousands who&apos;ve decluttered with AI.
+          Be one of the first to declutter with AI.
         </p>
         <button
           onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}
