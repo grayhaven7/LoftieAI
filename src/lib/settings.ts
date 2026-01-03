@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { put, list, del } from '@vercel/blob';
 
 export interface PromptSettings {
   roomDetection: string;
@@ -114,31 +115,34 @@ export const PROMPT_VARIABLES = {
 };
 
 const SETTINGS_FILE = path.join(process.cwd(), 'data', 'settings.json');
+const BLOB_SETTINGS_KEY = 'settings/app-settings.json';
+
+// Check if we should use local storage
+function useLocalStorage(): boolean {
+  const isVercel = process.env.VERCEL === '1';
+  const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
+  return !hasBlobToken && !isVercel;
+}
+
+function getBlobToken(): string | null {
+  return process.env.BLOB_READ_WRITE_TOKEN || null;
+}
 
 function ensureDataDir() {
-  const dataDir = path.dirname(SETTINGS_FILE);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  if (useLocalStorage()) {
+    const dataDir = path.dirname(SETTINGS_FILE);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
   }
 }
 
-export function getSettings(): AppSettings {
-  try {
-    ensureDataDir();
-    if (fs.existsSync(SETTINGS_FILE)) {
-      const data = fs.readFileSync(SETTINGS_FILE, 'utf-8');
-      const settings = JSON.parse(data) as AppSettings;
-      // Merge with defaults to ensure all fields exist
-      return {
-        prompts: { ...DEFAULT_PROMPTS, ...settings.prompts },
-        models: { ...DEFAULT_MODELS, ...settings.models },
-        updatedAt: settings.updatedAt || new Date().toISOString(),
-      };
-    }
-  } catch (error) {
-    console.error('Error reading settings:', error);
-  }
-  
+// In-memory cache for settings (reduces blob reads)
+let settingsCache: AppSettings | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_TTL = 60000; // 1 minute
+
+function getDefaultSettings(): AppSettings {
   return {
     prompts: DEFAULT_PROMPTS,
     models: DEFAULT_MODELS,
@@ -146,37 +150,195 @@ export function getSettings(): AppSettings {
   };
 }
 
-export function saveSettings(settings: Partial<AppSettings>): AppSettings {
-  try {
-    ensureDataDir();
-    
-    const currentSettings = getSettings();
-    const newSettings: AppSettings = {
-      prompts: { ...currentSettings.prompts, ...settings.prompts },
-      models: { ...currentSettings.models, ...settings.models },
-      updatedAt: new Date().toISOString(),
-    };
-    
-    console.log('Saving settings to:', SETTINGS_FILE);
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(newSettings, null, 2));
-    console.log('Settings saved successfully');
-    return newSettings;
-  } catch (error) {
-    console.error('saveSettings error:', error);
-    throw error;
+export function getSettings(): AppSettings {
+  // For synchronous reads, use cache or defaults
+  // The async version should be used for accurate reads
+  if (settingsCache && Date.now() - cacheTimestamp < CACHE_TTL) {
+    return settingsCache;
   }
+  
+  // Try local storage synchronously
+  if (useLocalStorage()) {
+    try {
+      ensureDataDir();
+      if (fs.existsSync(SETTINGS_FILE)) {
+        const data = fs.readFileSync(SETTINGS_FILE, 'utf-8');
+        const settings = JSON.parse(data) as AppSettings;
+        settingsCache = {
+          prompts: { ...DEFAULT_PROMPTS, ...settings.prompts },
+          models: { ...DEFAULT_MODELS, ...settings.models },
+          updatedAt: settings.updatedAt || new Date().toISOString(),
+        };
+        cacheTimestamp = Date.now();
+        return settingsCache;
+      }
+    } catch (error) {
+      console.error('Error reading local settings:', error);
+    }
+  }
+  
+  // Return defaults if cache empty and can't read
+  return getDefaultSettings();
 }
 
-export function resetToDefaults(): AppSettings {
-  ensureDataDir();
+export async function getSettingsAsync(): Promise<AppSettings> {
+  // Check cache first
+  if (settingsCache && Date.now() - cacheTimestamp < CACHE_TTL) {
+    return settingsCache;
+  }
   
+  if (useLocalStorage()) {
+    try {
+      ensureDataDir();
+      if (fs.existsSync(SETTINGS_FILE)) {
+        const data = fs.readFileSync(SETTINGS_FILE, 'utf-8');
+        const settings = JSON.parse(data) as AppSettings;
+        settingsCache = {
+          prompts: { ...DEFAULT_PROMPTS, ...settings.prompts },
+          models: { ...DEFAULT_MODELS, ...settings.models },
+          updatedAt: settings.updatedAt || new Date().toISOString(),
+        };
+        cacheTimestamp = Date.now();
+        return settingsCache;
+      }
+    } catch (error) {
+      console.error('Error reading local settings:', error);
+    }
+  } else {
+    // Use Vercel Blob
+    const token = getBlobToken();
+    if (token) {
+      try {
+        const { blobs } = await list({ prefix: 'settings/', token });
+        const settingsBlob = blobs.find(b => b.pathname === BLOB_SETTINGS_KEY);
+        
+        if (settingsBlob) {
+          const response = await fetch(settingsBlob.url);
+          if (response.ok) {
+            const settings = await response.json() as AppSettings;
+            settingsCache = {
+              prompts: { ...DEFAULT_PROMPTS, ...settings.prompts },
+              models: { ...DEFAULT_MODELS, ...settings.models },
+              updatedAt: settings.updatedAt || new Date().toISOString(),
+            };
+            cacheTimestamp = Date.now();
+            return settingsCache;
+          }
+        }
+      } catch (error) {
+        console.error('Error reading blob settings:', error);
+      }
+    }
+  }
+  
+  return getDefaultSettings();
+}
+
+export async function saveSettings(settings: Partial<AppSettings>): Promise<AppSettings> {
+  const currentSettings = await getSettingsAsync();
+  const newSettings: AppSettings = {
+    prompts: { ...currentSettings.prompts, ...settings.prompts },
+    models: { ...currentSettings.models, ...settings.models },
+    updatedAt: new Date().toISOString(),
+  };
+  
+  if (useLocalStorage()) {
+    try {
+      ensureDataDir();
+      console.log('Saving settings to:', SETTINGS_FILE);
+      fs.writeFileSync(SETTINGS_FILE, JSON.stringify(newSettings, null, 2));
+      console.log('Settings saved successfully');
+    } catch (error) {
+      console.error('saveSettings local error:', error);
+      throw error;
+    }
+  } else {
+    // Use Vercel Blob
+    const token = getBlobToken();
+    if (!token) {
+      throw new Error('BLOB_READ_WRITE_TOKEN not configured');
+    }
+    
+    try {
+      console.log('Saving settings to Vercel Blob...');
+      
+      // Delete old settings blob if exists
+      try {
+        const { blobs } = await list({ prefix: 'settings/', token });
+        for (const blob of blobs) {
+          await del(blob.url, { token });
+        }
+      } catch {
+        // Ignore delete errors
+      }
+      
+      // Save new settings
+      await put(BLOB_SETTINGS_KEY, JSON.stringify(newSettings, null, 2), {
+        access: 'public',
+        contentType: 'application/json',
+        token,
+      });
+      console.log('Settings saved to Vercel Blob successfully');
+    } catch (error) {
+      console.error('saveSettings blob error:', error);
+      throw error;
+    }
+  }
+  
+  // Update cache
+  settingsCache = newSettings;
+  cacheTimestamp = Date.now();
+  
+  return newSettings;
+}
+
+export async function resetToDefaults(): Promise<AppSettings> {
   const defaultSettings: AppSettings = {
     prompts: DEFAULT_PROMPTS,
     models: DEFAULT_MODELS,
     updatedAt: new Date().toISOString(),
   };
   
-  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(defaultSettings, null, 2));
+  if (useLocalStorage()) {
+    try {
+      ensureDataDir();
+      fs.writeFileSync(SETTINGS_FILE, JSON.stringify(defaultSettings, null, 2));
+    } catch (error) {
+      console.error('resetToDefaults local error:', error);
+      throw error;
+    }
+  } else {
+    const token = getBlobToken();
+    if (!token) {
+      throw new Error('BLOB_READ_WRITE_TOKEN not configured');
+    }
+    
+    try {
+      // Delete old settings blob if exists
+      try {
+        const { blobs } = await list({ prefix: 'settings/', token });
+        for (const blob of blobs) {
+          await del(blob.url, { token });
+        }
+      } catch {
+        // Ignore delete errors
+      }
+      
+      await put(BLOB_SETTINGS_KEY, JSON.stringify(defaultSettings, null, 2), {
+        access: 'public',
+        contentType: 'application/json',
+        token,
+      });
+    } catch (error) {
+      console.error('resetToDefaults blob error:', error);
+      throw error;
+    }
+  }
+  
+  // Update cache
+  settingsCache = defaultSettings;
+  cacheTimestamp = Date.now();
+  
   return defaultSettings;
 }
 
@@ -186,6 +348,3 @@ const SETTINGS_PASSWORD = process.env.SETTINGS_PASSWORD || 'loftie2024';
 export function validatePassword(password: string): boolean {
   return password === SETTINGS_PASSWORD;
 }
-
-
-

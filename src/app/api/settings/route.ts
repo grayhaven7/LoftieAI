@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { 
-  getSettings, 
+  getSettingsAsync, 
   saveSettings, 
   resetToDefaults, 
   validatePassword,
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const settings = getSettings();
+    const settings = await getSettingsAsync();
     
     return NextResponse.json({
       settings,
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const { action, prompts, models } = body;
 
     if (action === 'reset') {
-      const settings = resetToDefaults();
+      const settings = await resetToDefaults();
       return NextResponse.json({ 
         success: true, 
         settings,
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update settings
-    const settings = saveSettings({ prompts, models });
+    const settings = await saveSettings({ prompts, models });
     
     return NextResponse.json({
       success: true,
