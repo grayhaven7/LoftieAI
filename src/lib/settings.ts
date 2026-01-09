@@ -15,9 +15,15 @@ export interface ModelSettings {
   ttsVoice: string;
 }
 
+export interface BioSettings {
+  content: string;
+  headshotUrl: string;
+}
+
 export interface AppSettings {
   prompts: PromptSettings;
   models: ModelSettings;
+  bio: BioSettings;
   updatedAt: string;
 }
 
@@ -80,6 +86,15 @@ export const DEFAULT_MODELS: ModelSettings = {
   textAnalysis: 'gemini-2.0-flash-exp',
   ttsModel: 'tts-1',
   ttsVoice: 'nova',
+};
+
+export const DEFAULT_BIO: BioSettings = {
+  content: `Loftie AI was created by Sejal Parekh, a professional home stager, home organizing expert, and Realtor® and founder of Innovae Designs, a boutique home staging and design company based in the San Francisco Bay Area. She and her team have styled and transformed hundreds of homes. In her work, Sejal has seen firsthand how overwhelming clutter can feel and the mental paralysis it can often cause. It was her mission to create a tool to help guide users step by step in decluttering and styling their space. And so - Loftie AI was born!
+
+Loftie AI is like having an expert home organizer, stylist, and cheerleader in your back pocket. Sejal's mission is simple: make it easier for anyone to create a space they love - no matter where they live or what their budget is.
+
+Sejal is also past President of the Real Estate Staging Association's (RESA) Silicon Valley chapter and has co-authored the book The Decluttering Game! which is available on Amazon. She is a practicing Realtor® with COMPASS (DRE 01895441).`,
+  headshotUrl: '',
 };
 
 export const AVAILABLE_MODELS = {
@@ -146,6 +161,7 @@ function getDefaultSettings(): AppSettings {
   return {
     prompts: DEFAULT_PROMPTS,
     models: DEFAULT_MODELS,
+    bio: DEFAULT_BIO,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -167,6 +183,7 @@ export function getSettings(): AppSettings {
         settingsCache = {
           prompts: { ...DEFAULT_PROMPTS, ...settings.prompts },
           models: { ...DEFAULT_MODELS, ...settings.models },
+          bio: { ...DEFAULT_BIO, ...settings.bio },
           updatedAt: settings.updatedAt || new Date().toISOString(),
         };
         cacheTimestamp = Date.now();
@@ -176,7 +193,7 @@ export function getSettings(): AppSettings {
       console.error('Error reading local settings:', error);
     }
   }
-  
+
   // Return defaults if cache empty and can't read
   return getDefaultSettings();
 }
@@ -196,6 +213,7 @@ export async function getSettingsAsync(): Promise<AppSettings> {
         settingsCache = {
           prompts: { ...DEFAULT_PROMPTS, ...settings.prompts },
           models: { ...DEFAULT_MODELS, ...settings.models },
+          bio: { ...DEFAULT_BIO, ...settings.bio },
           updatedAt: settings.updatedAt || new Date().toISOString(),
         };
         cacheTimestamp = Date.now();
@@ -211,7 +229,7 @@ export async function getSettingsAsync(): Promise<AppSettings> {
       try {
         const { blobs } = await list({ prefix: 'settings/', token });
         const settingsBlob = blobs.find(b => b.pathname === BLOB_SETTINGS_KEY);
-        
+
         if (settingsBlob) {
           const response = await fetch(settingsBlob.url);
           if (response.ok) {
@@ -219,6 +237,7 @@ export async function getSettingsAsync(): Promise<AppSettings> {
             settingsCache = {
               prompts: { ...DEFAULT_PROMPTS, ...settings.prompts },
               models: { ...DEFAULT_MODELS, ...settings.models },
+              bio: { ...DEFAULT_BIO, ...settings.bio },
               updatedAt: settings.updatedAt || new Date().toISOString(),
             };
             cacheTimestamp = Date.now();
@@ -230,7 +249,7 @@ export async function getSettingsAsync(): Promise<AppSettings> {
       }
     }
   }
-  
+
   return getDefaultSettings();
 }
 
@@ -239,6 +258,7 @@ export async function saveSettings(settings: Partial<AppSettings>): Promise<AppS
   const newSettings: AppSettings = {
     prompts: { ...currentSettings.prompts, ...settings.prompts },
     models: { ...currentSettings.models, ...settings.models },
+    bio: { ...currentSettings.bio, ...settings.bio },
     updatedAt: new Date().toISOString(),
   };
   
@@ -296,6 +316,7 @@ export async function resetToDefaults(): Promise<AppSettings> {
   const defaultSettings: AppSettings = {
     prompts: DEFAULT_PROMPTS,
     models: DEFAULT_MODELS,
+    bio: DEFAULT_BIO,
     updatedAt: new Date().toISOString(),
   };
   

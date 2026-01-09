@@ -2,9 +2,14 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, X, ArrowUpRight, Settings } from 'lucide-react';
+import { ArrowRight, X, ArrowUpRight, Settings, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
+interface BioData {
+  content: string;
+  headshotUrl: string;
+}
 
 export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
@@ -14,6 +19,7 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [configWarning, setConfigWarning] = useState<string | null>(null);
+  const [bio, setBio] = useState<BioData | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -24,6 +30,16 @@ export default function Home() {
       .then(data => {
         if (data.environment?.isVercel && !data.environment?.hasBlobToken) {
           setConfigWarning('Vercel Blob storage is not linked to this project. Transformations will not be saved.');
+        }
+      })
+      .catch(() => {});
+
+    // Fetch bio data for About section
+    fetch('/api/bio')
+      .then(res => res.json())
+      .then(data => {
+        if (data.bio) {
+          setBio(data.bio);
         }
       })
       .catch(() => {});
@@ -358,6 +374,56 @@ export default function Home() {
           Get Started <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </section>
+
+      {/* About */}
+      {bio && bio.content && (
+        <section id="about" className="max-w-3xl mx-auto px-4 py-16 sm:py-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="card"
+          >
+            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
+              {bio.headshotUrl && (
+                <div className="flex-shrink-0 flex justify-center sm:justify-start">
+                  <img
+                    src={bio.headshotUrl}
+                    alt="Founder headshot"
+                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-2 border-[var(--color-accent)]/30"
+                  />
+                </div>
+              )}
+              <div className="flex-1">
+                <div className="mb-4">
+                  <span className="text-[0.65rem] text-[var(--color-accent)] font-semibold uppercase tracking-wider">
+                    About
+                  </span>
+                  <h2 className="text-xl sm:text-2xl text-[var(--color-text-primary)] tracking-tight mt-1">
+                    Meet the <span className="text-emphasis">Founder</span>
+                  </h2>
+                </div>
+                <div className="space-y-4 text-sm text-[var(--color-text-secondary)] leading-relaxed">
+                  {bio.content.split('\n\n').map((paragraph, i) => (
+                    <p key={i}>{paragraph}</p>
+                  ))}
+                </div>
+                <div className="mt-6 pt-4 border-t border-[var(--glass-border)]">
+                  <a
+                    href="https://innovaedesigns.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-xs text-[var(--color-accent)] hover:text-[var(--color-text-primary)] transition-colors"
+                  >
+                    Visit Innovae Designs
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">

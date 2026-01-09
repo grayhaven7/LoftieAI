@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  getSettingsAsync, 
-  saveSettings, 
-  resetToDefaults, 
+import {
+  getSettingsAsync,
+  saveSettings,
+  resetToDefaults,
   validatePassword,
   DEFAULT_PROMPTS,
   DEFAULT_MODELS,
+  DEFAULT_BIO,
   AVAILABLE_MODELS,
   PROMPT_VARIABLES,
 } from '@/lib/settings';
@@ -28,6 +29,7 @@ export async function GET(request: NextRequest) {
       defaults: {
         prompts: DEFAULT_PROMPTS,
         models: DEFAULT_MODELS,
+        bio: DEFAULT_BIO,
       },
       availableModels: AVAILABLE_MODELS,
       promptVariables: PROMPT_VARIABLES,
@@ -53,19 +55,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { action, prompts, models } = body;
+    const { action, prompts, models, bio } = body;
 
     if (action === 'reset') {
       const settings = await resetToDefaults();
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         settings,
         message: 'Settings reset to defaults',
       });
     }
 
     // Update settings
-    const settings = await saveSettings({ prompts, models });
+    const settings = await saveSettings({ prompts, models, bio });
     
     return NextResponse.json({
       success: true,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Save, RotateCcw, Check, Lock, Eye, EyeOff, Settings, Info } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Check, Lock, Eye, EyeOff, Settings, Info, User } from 'lucide-react';
 import Link from 'next/link';
 
 interface PromptSettings {
@@ -18,9 +18,15 @@ interface ModelSettings {
   ttsVoice: string;
 }
 
+interface BioSettings {
+  content: string;
+  headshotUrl: string;
+}
+
 interface AppSettings {
   prompts: PromptSettings;
   models: ModelSettings;
+  bio: BioSettings;
   updatedAt: string;
 }
 
@@ -50,7 +56,7 @@ export default function SettingsPage() {
   const [authLoading, setAuthLoading] = useState(false);
 
   const [settings, setSettings] = useState<AppSettings | null>(null);
-  const [defaults, setDefaults] = useState<{ prompts: PromptSettings; models: ModelSettings } | null>(null);
+  const [defaults, setDefaults] = useState<{ prompts: PromptSettings; models: ModelSettings; bio: BioSettings } | null>(null);
   const [availableModels, setAvailableModels] = useState<AvailableModels | null>(null);
   const [promptVariables, setPromptVariables] = useState<PromptVariables | null>(null);
   
@@ -160,7 +166,7 @@ export default function SettingsPage() {
 
   const saveModels = async () => {
     if (!settings) return;
-    
+
     setSaving(true);
     setSaved(null);
     setError(null);
@@ -179,7 +185,7 @@ export default function SettingsPage() {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to save');
       }
@@ -191,6 +197,57 @@ export default function SettingsPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const saveBio = async () => {
+    if (!settings) return;
+
+    setSaving(true);
+    setSaved(null);
+    setError(null);
+
+    try {
+      const pwd = sessionStorage.getItem('settings-password') || password;
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-settings-password': pwd,
+        },
+        body: JSON.stringify({
+          bio: settings.bio,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save');
+      }
+
+      setSaved('bio');
+      setTimeout(() => setSaved(null), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateBio = (key: keyof BioSettings, value: string) => {
+    if (!settings) return;
+    setSettings({
+      ...settings,
+      bio: { ...settings.bio, [key]: value },
+    });
+  };
+
+  const resetBio = () => {
+    if (!defaults || !settings) return;
+    setSettings({
+      ...settings,
+      bio: defaults.bio,
+    });
   };
 
   const resetPrompt = async (key: keyof PromptSettings) => {
@@ -546,6 +603,94 @@ export default function SettingsPage() {
                       <>
                         <Save className="w-3.5 h-3.5" />
                         Save Models
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.section>
+
+            {/* Bio Settings */}
+            <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+              <h2 className="text-lg text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
+                <User className="w-4 h-4 text-[var(--color-accent)]" />
+                <span className="text-emphasis">Founder Bio</span>
+              </h2>
+
+              <div className="card">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm text-[var(--color-text-primary)] font-medium mb-1">
+                      About Section Content
+                    </h3>
+                    <p className="text-xs text-[var(--color-text-muted)]">
+                      This content appears in the About section on the homepage.
+                    </p>
+                  </div>
+                  <button
+                    onClick={resetBio}
+                    className="btn-icon w-8 h-8"
+                    title="Reset to default"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                      Bio Text
+                    </label>
+                    <textarea
+                      value={settings.bio.content}
+                      onChange={(e) => updateBio('content', e.target.value)}
+                      className="w-full min-h-[200px] p-4 bg-[rgba(255,255,255,0.02)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors leading-relaxed"
+                      placeholder="Enter founder bio..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                      Headshot Image URL (optional)
+                    </label>
+                    <input
+                      type="url"
+                      value={settings.bio.headshotUrl}
+                      onChange={(e) => updateBio('headshotUrl', e.target.value)}
+                      placeholder="https://example.com/headshot.jpg"
+                      className="w-full"
+                    />
+                    {settings.bio.headshotUrl && (
+                      <div className="mt-3 flex items-center gap-3">
+                        <img
+                          src={settings.bio.headshotUrl}
+                          alt="Headshot preview"
+                          className="w-16 h-16 rounded-full object-cover border border-[var(--glass-border)]"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                        <span className="text-xs text-[var(--color-text-muted)]">Preview</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-6 pt-4 border-t border-[var(--glass-border)]">
+                  <button
+                    onClick={saveBio}
+                    disabled={saving}
+                    className="btn-secondary"
+                  >
+                    {saved === 'bio' ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-[var(--color-success)]" />
+                        Saved
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-3.5 h-3.5" />
+                        Save Bio
                       </>
                     )}
                   </button>
