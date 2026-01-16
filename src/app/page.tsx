@@ -199,7 +199,11 @@ export default function Home() {
       }
 
       // Navigate immediately to the results page - processing happens there
-      router.push(`/results/${data.id}`);
+      // Pass blobUrl as query param for faster initial fetch (avoids Vercel Blob list() consistency issues)
+      const url = data.blobUrl
+        ? `/results/${data.id}?blobUrl=${encodeURIComponent(data.blobUrl)}`
+        : `/results/${data.id}`;
+      router.push(url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setIsProcessing(false);

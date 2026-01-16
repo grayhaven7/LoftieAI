@@ -62,12 +62,13 @@ export async function POST(request: NextRequest) {
       keepItems: keepItems || undefined,
     };
     await saveTransformation(transformation);
-    console.log(`[API] Successfully created transformation ${id}. URL should be /results/${id}`);
+    console.log(`[API] Successfully created transformation ${id}. blobUrl: ${transformation.blobUrl}`);
 
     // Return immediately - processing will happen when the results page loads
     return NextResponse.json({
       id,
       status: 'processing',
+      blobUrl: transformation.blobUrl, // Return for direct access
     });
   } catch (error) {
     console.error('Transform error:', error);

@@ -20,12 +20,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  
+  // Get blobUrl from query params for direct fetch (faster, avoids list() consistency issues)
+  const { searchParams } = new URL(request.url);
+  const blobUrl = searchParams.get('blobUrl') || undefined;
+
   try {
     console.log(`Processing transformation ${id}`);
-    
+
     // Get the transformation record
-    const transformation = await getTransformation(id);
+    const transformation = await getTransformation(id, blobUrl);
     
     if (!transformation) {
       return NextResponse.json(

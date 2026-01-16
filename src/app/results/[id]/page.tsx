@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X, Settings, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { use } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 interface TransformationData {
   id: string;
@@ -21,6 +22,8 @@ interface TransformationData {
 
 export default function ResultsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const blobUrl = searchParams.get('blobUrl');
   const [data, setData] = useState<TransformationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +54,11 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
           setRetryCount(attempt);
           
           try {
-            const response = await fetch(`/api/transformations/${id}`, {
+            // Pass blobUrl for direct fetch if available (faster, avoids list() consistency issues)
+            const apiUrl = blobUrl
+              ? `/api/transformations/${id}?blobUrl=${encodeURIComponent(blobUrl)}`
+              : `/api/transformations/${id}`;
+            const response = await fetch(apiUrl, {
               cache: 'no-store',
               headers: { 'Cache-Control': 'no-cache' },
             });
@@ -66,13 +73,21 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
               if (result.status === 'processing') {
                 if (!processingRequestFired.current) {
                   processingRequestFired.current = true;
-                  fetch(`/api/process/${id}`, { method: 'POST' }).catch(console.error);
+                  // Pass blobUrl to process endpoint for direct fetch
+                  const processUrl = blobUrl
+                    ? `/api/process/${id}?blobUrl=${encodeURIComponent(blobUrl)}`
+                    : `/api/process/${id}`;
+                  fetch(processUrl, { method: 'POST' }).catch(console.error);
                 }
-                
+
                 let consecutivePollFailures = 0;
                 interval = setInterval(async () => {
                   try {
-                    const pollResponse = await fetch(`/api/transformations/${id}`, {
+                    // Use blobUrl for polling too
+                    const pollUrl = blobUrl
+                      ? `/api/transformations/${id}?blobUrl=${encodeURIComponent(blobUrl)}`
+                      : `/api/transformations/${id}`;
+                    const pollResponse = await fetch(pollUrl, {
                       cache: 'no-store',
                       headers: { 'Cache-Control': 'no-cache' },
                     });

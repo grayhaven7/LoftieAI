@@ -13,7 +13,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const transformation = await getTransformation(id);
+    // Get blobUrl from query params for direct fetch (faster, avoids list() consistency issues)
+    const { searchParams } = new URL(request.url);
+    const blobUrl = searchParams.get('blobUrl') || undefined;
+    const transformation = await getTransformation(id, blobUrl);
 
     if (!transformation) {
       return NextResponse.json(

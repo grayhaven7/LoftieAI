@@ -105,27 +105,27 @@ export async function getTransformations(): Promise<RoomTransformation[]> {
   }
 }
 
-export async function getTransformation(id: string): Promise<RoomTransformation | null> {
+export async function getTransformation(id: string, blobUrl?: string): Promise<RoomTransformation | null> {
   const cleanId = id.trim();
   const isVercel = process.env.VERCEL === '1';
-  
+
   if (useLocalStorage()) {
     // Retry logic for local storage too, in case of file system latency or temporary locks
     const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const transformations = await getTransformations();
       const found = transformations.find(t => t.id === cleanId);
-      
+
       if (found) {
         return found;
       }
-      
+
       if (attempt < maxAttempts) {
         console.log(`[Storage] Local transformation ${cleanId} not found, retrying... (${attempt}/${maxAttempts})`);
         await sleep(200);
       }
     }
-    
+
     console.log(`[Storage] Local transformation ${cleanId} not found after ${maxAttempts} attempts`);
     return null;
   }
@@ -140,28 +140,43 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
     console.error(`[Storage] BLOB_READ_WRITE_TOKEN not configured for transformation ${cleanId}`);
     return null;
   }
-  
+
   try {
-    console.log(`[Storage] Fetching transformation ${cleanId} from blob (attempting consistency-aware search)...`);
+    console.log(`[Storage] Fetching transformation ${cleanId} from blob...`);
+
+    // If we have a direct blob URL, try it first (immediate, no consistency issues)
+    if (blobUrl) {
+      console.log(`[Storage] Trying direct blob URL: ${blobUrl}`);
+      try {
+        const response = await fetch(blobUrl, { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json() as RoomTransformation;
+          console.log(`[Storage] Successfully loaded transformation ${cleanId} via direct URL (status: ${data.status})`);
+          return data;
+        }
+      } catch (directError) {
+        console.warn(`[Storage] Direct URL fetch failed, falling back to list():`, directError);
+      }
+    }
 
     // NOTE: Vercel Blob `list()` can be briefly eventually-consistent right after a `put()`.
     const maxAttempts = 12; // Sufficient attempts with backoff
-    
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         console.log(`[Storage] Search attempt ${attempt}/${maxAttempts} for ${cleanId}...`);
-        
+
         // Attempt 1: Specific prefix search (fastest)
         const { blobs } = await list({
           prefix: `transformations/${cleanId}.json`,
           limit: 1,
           token,
         });
-        
+
         if (blobs.length > 0) {
           console.log(`[Storage] Found blob for ${cleanId} at ${blobs[0].url}`);
           const response = await fetch(blobs[0].url, { cache: 'no-store' });
-          
+
           if (response.ok) {
             const data = await response.json() as RoomTransformation;
             console.log(`[Storage] Successfully loaded transformation ${cleanId} (status: ${data.status})`);
@@ -177,7 +192,7 @@ export async function getTransformation(id: string): Promise<RoomTransformation 
             prefix: `transformations/`,
             token,
           });
-          
+
           const matching = allTransformations.find(b => b.pathname.includes(cleanId));
           if (matching) {
             console.log(`[Storage] Found ${cleanId} via broad transformations list!`);
@@ -239,16 +254,18 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
     console.error('[Storage] BLOB_READ_WRITE_TOKEN is not configured');
     throw new Error('BLOB_READ_WRITE_TOKEN is not configured. Please set it in your Vercel environment variables.');
   }
-  
+
   try {
     console.log(`[Storage] Saving transformation ${transformation.id} to Vercel Blob...`);
-    await put(`transformations/${transformation.id}.json`, JSON.stringify(transformation, null, 2), {
+    const blob = await put(`transformations/${transformation.id}.json`, JSON.stringify(transformation, null, 2), {
       access: 'public',
       contentType: 'application/json',
       addRandomSuffix: false,
       token,
     });
-    console.log(`[Storage] Successfully saved transformation ${transformation.id} to Vercel Blob`);
+    // Store the blob URL for direct access (avoids list() consistency issues)
+    transformation.blobUrl = blob.url;
+    console.log(`[Storage] Successfully saved transformation ${transformation.id} to Vercel Blob at ${blob.url}`);
   } catch (error) {
     console.error('[Storage] Error saving transformation to blob:', error);
     if (error instanceof Error) {
