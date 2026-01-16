@@ -290,6 +290,9 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
     return plan.split(/\d+\.\s+/).filter((step) => step.trim()).slice(0, 6);
   };
 
+  // useMemo must be called unconditionally (before any early returns)
+  const steps = useMemo(() => parseSteps(data?.declutteringPlan), [data?.declutteringPlan]);
+
   if (loading) {
     return (
       <div className="gradient-bg min-h-screen flex items-center justify-center">
@@ -348,8 +351,6 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
       </div>
     );
   }
-
-  const steps = useMemo(() => parseSteps(data.declutteringPlan), [data.declutteringPlan]);
 
   return (
     <div className="gradient-bg min-h-screen">
