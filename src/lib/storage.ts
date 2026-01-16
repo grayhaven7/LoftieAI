@@ -171,19 +171,32 @@ export async function getTransformation(id: string, blobUrl?: string): Promise<R
   try {
     console.log(`[Storage] Fetching transformation ${cleanId} from blob...`);
 
-    // If we have a direct blob URL, try it first (immediate, no consistency issues)
+    // If we have a direct blob URL, try it first with retries (more reliable than list())
     if (blobUrl) {
       console.log(`[Storage] Trying direct blob URL: ${blobUrl}`);
-      try {
-        const response = await fetch(blobUrl, { cache: 'no-store' });
-        if (response.ok) {
-          const data = await response.json() as RoomTransformation;
-          console.log(`[Storage] Successfully loaded transformation ${cleanId} via direct URL (status: ${data.status})`);
-          return data;
+      const directMaxAttempts = 5;
+      for (let directAttempt = 1; directAttempt <= directMaxAttempts; directAttempt++) {
+        try {
+          const response = await fetch(blobUrl, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+          });
+          if (response.ok) {
+            const data = await response.json() as RoomTransformation;
+            console.log(`[Storage] Successfully loaded transformation ${cleanId} via direct URL (status: ${data.status})`);
+            return data;
+          }
+          // Log the error but retry
+          console.warn(`[Storage] Direct URL attempt ${directAttempt}/${directMaxAttempts} returned ${response.status}`);
+        } catch (directError) {
+          console.warn(`[Storage] Direct URL attempt ${directAttempt}/${directMaxAttempts} failed:`, directError);
         }
-      } catch (directError) {
-        console.warn(`[Storage] Direct URL fetch failed, falling back to list():`, directError);
+        // Wait before retry (exponential backoff)
+        if (directAttempt < directMaxAttempts) {
+          await sleep(Math.min(1000 * Math.pow(1.5, directAttempt - 1), 5000));
+        }
       }
+      console.warn(`[Storage] Direct URL fetch failed after ${directMaxAttempts} attempts, falling back to list()`);
     }
 
     // NOTE: Vercel Blob `list()` can be briefly eventually-consistent right after a `put()`.
@@ -288,17 +301,11 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
   }
 
   try {
-    // Delete existing blob first to avoid conflicts and stale CDN cache
-    try {
-      const { blobs } = await list({ prefix: `transformations/${transformation.id}`, token });
-      for (const existingBlob of blobs) {
-        await del(existingBlob.url, { token });
-        console.log(`[Storage] Deleted old blob: ${existingBlob.url}`);
-      }
-    } catch (deleteError) {
-      // Ignore delete errors - blob might not exist
-      console.log(`[Storage] No existing blob to delete for ${transformation.id}`);
-    }
+    // Note: With addRandomSuffix: false, put() will overwrite existing blobs at the same path.
+    // We removed the delete-before-save logic because:
+    // 1. It's not atomic and can cause race conditions (client fetches between delete and put)
+    // 2. list() has eventual consistency issues
+    // 3. put() with addRandomSuffix: false should handle overwrites correctly
 
     console.log(`[Storage] Saving transformation ${transformation.id} to Vercel Blob...`);
     const blob = await put(`transformations/${transformation.id}.json`, JSON.stringify(transformation, null, 2), {
@@ -306,6 +313,7 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
       contentType: 'application/json',
       addRandomSuffix: false,
       token,
+      cacheControlMaxAge: 0, // Disable CDN caching for transformations since they change state
     });
     // Store the blob URL for direct access (avoids list() consistency issues)
     transformation.blobUrl = blob.url;
