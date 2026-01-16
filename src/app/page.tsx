@@ -594,7 +594,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">
         <div className="flex items-center justify-center gap-4">
-          <p>© 2024 Loftie</p>
+          <p>© 2026 Loftie</p>
           <Link 
             href="/settings" 
             className="opacity-50 hover:opacity-100 transition-opacity"
