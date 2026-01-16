@@ -11,15 +11,81 @@ interface BioData {
   headshotUrl: string;
 }
 
+// Compress and resize image to max dimensions while maintaining quality
+// Targets 1-2MB max for mobile photos (especially iPhone which can be 3-8MB+)
+async function compressImage(file: File, maxDimension: number = 1920, quality: number = 0.8): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Calculate new dimensions while maintaining aspect ratio
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Use high-quality image smoothing
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+      }
+
+      // Convert to JPEG for better compression (unless PNG is needed for transparency)
+      const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      const compressedDataUrl = canvas.toDataURL(mimeType, quality);
+
+      // Check resulting size and compress more aggressively if needed
+      const sizeInMB = (compressedDataUrl.length * 3) / 4 / (1024 * 1024); // Rough base64 to bytes conversion
+
+      if (sizeInMB > 2 && quality > 0.5) {
+        // Re-compress with lower quality if still too large
+        const newQuality = Math.max(0.5, quality - 0.2);
+        const recompressed = canvas.toDataURL('image/jpeg', newQuality);
+        resolve(recompressed);
+      } else {
+        resolve(compressedDataUrl);
+      }
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image for compression'));
+
+    // Read file and set as image source
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error('Failed to read image file'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [email, setEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [configWarning, setConfigWarning] = useState<string | null>(null);
   const [bio, setBio] = useState<BioData | null>(null);
+  // User controls
+  const [creativityLevel, setCreativityLevel] = useState<'strict' | 'balanced' | 'creative'>('strict');
+  const [keepItems, setKeepItems] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -64,14 +130,33 @@ export default function Home() {
     }
   }, []);
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setSelectedImage(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
     setError(null);
+    setIsCompressing(true);
+
+    try {
+      // Automatically compress and resize large images (especially from mobile)
+      // Targets 1-2MB max with 1920px max dimension
+      const compressedImage = await compressImage(file, 1920, 0.8);
+      setSelectedImage(compressedImage);
+
+      // Log compression stats for debugging
+      const originalSizeMB = file.size / (1024 * 1024);
+      const compressedSizeMB = (compressedImage.length * 3) / 4 / (1024 * 1024);
+      console.log(`Image compressed: ${originalSizeMB.toFixed(2)}MB → ${compressedSizeMB.toFixed(2)}MB`);
+    } catch (err) {
+      // Fallback to original if compression fails
+      console.warn('Image compression failed, using original:', err);
+      setError('Image compression failed. Please try a smaller image or different format.');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setSelectedImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,6 +187,8 @@ export default function Home() {
         body: JSON.stringify({
           imageBase64: selectedImage,
           userEmail: email || undefined,
+          creativityLevel,
+          keepItems: keepItems.trim() || undefined,
         }),
       });
 
@@ -247,6 +334,12 @@ export default function Home() {
                   <p className="text-xs text-[var(--color-text-muted)] mt-2 opacity-75">
                     Well-lit, straight-on photos work best
                   </p>
+                  {isCompressing && (
+                    <div className="mt-3 flex items-center justify-center gap-2">
+                      <div className="w-3 h-3 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
+                      <p className="text-xs text-[var(--color-text-muted)]">Optimizing image...</p>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ) : (
@@ -283,6 +376,79 @@ export default function Home() {
                   placeholder="Email (optional)"
                   disabled={isProcessing}
                 />
+
+                {/* Advanced Options */}
+                <div className="border border-[var(--glass-border)] rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[rgba(255,255,255,0.02)] transition-colors"
+                    disabled={isProcessing}
+                  >
+                    <span>Advanced Options</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {showAdvanced && (
+                    <div className="px-3 pb-3 space-y-3 border-t border-[var(--glass-border)]">
+                      {/* Creativity Level */}
+                      <div className="pt-3">
+                        <label className="block text-xs text-[var(--color-text-secondary)] mb-2">
+                          Transformation Style
+                        </label>
+                        <div className="flex gap-1">
+                          {(['strict', 'balanced', 'creative'] as const).map((level) => (
+                            <button
+                              key={level}
+                              type="button"
+                              onClick={() => setCreativityLevel(level)}
+                              disabled={isProcessing}
+                              className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
+                                creativityLevel === level
+                                  ? 'bg-[var(--color-accent)] text-white'
+                                  : 'bg-[rgba(255,255,255,0.05)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
+                              }`}
+                            >
+                              {level === 'strict' ? 'Strict' : level === 'balanced' ? 'Balanced' : 'Creative'}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5">
+                          {creativityLevel === 'strict'
+                            ? 'Minimal changes - only removes obvious clutter'
+                            : creativityLevel === 'balanced'
+                            ? 'Removes clutter and tidies surfaces'
+                            : 'More styling freedom - may reorganize items'}
+                        </p>
+                      </div>
+
+                      {/* Keep Items */}
+                      <div>
+                        <label className="block text-xs text-[var(--color-text-secondary)] mb-2">
+                          Items to Keep (optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={keepItems}
+                          onChange={(e) => setKeepItems(e.target.value)}
+                          placeholder="e.g., books on shelf, plant by window"
+                          disabled={isProcessing}
+                          className="text-xs"
+                        />
+                        <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5">
+                          Describe specific items you want the AI to preserve
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {isProcessing && (
                   <motion.div

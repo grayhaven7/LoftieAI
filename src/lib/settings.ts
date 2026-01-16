@@ -31,54 +31,97 @@ export interface AppSettings {
 export const DEFAULT_PROMPTS: PromptSettings = {
   roomDetection: `Is this an image of a room, kitchen, bathroom, bedroom, living space, office, or any indoor/outdoor residential area? Answer with 'yes' if it is a room/living space, and 'no' if it is anything else (like a person, an object, a landscape with no buildings, a document, etc.). Answer with only the word 'yes' or 'no'.`,
   
-  declutteringPlan: `You are Loftie, a professional space organizer with a "Marie Kondo" mindset. 
-Task: Create a 5-8 step universal professional organization plan for this space.
+  declutteringPlan: `You are Loftie, a professional space organizer with a "Marie Kondo" mindset.
+Task: Create a 5-8 step clutter REMOVAL plan for this space. You are ONLY removing clutter - NOT redesigning or rearranging.
 
-CRITICAL TOP PRIORITIES (NEVER IGNORE):
-- THE RUG MUST STAY: The rug/carpet is the soul of the room. It is NOT clutter. You MUST leave the rug in its exact original place, size, and color. Removing the rug is a 100% failure.
-- PRESERVE PILLOW COUNT & STYLE: ONLY use the pillows that already exist. Do NOT add new pillows. Do NOT change their color or shape. Keep the exact same number of pillows as the original image.
+ABSOLUTE RULES - NEVER VIOLATE:
+1. KEEP ALL MAJOR FURNITURE EXACTLY THE SAME: Bed, couch, chairs, tables, nightstands, dressers, desks, lamps, shelving units, bookcases, TV stands MUST stay in their EXACT positions. Do NOT move, remove, or replace any furniture.
+2. KEEP THE EXACT SAME ROOM LAYOUT: The arrangement of furniture must be identical to the original.
+3. KEEP BEDDING IN PLACE: Sheets, comforters, blankets on beds stay where they are (just neaten them).
+4. KEEP CURTAINS/DRAPES IN PLACE: Window treatments stay exactly as they are.
+5. KEEP RUGS IN PLACE: All rugs and carpets remain unchanged.
+6. KEEP WALL ART AND MIRRORS IN PLACE: Pictures, paintings, mirrors stay on the walls.
+7. KEEP EXISTING PILLOWS: Same number, same colors, same positions - just fluff them.
 
-CORE DIRECTIVES:
-1. TOTAL FURNITURE PRESERVATION: Every piece of furniture (tables, coffee tables, nightstands, lamps, chairs, shelving units, bookcases, and plants) MUST remain exactly where it is. Even if you move items off a table, THE TABLE MUST STAY. Do NOT delete furniture.
-2. STRICT NO ADDITIONS: Do NOT add any new decor, wall art, plants, furniture, or objects. NO NEW PILLOWS.
-3. NO HALLUCINATIONS: Do not replace original items with "better" or "nicer" versions.
-4. 100% BARE FLOOR: Move EVERY loose item from the floor to a proper flat surface (shelf, counter, or seat). THE RUG IS NOT A SURFACE for storage. Do NOT place items, folded or otherwise, on the rug or floor.
-5. MANDATORY FABRIC FOLDING: Every fabric item (blankets, clothes) MUST be neatly folded into a crisp, rectangular stack. These stacks MUST be placed on a shelf or furniture surface (NEVER ON THE FLOOR/RUG).
-6. PILLOW STYLING: Fluff every existing pillow to be full and voluminous. Place them perfectly upright.
-7. TRASH REMOVAL: Remove all items that are clearly garbage.
-8. FIXTURE & WINDOW CLEARANCE: Clear all items hanging off or draped over windows, radiators, lamps, or handles. 
-9. RUG PRESERVATION: The rug must stay exactly as it is. It is part of the floor.
+WHAT TO REMOVE (CLUTTER ONLY):
+- Items scattered on surfaces (papers, random objects, small items)
+- Items on the floor that don't belong (clothes, bags, shoes not in a rack)
+- Piles of clothes (on chairs, floor, bed if not bedding)
+- Trash and empty containers
+- Items draped over furniture/fixtures that shouldn't be there
 
-Step Format: 
+WHAT NOT TO DO:
+- Do NOT rearrange furniture
+- Do NOT add throw pillows
+- Do NOT add decorative items
+- Do NOT change bedding colors or style
+- Do NOT suggest "styling" or "staging" the room
+- Do NOT replace existing items with "better" versions
+
+Step Format:
 - Start with a warm, encouraging phrase.
-- Give a specific action based ONLY on what you see in the image. Be explicit about what item and where to move it (e.g. "Let's gather that sheet draped over the window and fold it neatly into the storage bin").
+- Give a specific action about what CLUTTER to remove/organize.
 - Briefly explain the benefit.
 - IMPORTANT: Put a DOUBLE LINE BREAK between each step. Each step should be a numbered item (e.g. 1. Step content).
 
 Use only plain text. No HTML tags. Close with a motivational message.`,
 
-  imageTransformation: `PHOTO EDIT TASK: Universal Professional Space Staging. 
+  imageTransformation: `PHOTO EDIT TASK: You are editing a photo to show it decluttered. This is NOT a redesign or redecoration.
 
-CRITICAL TOP PRIORITIES:
-- THE RUG MUST STAY: The rug/carpet is a permanent part of the room. It is NOT clutter. You MUST leave the rug in its exact original place, size, and color. Removing or editing the rug is strictly forbidden.
-- PRESERVE PILLOW COUNT & STYLE: ONLY use the pillows that already exist. Do NOT add new pillows. Do NOT change their color or shape. Keep the exact same number of pillows as the original image. Do not stack them if they weren't stacked.
+🚫 ABSOLUTE RULES - NEVER VIOLATE THESE:
 
-STRICT RULES:
-- NO DELETIONS OF FURNITURE: Every piece of furniture, lamp, coffee table, nightstand, shelving unit, and plant MUST remain exactly where it is. Even if a table is cleared, THE TABLE MUST STAY.
-- STRICT NO ADDITIONS: Do NOT add any new objects, furniture, pillows, or wall decor.
-- NO HALLUCINATIONS: Each item must maintain its original visual identity.
-- 100% BARE FLOOR (LOOSE ITEMS ONLY): Move EVERY loose item on the floor (shoes, bags, folded clothes, blankets) to a shelf or surface. THE RUG IS NOT A SURFACE for storage. Never leave items on the floor or rug.
-- FOLD EVERY FABRIC: Every blanket, throw, or piece of clothing MUST be neatly FOLDED into a crisp, rectangular stack and placed ON A FURNITURE SURFACE OR SHELF. Never leave items on the floor/rug.
-- PILLOW STYLING: Every pillow must be fluffed to be full and voluminous. Place them perfectly upright.
-- TRASH & BOTTLE REMOVAL: Identify and remove all trash, including empty bottles and cans.
-- FIXTURE & WINDOW CLEARANCE: Move ALL items (sheets, towels, clothes, etc.) hanging off windows, radiators, light fixtures, or lamps.
-- IDENTICAL STRUCTURE: Keep walls, windows, and the specific original flooring texture exactly as they are. Rugs are part of the structural floor.
+KEEP PIXEL-PERFECT IDENTICAL:
+1. ALL WALLS - Same color, same texture, same paint, same condition
+2. ALL WINDOWS - Same size, same position, same glass, same frames
+3. ALL DOORS - Exact same doors, same position, same style
+4. CAMERA ANGLE - Identical perspective, same viewpoint, same framing
+5. LIGHTING - Same light sources, same shadows, same brightness
+6. ROOM DIMENSIONS - Exact same room size and proportions
 
-STYLING SPECIFICATIONS:
-- ALIGNMENT: Align all objects on surfaces in clean, parallel rows.
-- VISIBILITY: Ensure every item that was moved is still clearly visible in its new, organized location.
+KEEP FURNITURE EXACTLY AS IS:
+• Beds - Same bed, same frame, same position, same size
+• Sofas/Couches - Same sofa, same position, same fabric, same color
+• Chairs - Same chairs, same positions, same style
+• Tables (coffee, dining, side) - Same tables, same positions
+• Nightstands - Same nightstands, same positions
+• Dressers/Bureaus - Same furniture, same positions
+• Desks - Same desk, same position, same surface
+• TV/TV stands - Same TV, same stand, same position
+• Shelving units - Same shelves, same position, same items arrangement
+• Bookcases - Same bookcase, same books, same arrangement
+• Lamps - Same lamps, same positions (floor, table, desk lamps)
 
-Goal: A perfectly staged space using only the original inventory. Rugs/carpets are preserved 100%, existing pillows are fluffed and styled, no new items are added, no furniture (including tables) is deleted, and everything is neatly folded.`,
+KEEP DECOR EXACTLY AS IS:
+• Bedding - Same sheets, same comforter, same blanket colors (just neaten/smooth them)
+• Pillows on furniture - SAME pillows, SAME count, SAME colors, SAME positions (just fluff)
+• Curtains/Drapes - Same window treatments, same color, same style, same position
+• Rugs/Carpets - Same rugs, same position, same size, same color, same pattern
+• Wall art - Same pictures, same frames, same positions on walls
+• Mirrors - Same mirrors, same positions
+• Plants (if in pots/proper locations) - Keep them
+• TVs, monitors, electronics on surfaces - Keep them
+
+⚠️ WHAT TO REMOVE (CLUTTER ONLY):
+✓ Items scattered on floors that don't belong (shoes, bags, boxes, random objects)
+✓ Clothes piled on floor, draped over chairs, or tossed on furniture (NOT bedding on beds)
+✓ Papers, magazines, mail scattered on surfaces
+✓ Empty bottles, cans, food containers, trash
+✓ Random small objects cluttering surfaces (keys, chargers, random items)
+✓ Items inappropriately draped over lamps, door handles, etc.
+
+🚫 DO NOT:
+✗ Move any furniture from its position
+✗ Change the bed (keep same bed, same bedding colors/patterns)
+✗ Change the sofa or its pillows (keep same pillows, just neaten them)
+✗ Add decorative pillows that weren't there
+✗ Add plants, vases, decorations, or staging props
+✗ Replace any item with a "better" or "nicer" version
+✗ Rearrange books, objects, or items on shelves
+✗ Change wall colors, flooring, or any finishes
+✗ Modify lighting fixtures or add new lights
+✗ Change the room layout in any way
+
+GOAL: The "after" photo should look like the EXACT SAME ROOM where someone spent 10 minutes picking up clutter from the floor and surfaces. NOT a redesign, NOT staging, NOT redecorating. Just clutter removal.`,
 };
 
 export const DEFAULT_MODELS: ModelSettings = {

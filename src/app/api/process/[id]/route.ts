@@ -96,7 +96,20 @@ export async function POST(
 
     // STEP 1: Generate the decluttering plan FIRST
     console.log(`Generating decluttering plan...`);
-    const planPrompt = settings.prompts.declutteringPlan;
+    let planPrompt = settings.prompts.declutteringPlan;
+
+    // Adjust prompt based on creativity level
+    const creativityLevel = transformation.creativityLevel || 'strict';
+    if (creativityLevel === 'strict') {
+      planPrompt += `\n\nIMPORTANT: Be VERY conservative. Only suggest removing the most obvious clutter. Preserve as much as possible.`;
+    } else if (creativityLevel === 'creative') {
+      planPrompt += `\n\nYou have more flexibility to suggest tidying, reorganizing items on surfaces, and light styling while still keeping all furniture and major elements in place.`;
+    }
+
+    // Add keep items instruction if specified
+    if (transformation.keepItems) {
+      planPrompt += `\n\nUSER REQUEST - MUST PRESERVE: The user specifically wants to keep these items: "${transformation.keepItems}". Do NOT suggest removing or moving these items.`;
+    }
 
     let declutteringPlan = await analyzeImageWithGemini(imageUrl, planPrompt);
     
@@ -107,7 +120,10 @@ export async function POST(
 
     // STEP 2: Generate the organized room image based on the decluttering plan
     console.log(`Calling Gemini to generate organized room based on plan...`);
-    const declutteredImageBase64 = await declutterImageWithGemini(imageUrl, declutteringPlan);
+    const declutteredImageBase64 = await declutterImageWithGemini(imageUrl, declutteringPlan, {
+      creativityLevel,
+      keepItems: transformation.keepItems,
+    });
     console.log(`Gemini returned organized room image`);
     
     // Save the organized image

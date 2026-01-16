@@ -9,7 +9,7 @@ export const maxDuration = 60; // Increase timeout for image upload and room che
 
 export async function POST(request: NextRequest) {
   try {
-    const { imageBase64, userEmail } = await request.json();
+    const { imageBase64, userEmail, creativityLevel, keepItems } = await request.json();
 
     if (!imageBase64) {
       return NextResponse.json(
@@ -57,6 +57,9 @@ export async function POST(request: NextRequest) {
       status: 'processing',
       // Store the original base64 so the process endpoint can use it
       originalImageBase64: imageBase64,
+      // User controls
+      creativityLevel: creativityLevel || 'strict',
+      keepItems: keepItems || undefined,
     };
     await saveTransformation(transformation);
     console.log(`[API] Successfully created transformation ${id}. URL should be /results/${id}`);

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X, Settings } from 'lucide-react';
+import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X, Settings, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { use } from 'react';
 
@@ -15,6 +15,8 @@ interface TransformationData {
   userEmail?: string;
   createdAt: string;
   status: 'processing' | 'completed' | 'failed';
+  creativityLevel?: 'strict' | 'balanced' | 'creative';
+  keepItems?: string;
 }
 
 export default function ResultsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -30,8 +32,12 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
   const [isPlaying, setIsPlaying] = useState(false);
   const [planExpanded, setPlanExpanded] = useState(true);
   const [afterImageError, setAfterImageError] = useState(false);
+  const [comparisonMode, setComparisonMode] = useState<'toggle' | 'slider'>('slider');
+  const [sliderPosition, setSliderPosition] = useState(50);
+  const [isRetrying, setIsRetrying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const processingRequestFired = useRef(false);
+  const sliderContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -165,6 +171,43 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
     } else {
       await navigator.clipboard.writeText(url);
     }
+  };
+
+  const handleRetry = async () => {
+    if (!data || isRetrying) return;
+    setIsRetrying(true);
+    setAfterImageError(false);
+
+    try {
+      // Reset the transformation status and trigger reprocessing
+      const response = await fetch(`/api/retry/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to retry transformation');
+      }
+
+      // Start polling for updates
+      setData(prev => prev ? { ...prev, status: 'processing' } : null);
+      processingRequestFired.current = false;
+      window.location.reload();
+    } catch (err) {
+      console.error('Retry failed:', err);
+      setError('Failed to retry. Please try uploading a new image.');
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
+  const handleSliderMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (!sliderContainerRef.current) return;
+    const rect = sliderContainerRef.current.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const x = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+    setSliderPosition(percentage);
   };
 
   const getEmojiForContext = (text: string): string => {
@@ -331,61 +374,72 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
         {/* Image */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
           <div className="card overflow-hidden p-0">
-            <div className="flex border-b border-[rgba(255,255,255,0.06)]">
+            {/* Mode toggle and before/after tabs */}
+            <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] px-2">
+              {comparisonMode === 'toggle' ? (
+                <div className="flex flex-1">
+                  <button
+                    onClick={() => setShowAfter(false)}
+                    className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                      !showAfter ? 'text-[var(--color-text-primary)] bg-[rgba(255,255,255,0.04)]' : 'text-[var(--color-text-muted)]'
+                    }`}
+                  >
+                    Before
+                  </button>
+                  <button
+                    onClick={() => setShowAfter(true)}
+                    className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                      showAfter ? 'text-[var(--color-text-primary)] bg-[rgba(255,255,255,0.04)]' : 'text-[var(--color-text-muted)]'
+                    }`}
+                  >
+                    After
+                  </button>
+                </div>
+              ) : (
+                <span className="py-2.5 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+                  Drag to compare
+                </span>
+              )}
               <button
-                onClick={() => setShowAfter(false)}
-                className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                  !showAfter ? 'text-[var(--color-text-primary)] bg-[rgba(255,255,255,0.04)]' : 'text-[var(--color-text-muted)]'
-                }`}
+                onClick={() => setComparisonMode(comparisonMode === 'toggle' ? 'slider' : 'toggle')}
+                className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+                title={comparisonMode === 'toggle' ? 'Switch to slider view' : 'Switch to toggle view'}
               >
-                Before
-              </button>
-              <button
-                onClick={() => setShowAfter(true)}
-                className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                  showAfter ? 'text-[var(--color-text-primary)] bg-[rgba(255,255,255,0.04)]' : 'text-[var(--color-text-muted)]'
-                }`}
-              >
-                After
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {comparisonMode === 'toggle' ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
               </button>
             </div>
+
             <div className="relative aspect-[4/3] overflow-hidden">
-              <AnimatePresence mode="wait">
-                {showAfter && data.status === 'processing' ? (
-                  <motion.div
-                    key="processing"
-                    className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    <div className="text-center px-4">
-                      <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[rgba(251,191,36,0.1)] flex items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-[rgb(251,191,36)] border-t-transparent rounded-full animate-spin" />
-                      </div>
-                      <p className="text-[var(--color-text-secondary)] text-sm mb-1">Generating...</p>
-                      <p className="text-[var(--color-text-muted)] text-xs">Your transformation is being created</p>
+              {data.status === 'processing' ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]">
+                  <div className="text-center px-4">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[rgba(251,191,36,0.1)] flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-[rgb(251,191,36)] border-t-transparent rounded-full animate-spin" />
                     </div>
-                  </motion.div>
-                ) : showAfter && (data.status === 'failed' || !data.afterImageUrl || afterImageError) ? (
-                  <motion.div
-                    key="error"
-                    className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    <div className="text-center px-4">
-                      <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
-                        <svg className="w-6 h-6 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <p className="text-[var(--color-text-secondary)] text-sm mb-1">Image unavailable</p>
-                      <p className="text-[var(--color-text-muted)] text-xs">The transformed image could not be loaded</p>
+                    <p className="text-[var(--color-text-secondary)] text-sm mb-1">Generating...</p>
+                    <p className="text-[var(--color-text-muted)] text-xs">Your transformation is being created</p>
+                  </div>
+                </div>
+              ) : data.status === 'failed' || !data.afterImageUrl || afterImageError ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]">
+                  <div className="text-center px-4">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
+                      <svg className="w-6 h-6 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
                     </div>
-                  </motion.div>
-                ) : (
+                    <p className="text-[var(--color-text-secondary)] text-sm mb-1">Image unavailable</p>
+                    <p className="text-[var(--color-text-muted)] text-xs">The transformed image could not be loaded</p>
+                  </div>
+                </div>
+              ) : comparisonMode === 'toggle' ? (
+                <AnimatePresence mode="wait">
                   <motion.img
                     key={showAfter ? 'after' : 'before'}
                     src={showAfter ? data.afterImageUrl : data.beforeImageUrl}
@@ -399,14 +453,62 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
                       if (showAfter) setAfterImageError(true);
                     }}
                   />
-                )}
-              </AnimatePresence>
+                </AnimatePresence>
+              ) : (
+                /* Slider comparison view */
+                <div
+                  ref={sliderContainerRef}
+                  className="relative w-full h-full cursor-ew-resize select-none"
+                  onMouseMove={(e) => e.buttons === 1 && handleSliderMove(e)}
+                  onMouseDown={handleSliderMove}
+                  onTouchMove={handleSliderMove}
+                  onTouchStart={handleSliderMove}
+                >
+                  {/* After image (full width, background) */}
+                  <img
+                    src={data.afterImageUrl}
+                    alt="After"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={() => setAfterImageError(true)}
+                  />
+                  {/* Before image (clipped) */}
+                  <div
+                    className="absolute inset-0 overflow-hidden"
+                    style={{ width: `${sliderPosition}%` }}
+                  >
+                    <img
+                      src={data.beforeImageUrl}
+                      alt="Before"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      style={{ width: `${100 / (sliderPosition / 100)}%`, maxWidth: 'none' }}
+                    />
+                  </div>
+                  {/* Slider line */}
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg"
+                    style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
+                  >
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center">
+                      <svg className="w-4 h-4 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                      </svg>
+                    </div>
+                  </div>
+                  {/* Labels */}
+                  <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-xs text-white">
+                    Before
+                  </div>
+                  <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-xs text-white">
+                    After
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="flex gap-2 mt-4">
-            <button 
-              onClick={handleDownload} 
+            <button
+              onClick={handleDownload}
               className="btn-secondary"
               disabled={!data?.afterImageUrl}
             >
@@ -415,6 +517,16 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
             <button onClick={handleShare} className="btn-secondary">
               <Share2 className="w-3.5 h-3.5" /> Share
             </button>
+            {data.status === 'completed' && (
+              <button
+                onClick={handleRetry}
+                className="btn-secondary"
+                disabled={isRetrying}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRetrying ? 'animate-spin' : ''}`} />
+                {isRetrying ? 'Retrying...' : 'Retry'}
+              </button>
+            )}
           </div>
         </motion.div>
 
