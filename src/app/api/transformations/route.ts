@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getTransformations, saveTransformation } from '@/lib/storage';
 
 export const dynamic = 'force-dynamic';
@@ -7,11 +7,15 @@ export const revalidate = 0;
 // Time in ms after which a "processing" transformation is considered stale and marked as failed
 const PROCESSING_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const transformations = await getTransformations();
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const cursor = searchParams.get('cursor') || undefined;
+
+    const { transformations, nextCursor, hasMore } = await getTransformations(limit, cursor);
     const now = Date.now();
-    
+
     // Auto-mark stale processing transformations as failed
     for (const t of transformations) {
       if (t.status === 'processing') {
@@ -25,19 +29,26 @@ export async function GET() {
         }
       }
     }
-    
+
     // Sort by createdAt descending (newest first)
     const sorted = transformations.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    return NextResponse.json(sorted, {
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
+    return NextResponse.json(
+      {
+        transformations: sorted,
+        nextCursor,
+        hasMore,
       },
-    });
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching transformations:', error);
     return NextResponse.json(

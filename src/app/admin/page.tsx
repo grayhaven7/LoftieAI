@@ -46,7 +46,9 @@ export default function AdminPage() {
         return;
       }
 
-      setTransformations(Array.isArray(body) ? body : []);
+      // Handle paginated response format
+      const data = body?.transformations ?? (Array.isArray(body) ? body : []);
+      setTransformations(data);
     } catch (err) {
       console.error('Failed to fetch:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch transformations');
