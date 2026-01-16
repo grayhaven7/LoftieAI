@@ -125,8 +125,8 @@ GOAL: The "after" photo should look like the EXACT SAME ROOM where someone spent
 };
 
 export const DEFAULT_MODELS: ModelSettings = {
-  imageGeneration: 'gemini-2.5-flash-preview-04-17',
-  textAnalysis: 'gemini-2.5-flash-preview-04-17',
+  imageGeneration: 'gemini-2.5-flash',
+  textAnalysis: 'gemini-2.5-flash',
   ttsModel: 'tts-1',
   ttsVoice: 'nova',
 };
@@ -142,11 +142,11 @@ Sejal is also past President of the Real Estate Staging Association's (RESA) Sil
 
 export const AVAILABLE_MODELS = {
   imageGeneration: [
-    { value: 'gemini-2.5-flash-preview-04-17', label: 'Gemini 2.5 Flash' },
+    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
     { value: 'gemini-2.0-flash-exp-image-generation', label: 'Gemini 2.0 Flash Image Gen (Experimental)' },
   ],
   textAnalysis: [
-    { value: 'gemini-2.5-flash-preview-04-17', label: 'Gemini 2.5 Flash' },
+    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
     { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash (Experimental)' },
     { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
     { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },

@@ -70,7 +70,7 @@ function getGeminiClient(): GoogleGenerativeAI {
  */
 export function getGeminiImageGen(): GenerativeModel {
   return getGeminiClient().getGenerativeModel({
-    model: 'gemini-2.5-flash-preview-04-17',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       // @ts-expect-error - responseModalities is valid but not in types yet
       responseModalities: ['Text', 'Image'],
@@ -82,7 +82,7 @@ export function getGeminiImageGen(): GenerativeModel {
  * Get the Gemini 2.5 Flash model for fast, multimodal tasks
  */
 export function getGeminiFlash(): GenerativeModel {
-  return getGeminiClient().getGenerativeModel({ model: 'gemini-2.5-flash-preview-04-17' });
+  return getGeminiClient().getGenerativeModel({ model: 'gemini-2.5-flash' });
 }
 
 /**
