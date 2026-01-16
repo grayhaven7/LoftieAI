@@ -389,7 +389,7 @@ export async function saveImage(base64Data: string, filename: string): Promise<s
       access: 'public',
       contentType,
       addRandomSuffix: false,
-      allowOverwrite: true,
+      cacheControlMaxAge: 31536000, // 1 year - images are immutable
       token,
     });
     console.log(`[Storage] Successfully saved image to Vercel Blob: ${blob.url}`);
@@ -432,7 +432,7 @@ export async function saveAudio(audioBuffer: ArrayBuffer, filename: string): Pro
       access: 'public',
       contentType: 'audio/mpeg',
       addRandomSuffix: false,
-      allowOverwrite: true,
+      cacheControlMaxAge: 31536000, // 1 year - audio files are immutable
       token,
     });
     console.log(`[Storage] Successfully saved audio to Vercel Blob: ${blob.url}`);

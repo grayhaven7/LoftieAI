@@ -14,8 +14,8 @@ export async function GET() {
     : 'NOT SET';
 
   try {
-    const transformations = await getTransformations();
-    
+    const { transformations } = await getTransformations(20);
+
     // Also list raw blobs to see what's actually in there
     let rawBlobs: any[] = [];
     if (hasBlobToken) {
@@ -27,7 +27,7 @@ export async function GET() {
         urlPreview: `${b.url.substring(0, 40)}...`
       }));
     }
-    
+
     return NextResponse.json({
       environment: {
         isVercel,

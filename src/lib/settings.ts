@@ -200,7 +200,7 @@ function ensureDataDir() {
 // In-memory cache for settings (reduces blob reads)
 let settingsCache: AppSettings | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_TTL = 60000; // 1 minute
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function getDefaultSettings(): AppSettings {
   return {

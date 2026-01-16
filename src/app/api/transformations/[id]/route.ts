@@ -38,11 +38,15 @@ export async function GET(
       }
     }
 
+    // For completed/failed transformations, allow stale-while-revalidate
+    // For processing transformations, don't cache
+    const cacheControl = transformation.status === 'processing'
+      ? 'no-store, no-cache, must-revalidate'
+      : 'private, max-age=0, stale-while-revalidate=60';
+
     return NextResponse.json(transformation, {
       headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
+        'Cache-Control': cacheControl,
       },
     });
   } catch (error) {
