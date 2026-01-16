@@ -65,12 +65,12 @@ function getGeminiClient(): GoogleGenerativeAI {
 }
 
 /**
- * Get the Gemini 2.5 Flash model with Image Generation capabilities
+ * Get the Gemini 2.5 Flash Image model with Image Generation capabilities
  * This model can generate and edit images while preserving the original appearance
  */
 export function getGeminiImageGen(): GenerativeModel {
   return getGeminiClient().getGenerativeModel({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-2.5-flash-image',
     generationConfig: {
       // @ts-expect-error - responseModalities is valid but not in types yet
       responseModalities: ['Text', 'Image'],
