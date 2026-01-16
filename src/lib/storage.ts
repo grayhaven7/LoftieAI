@@ -39,41 +39,59 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function getTransformations(): Promise<RoomTransformation[]> {
+export interface PaginatedTransformations {
+  transformations: RoomTransformation[];
+  nextCursor?: string;
+  hasMore: boolean;
+}
+
+export async function getTransformations(limit = 50, cursor?: string): Promise<PaginatedTransformations> {
   if (useLocalStorage()) {
     try {
       ensureLocalDirs();
       if (fs.existsSync(LOCAL_DATA_PATH)) {
         const data = fs.readFileSync(LOCAL_DATA_PATH, 'utf-8');
-        return JSON.parse(data) as RoomTransformation[];
+        const all = JSON.parse(data) as RoomTransformation[];
+        // Simple pagination for local storage
+        const startIndex = cursor ? parseInt(cursor, 10) : 0;
+        const transformations = all.slice(startIndex, startIndex + limit);
+        const nextIndex = startIndex + limit;
+        return {
+          transformations,
+          nextCursor: nextIndex < all.length ? String(nextIndex) : undefined,
+          hasMore: nextIndex < all.length,
+        };
       }
-      return [];
+      return { transformations: [], hasMore: false };
     } catch (error) {
       console.error('Error reading local transformations:', error);
-      return [];
+      return { transformations: [], hasMore: false };
     }
   }
 
   // Use Vercel Blob - each transformation is stored as its own file
   const token = getBlobToken();
   if (!token) {
-    // On Vercel, returning [] makes the UI look "empty" and hides the real issue.
-    // Fail loudly so callers can surface a useful error message.
     console.error('[Storage] BLOB_READ_WRITE_TOKEN not configured');
     throw new Error('Storage is not configured: BLOB_READ_WRITE_TOKEN is missing');
   }
-  
+
   try {
-    console.log('[Storage] Fetching transformations from Vercel Blob...');
-    // List all transformation blobs
-    const { blobs } = await list({ prefix: 'transformations/', token });
+    console.log(`[Storage] Fetching transformations from Vercel Blob (limit: ${limit}, cursor: ${cursor || 'none'})...`);
+    // List transformation blobs with pagination
+    const { blobs, cursor: nextCursor } = await list({
+      prefix: 'transformations/',
+      limit,
+      cursor,
+      token,
+    });
     console.log(`[Storage] Found ${blobs.length} transformation blobs`);
-    
+
     if (blobs.length === 0) {
       console.log('[Storage] No transformations found in blob storage');
-      return [];
+      return { transformations: [], hasMore: false };
     }
-    
+
     // Fetch each transformation in parallel
     const transformations = await Promise.all(
       blobs.map(async (blob) => {
@@ -91,17 +109,21 @@ export async function getTransformations(): Promise<RoomTransformation[]> {
         }
       })
     );
-    
-    // Filter out nulls and sort by createdAt
+
+    // Filter out nulls
     const valid = transformations.filter((t): t is RoomTransformation => t !== null);
     console.log(`[Storage] Loaded ${valid.length} valid transformations`);
-    return valid;
+    return {
+      transformations: valid,
+      nextCursor: nextCursor || undefined,
+      hasMore: !!nextCursor,
+    };
   } catch (error) {
     console.error('[Storage] Error fetching transformations from blob:', error);
     if (error instanceof Error) {
       console.error('[Storage] Error details:', error.message, error.stack);
     }
-    return [];
+    return { transformations: [], hasMore: false };
   }
 }
 
@@ -113,7 +135,12 @@ export async function getTransformation(id: string, blobUrl?: string): Promise<R
     // Retry logic for local storage too, in case of file system latency or temporary locks
     const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const transformations = await getTransformations();
+      // For local storage, read all transformations directly
+      let transformations: RoomTransformation[] = [];
+      if (fs.existsSync(LOCAL_DATA_PATH)) {
+        const data = fs.readFileSync(LOCAL_DATA_PATH, 'utf-8');
+        transformations = JSON.parse(data) as RoomTransformation[];
+      }
       const found = transformations.find(t => t.id === cleanId);
 
       if (found) {
@@ -230,15 +257,20 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
   if (useLocalStorage()) {
     try {
       ensureLocalDirs();
-      const transformations = await getTransformations();
+      // For local storage, read all transformations directly (not paginated)
+      let transformations: RoomTransformation[] = [];
+      if (fs.existsSync(LOCAL_DATA_PATH)) {
+        const data = fs.readFileSync(LOCAL_DATA_PATH, 'utf-8');
+        transformations = JSON.parse(data) as RoomTransformation[];
+      }
       const existingIndex = transformations.findIndex(t => t.id === transformation.id);
-      
+
       if (existingIndex >= 0) {
         transformations[existingIndex] = transformation;
       } else {
         transformations.push(transformation);
       }
-      
+
       fs.writeFileSync(LOCAL_DATA_PATH, JSON.stringify(transformations, null, 2));
       console.log(`Saved transformation to local file`);
       return;
@@ -289,7 +321,12 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
 
 export async function deleteTransformation(id: string): Promise<void> {
   if (useLocalStorage()) {
-    const transformations = await getTransformations();
+    // For local storage, read all transformations directly
+    let transformations: RoomTransformation[] = [];
+    if (fs.existsSync(LOCAL_DATA_PATH)) {
+      const data = fs.readFileSync(LOCAL_DATA_PATH, 'utf-8');
+      transformations = JSON.parse(data) as RoomTransformation[];
+    }
     const filtered = transformations.filter(t => t.id !== id);
     fs.writeFileSync(LOCAL_DATA_PATH, JSON.stringify(filtered, null, 2));
     return;
