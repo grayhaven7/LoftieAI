@@ -143,6 +143,7 @@ Sejal is also past President of the Real Estate Staging Association's (RESA) Sil
 export const AVAILABLE_MODELS = {
   imageGeneration: [
     { value: 'gemini-2.0-flash-exp-image-generation', label: 'Gemini 2.0 Flash Image Gen' },
+    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
   ],
   textAnalysis: [
     { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
