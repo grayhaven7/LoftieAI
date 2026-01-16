@@ -206,23 +206,27 @@ export async function POST(
       declutteringPlan,
     });
   } catch (error) {
-    console.error('Process error:', error);
-    
-    // Mark transformation as failed
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error(`Process error for ${id}:`, errorMessage);
+    console.error('Full error:', error);
+    console.error('Stack trace:', errorStack);
+
+    // Mark transformation as failed with error details
     try {
-      const transformation = await getTransformation(id);
+      const transformation = await getTransformation(id, blobUrl);
       if (transformation) {
         transformation.status = 'failed';
         delete transformation.originalImageBase64;
         await saveTransformation(transformation);
-        console.log(`Marked transformation ${id} as failed`);
+        console.log(`Marked transformation ${id} as failed: ${errorMessage}`);
       }
     } catch (saveError) {
       console.error('Failed to save failed status:', saveError);
     }
-    
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to process transformation' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
