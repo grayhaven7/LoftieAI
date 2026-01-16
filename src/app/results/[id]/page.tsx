@@ -149,14 +149,22 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
     if (!email || !data) return;
     setEmailSending(true);
     try {
-      await fetch('/api/send-email', {
+      const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, transformationId: id }),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send email');
+      }
+
       setEmailSent(true);
     } catch (err) {
       console.error('Failed to send email:', err);
+      alert(`Failed to send email: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setEmailSending(false);
     }

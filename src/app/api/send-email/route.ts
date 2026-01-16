@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
           .join('')
       : '';
 
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'Loftie AI <onboarding@resend.dev>',
       to: email,
       subject: '✨ Your Room Transformation is Ready!',
@@ -109,11 +109,19 @@ export async function POST(request: NextRequest) {
       `,
     });
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
+    console.log('Email sent successfully:', result);
+    return NextResponse.json({ success: true, emailId: result.id });
+  } catch (error: any) {
     console.error('Email error:', error);
+    const errorMessage = error?.message || 'Failed to send email';
+    const errorDetails = error?.response?.data || error;
+    console.error('Error details:', errorDetails);
+
     return NextResponse.json(
-      { error: 'Failed to send email' },
+      {
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? errorDetails : undefined
+      },
       { status: 500 }
     );
   }
