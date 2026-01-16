@@ -261,6 +261,7 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
       access: 'public',
       contentType: 'application/json',
       addRandomSuffix: false,
+      allowOverwrite: true, // Required for updating existing blobs
       token,
     });
     // Store the blob URL for direct access (avoids list() consistency issues)
@@ -340,6 +341,7 @@ export async function saveImage(base64Data: string, filename: string): Promise<s
       access: 'public',
       contentType,
       addRandomSuffix: false,
+      allowOverwrite: true,
       token,
     });
     console.log(`[Storage] Successfully saved image to Vercel Blob: ${blob.url}`);
@@ -382,6 +384,7 @@ export async function saveAudio(audioBuffer: ArrayBuffer, filename: string): Pro
       access: 'public',
       contentType: 'audio/mpeg',
       addRandomSuffix: false,
+      allowOverwrite: true,
       token,
     });
     console.log(`[Storage] Successfully saved audio to Vercel Blob: ${blob.url}`);
