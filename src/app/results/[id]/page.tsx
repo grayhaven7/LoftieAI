@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X, Settings, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
@@ -21,7 +21,23 @@ interface TransformationData {
   keepItems?: string;
 }
 
+// Wrapper component that handles Suspense for useSearchParams
 export default function ResultsPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense fallback={
+      <div className="gradient-bg min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[var(--color-text-muted)] text-sm">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ResultsPageContent params={params} />
+    </Suspense>
+  );
+}
+
+function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const searchParams = useSearchParams();
   const blobUrl = searchParams.get('blobUrl');
@@ -142,7 +158,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
 
     fetchData();
     return () => { if (interval) clearInterval(interval); };
-  }, [id]);
+  }, [id, blobUrl]);
 
   const toggleAudio = () => {
     if (!audioRef.current || !data?.audioUrl) return;
