@@ -182,17 +182,9 @@ export async function declutterImageWithGemini(
   declutteringPlan?: string,
   options?: { creativityLevel?: 'strict' | 'balanced' | 'creative'; keepItems?: string }
 ): Promise<string> {
+  const model = getGeminiImageGen();
   const settings = getSettings();
 
-  // Use the model from settings for image generation
-  const model = getGeminiClient().getGenerativeModel({
-    model: settings.models.imageGeneration,
-    generationConfig: {
-      // @ts-expect-error - responseModalities is valid but not in types yet
-      responseModalities: ['Text', 'Image'],
-    },
-  });
-  
   // Remove data URL prefix if present
   const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
   
