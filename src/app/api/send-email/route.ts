@@ -109,8 +109,12 @@ export async function POST(request: NextRequest) {
       `,
     });
 
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
     console.log('Email sent successfully:', result);
-    return NextResponse.json({ success: true, emailId: result.id });
+    return NextResponse.json({ success: true, emailId: result.data?.id });
   } catch (error: any) {
     console.error('Email error:', error);
     const errorMessage = error?.message || 'Failed to send email';
