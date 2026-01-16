@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'oaidalleapiprodscus.blob.core.windows.net',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+      },
     ],
   },
 };

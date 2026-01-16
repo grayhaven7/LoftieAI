@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X, Settings, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { use } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -81,6 +82,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
                 }
 
                 let consecutivePollFailures = 0;
+                const jitter = Math.random() * 500;
                 interval = setInterval(async () => {
                   try {
                     // Use blobUrl for polling too
@@ -114,7 +116,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
                       setError('Trouble fetching updates. Please refresh.');
                     }
                   }
-                }, 3000);
+                }, 3000 + jitter);
               }
               return; // Success!
             }
@@ -331,7 +333,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
     );
   }
 
-  const steps = parseSteps(data.declutteringPlan);
+  const steps = useMemo(() => parseSteps(data.declutteringPlan), [data.declutteringPlan]);
 
   return (
     <div className="gradient-bg min-h-screen">
@@ -492,6 +494,7 @@ export default function ResultsPage({ params }: { params: Promise<{ id: string }
                     src={data.afterImageUrl}
                     alt="After"
                     className="absolute inset-0 w-full h-full object-cover"
+                    style={{ willChange: 'transform' }}
                     onError={() => setAfterImageError(true)}
                   />
                   {/* Before image (clipped) */}

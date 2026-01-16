@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, X, ArrowUpRight, Settings, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 interface BioData {
@@ -512,7 +513,14 @@ export default function Home() {
               transition={{ delay: i * 0.1 }}
               className="feature-card"
             >
-              <img src={feature.image} alt={feature.title} className="feature-card-image" />
+              <Image
+                src={feature.image}
+                alt={feature.title}
+                width={600}
+                height={400}
+                loading="lazy"
+                className="feature-card-image"
+              />
               <div className="feature-card-content">
                 <span className="text-[0.6rem] text-[var(--color-accent)] font-semibold uppercase tracking-wider">
                   Step {i + 1}
@@ -557,9 +565,12 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
               {bio.headshotUrl && (
                 <div className="flex-shrink-0 flex justify-center sm:justify-start">
-                  <img
+                  <Image
                     src={bio.headshotUrl}
                     alt="Founder headshot"
+                    width={128}
+                    height={128}
+                    loading="lazy"
                     className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-2 border-[var(--color-accent)]/30"
                   />
                 </div>

@@ -256,12 +256,23 @@ export async function saveTransformation(transformation: RoomTransformation): Pr
   }
 
   try {
+    // Delete existing blob first to avoid conflicts and stale CDN cache
+    try {
+      const { blobs } = await list({ prefix: `transformations/${transformation.id}`, token });
+      for (const existingBlob of blobs) {
+        await del(existingBlob.url, { token });
+        console.log(`[Storage] Deleted old blob: ${existingBlob.url}`);
+      }
+    } catch (deleteError) {
+      // Ignore delete errors - blob might not exist
+      console.log(`[Storage] No existing blob to delete for ${transformation.id}`);
+    }
+
     console.log(`[Storage] Saving transformation ${transformation.id} to Vercel Blob...`);
     const blob = await put(`transformations/${transformation.id}.json`, JSON.stringify(transformation, null, 2), {
       access: 'public',
       contentType: 'application/json',
       addRandomSuffix: false,
-      allowOverwrite: true, // Required for updating existing blobs
       token,
     });
     // Store the blob URL for direct access (avoids list() consistency issues)
