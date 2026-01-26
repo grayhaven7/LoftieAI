@@ -5,17 +5,27 @@
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
+interface OpenRouterImagePart {
+  type: 'image_url';
+  image_url: {
+    url: string;
+  };
+}
+
 interface OpenRouterResponse {
   id: string;
   choices: Array<{
     message: {
-      content: Array<{
+      role: string;
+      content: string | Array<{
         type: 'text' | 'image_url';
         text?: string;
         image_url?: {
           url: string;
         };
-      }> | string;
+      }>;
+      // Images can be in a separate array (OpenRouter format)
+      images?: OpenRouterImagePart[];
     };
   }>;
 }
@@ -147,14 +157,30 @@ export async function generateImageWithOpenRouter(
   // Extract the image from the response
   const message = response.choices?.[0]?.message;
   if (!message) {
+    console.error('OpenRouter response:', JSON.stringify(response, null, 2));
     throw new Error('No response from OpenRouter');
   }
 
-  // Handle different response formats
+  console.log('OpenRouter message structure:', JSON.stringify({
+    hasImages: !!message.images,
+    imagesLength: message.images?.length,
+    contentType: typeof message.content,
+    contentIsArray: Array.isArray(message.content)
+  }));
+
+  // Check for images in the separate images array (OpenRouter format)
+  if (message.images && message.images.length > 0) {
+    const firstImage = message.images[0];
+    if (firstImage.image_url?.url) {
+      return firstImage.image_url.url;
+    }
+  }
+
+  // Handle different content formats
   const messageContent = message.content;
 
   if (Array.isArray(messageContent)) {
-    // Find the image in the response
+    // Find the image in the content array
     const imagePart = messageContent.find(part =>
       part.type === 'image_url' && part.image_url?.url
     );
@@ -173,6 +199,7 @@ export async function generateImageWithOpenRouter(
     }
   }
 
+  console.error('Full OpenRouter response:', JSON.stringify(response, null, 2));
   throw new Error('No image returned from OpenRouter model');
 }
 

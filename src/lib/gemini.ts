@@ -232,7 +232,12 @@ export async function declutterImageWithGemini(
   // Use OpenRouter if configured
   if (imageProvider === 'openrouter') {
     console.log(`Using OpenRouter with model: ${imageGenModel}`);
-    return await generateImageWithOpenRouter(imageGenModel, prompt, base64Image);
+    try {
+      return await generateImageWithOpenRouter(imageGenModel, prompt, base64Image);
+    } catch (error) {
+      console.error('OpenRouter image generation failed:', error);
+      throw error;
+    }
   }
 
   // Use Gemini (direct API)
