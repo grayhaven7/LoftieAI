@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { getTransformation, saveImage, saveTransformation, saveAudio } from '@/lib/storage';
 import { declutterImageWithGemini, analyzeImageWithGemini } from '@/lib/gemini';
-import { getSettings } from '@/lib/settings';
+import { getSettingsAsync } from '@/lib/settings';
 
 // Increase timeout for Vercel serverless functions
 // This route makes multiple API calls which can take 30-60+ seconds
@@ -88,9 +88,9 @@ export async function POST(
 
     const openai = getOpenAIClient();
     const timestamp = Date.now();
-    
-    // Get current settings for prompts and models
-    const settings = getSettings();
+
+    // Get current settings for prompts and models (force refresh to get latest prompts)
+    const settings = await getSettingsAsync(true);
     
     // Ensure proper base64 data URL format
     const imageUrl = transformation.originalImageBase64.startsWith('data:') 
@@ -126,23 +126,21 @@ export async function POST(
     const declutteredImageBase64 = await declutterImageWithGemini(imageUrl, declutteringPlan, {
       creativityLevel,
       keepItems: transformation.keepItems,
+      settings, // Pass fresh settings to ensure latest prompts are used
     });
     console.log(`Gemini returned organized room image`);
     
-    // Save the organized image
-    const afterImageUrl = await saveImage(
+    // Run image save and TTS generation in PARALLEL for speed
+    console.log(`Starting parallel save operations...`);
+
+    const saveImagePromise = saveImage(
       declutteredImageBase64,
       `after-${id}-${timestamp}.png`
     );
-    console.log(`Saved after image: ${afterImageUrl}`);
 
-    if (!afterImageUrl) {
-      throw new Error('Failed to save organized image');
-    }
-
-    // Generate TTS audio for the decluttering plan
-    let audioUrl = '';
-    if (declutteringPlan) {
+    // Generate TTS audio in parallel with image save
+    const ttsPromise = (async () => {
+      if (!declutteringPlan) return '';
       try {
         console.log(`Generating TTS audio...`);
         const ttsResponse = await openai.audio.speech.create({
@@ -153,12 +151,21 @@ export async function POST(
         });
 
         const audioBuffer = await ttsResponse.arrayBuffer();
-        audioUrl = await saveAudio(audioBuffer, `audio-${id}-${timestamp}.mp3`);
-        console.log(`Saved audio: ${audioUrl}`);
+        const url = await saveAudio(audioBuffer, `audio-${id}-${timestamp}.mp3`);
+        console.log(`Saved audio: ${url}`);
+        return url;
       } catch (ttsError) {
         console.error('TTS generation failed:', ttsError);
-        // Don't fail the whole request if TTS fails
+        return '';
       }
+    })();
+
+    // Wait for both to complete
+    const [afterImageUrl, audioUrl] = await Promise.all([saveImagePromise, ttsPromise]);
+    console.log(`Parallel save completed. Image: ${afterImageUrl}, Audio: ${audioUrl || 'none'}`);
+
+    if (!afterImageUrl) {
+      throw new Error('Failed to save organized image');
     }
 
     // Update the transformation with results

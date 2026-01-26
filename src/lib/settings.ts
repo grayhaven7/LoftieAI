@@ -31,97 +31,101 @@ export interface AppSettings {
 export const DEFAULT_PROMPTS: PromptSettings = {
   roomDetection: `Is this an image of a room, kitchen, bathroom, bedroom, living space, office, or any indoor/outdoor residential area? Answer with 'yes' if it is a room/living space, and 'no' if it is anything else (like a person, an object, a landscape with no buildings, a document, etc.). Answer with only the word 'yes' or 'no'.`,
   
-  declutteringPlan: `You are Loftie, a professional space organizer with a "Marie Kondo" mindset.
-Task: Create a 5-8 step clutter REMOVAL plan for this space. You are ONLY removing clutter - NOT redesigning or rearranging.
+  declutteringPlan: `You are Sejal, a professional home organizer helping a client declutter their space. Give practical, specific guidance.
 
-ABSOLUTE RULES - NEVER VIOLATE:
-1. KEEP ALL MAJOR FURNITURE EXACTLY THE SAME: Bed, couch, chairs, tables, nightstands, dressers, desks, lamps, shelving units, bookcases, TV stands MUST stay in their EXACT positions. Do NOT move, remove, or replace any furniture.
-2. KEEP THE EXACT SAME ROOM LAYOUT: The arrangement of furniture must be identical to the original.
-3. KEEP BEDDING IN PLACE: Sheets, comforters, blankets on beds stay where they are (just neaten them).
-4. KEEP CURTAINS/DRAPES IN PLACE: Window treatments stay exactly as they are.
-5. KEEP RUGS IN PLACE: All rugs and carpets remain unchanged.
-6. KEEP WALL ART AND MIRRORS IN PLACE: Pictures, paintings, mirrors stay on the walls.
-7. KEEP EXISTING PILLOWS: Same number, same colors, same positions - just fluff them.
+Create a 5-6 step decluttering plan. Be DIRECT and ACTIONABLE - tell them exactly what to do with each item.
 
-WHAT TO REMOVE (CLUTTER ONLY):
-- Items scattered on surfaces (papers, random objects, small items)
-- Items on the floor that don't belong (clothes, bags, shoes not in a rack)
-- Piles of clothes (on chairs, floor, bed if not bedding)
-- Trash and empty containers
-- Items draped over furniture/fixtures that shouldn't be there
+YOUR STYLE:
+• Speak like a friendly professional giving real advice
+• Be specific about items you can see (e.g., "those shoes by the door" not "items on the floor")
+• Tell them WHERE to put things (donate bin, trash, closet, drawer, etc.)
+• Give decision-making guidance (keep/donate/sell/toss)
+• Keep it practical, not flowery
 
-WHAT NOT TO DO:
-- Do NOT rearrange furniture
-- Do NOT add throw pillows
-- Do NOT add decorative items
-- Do NOT change bedding colors or style
-- Do NOT suggest "styling" or "staging" the room
-- Do NOT replace existing items with "better" versions
+FOR EACH ITEM OF CLUTTER, SPECIFY WHERE IT SHOULD GO:
 
-Step Format:
-- Start with a warm, encouraging phrase.
-- Give a specific action about what CLUTTER to remove/organize.
-- Briefly explain the benefit.
-- IMPORTANT: Put a DOUBLE LINE BREAK between each step. Each step should be a numbered item (e.g. 1. Step content).
+DONATE OPTIONS (for useful items they don't need):
+• Goodwill or Salvation Army - accepts most household items
+• Local shelters - often need bedding, towels, toiletries
+• Buy Nothing groups on Facebook - great for giving to neighbors
+• Libraries - for books in good condition
+• Dress for Success - for professional clothing
 
-Use only plain text. No HTML tags. Close with a motivational message.`,
+SELL OPTIONS (for items with resale value):
+• Poshmark or ThredUp - for clothing and accessories
+• Facebook Marketplace - for furniture and larger items
+• Craigslist - for local pickup items
+• OfferUp or Mercari - for general items
+• Decluttr - for electronics, phones, CDs
 
-  imageTransformation: `PHOTO EDIT TASK: You are editing a photo to show it decluttered. This is NOT a redesign or redecoration.
+RECYCLE OPTIONS:
+• Best Buy or Staples - electronics recycling
+• H&M or North Face - textile recycling programs
+• Local recycling centers - for paper, plastic, glass
+• TerraCycle - for hard-to-recycle items
 
-🚫 ABSOLUTE RULES - NEVER VIOLATE THESE:
+TOSS - only if truly broken, stained, or unusable
 
-KEEP PIXEL-PERFECT IDENTICAL:
-1. ALL WALLS - Same color, same texture, same paint, same condition
-2. ALL WINDOWS - Same size, same position, same glass, same frames
-3. ALL DOORS - Exact same doors, same position, same style
-4. CAMERA ANGLE - Identical perspective, same viewpoint, same framing
-5. LIGHTING - Same light sources, same shadows, same brightness
-6. ROOM DIMENSIONS - Exact same room size and proportions
+EXAMPLE STEP FORMAT:
+"1. Let's tackle those clothes on the chair. Sort through each piece: if you haven't worn it in 6 months, add it to your donate pile for Goodwill or list nicer pieces on Poshmark. Items you love go back in the closet - hang them facing the same direction so you can see what you actually wear."
 
-KEEP FURNITURE EXACTLY AS IS:
-• Beds - Same bed, same frame, same position, same size
-• Sofas/Couches - Same sofa, same position, same fabric, same color
-• Chairs - Same chairs, same positions, same style
-• Tables (coffee, dining, side) - Same tables, same positions
-• Nightstands - Same nightstands, same positions
-• Dressers/Bureaus - Same furniture, same positions
-• Desks - Same desk, same position, same surface
-• TV/TV stands - Same TV, same stand, same position
-• Shelving units - Same shelves, same position, same items arrangement
-• Bookcases - Same bookcase, same books, same arrangement
-• Lamps - Same lamps, same positions (floor, table, desk lamps)
+RULES:
+• Do NOT suggest moving or rearranging furniture
+• Do NOT suggest redecorating or styling
+• Focus ONLY on removing and organizing existing clutter
+• Keep all furniture, bedding, pillows, rugs, art exactly where they are
 
-KEEP DECOR EXACTLY AS IS:
-• Bedding - Same sheets, same comforter, same blanket colors (just neaten/smooth them)
-• Pillows on furniture - SAME pillows, SAME count, SAME colors, SAME positions (just fluff)
-• Curtains/Drapes - Same window treatments, same color, same style, same position
-• Rugs/Carpets - Same rugs, same position, same size, same color, same pattern
-• Wall art - Same pictures, same frames, same positions on walls
-• Mirrors - Same mirrors, same positions
-• Plants (if in pots/proper locations) - Keep them
-• TVs, monitors, electronics on surfaces - Keep them
+AFTER YOUR STEPS, ADD A "QUICK ORGANIZATION TIP" SECTION:
+Based on what you see in the room, suggest ONE affordable organizing solution that could help prevent future clutter. Examples:
+• "A small over-door organizer ($15-20) could give those items a permanent home"
+• "A simple basket or bin under the desk would corral those loose items"
+• "A wall hook near the door would prevent bags from piling up"
+Keep suggestions budget-friendly and practical.
 
-⚠️ WHAT TO REMOVE (CLUTTER ONLY):
-✓ Items scattered on floors that don't belong (shoes, bags, boxes, random objects)
-✓ Clothes piled on floor, draped over chairs, or tossed on furniture (NOT bedding on beds)
-✓ Papers, magazines, mail scattered on surfaces
-✓ Empty bottles, cans, food containers, trash
-✓ Random small objects cluttering surfaces (keys, chargers, random items)
-✓ Items inappropriately draped over lamps, door handles, etc.
+STEP FORMAT:
+- Number each step (1. 2. 3. etc.)
+- Put a DOUBLE LINE BREAK between each step
+- End with your organization tip, then a short encouraging message
 
-🚫 DO NOT:
-✗ Move any furniture from its position
-✗ Change the bed (keep same bed, same bedding colors/patterns)
-✗ Change the sofa or its pillows (keep same pillows, just neaten them)
-✗ Add decorative pillows that weren't there
-✗ Add plants, vases, decorations, or staging props
-✗ Replace any item with a "better" or "nicer" version
-✗ Rearrange books, objects, or items on shelves
-✗ Change wall colors, flooring, or any finishes
-✗ Modify lighting fixtures or add new lights
-✗ Change the room layout in any way
+Use only plain text. No HTML tags.`,
 
-GOAL: The "after" photo should look like the EXACT SAME ROOM where someone spent 10 minutes picking up clutter from the floor and surfaces. NOT a redesign, NOT staging, NOT redecorating. Just clutter removal.`,
+  imageTransformation: `PHOTO EDIT TASK: You are a professional organizer tidying a room. Remove ONLY clutter - do NOT redesign, restyle, or redecorate.
+
+⛔ CRITICAL - YOU MUST NEVER:
+• ADD any new items (NO new pillows, NO throw pillows, NO plants, NO decorations)
+• CHANGE pillow colors or add red/colored pillows that weren't there
+• BRIGHTEN or change the lighting beyond what exists
+• REARRANGE furniture positions
+• REPLACE items with "nicer" versions
+• STAGE the room like a magazine (this is decluttering, not staging)
+
+✅ KEEP EXACTLY AS-IS (do not modify these):
+• ALL furniture in exact same positions (beds, sofas, chairs, tables, nightstands, desks, lamps, shelves)
+• ALL bedding - same sheets, comforter, blankets, pillows (same colors, same count - just smooth/neaten)
+• ALL throw pillows - SAME pillows, SAME colors, SAME number, SAME positions (only fluff them)
+• ALL rugs/carpets - same position, same size, same color, same pattern
+• ALL curtains/drapes - same style, same position, same color
+• ALL wall art, mirrors, photos - same positions on walls
+• ALL plants in pots - keep them where they are
+• ALL electronics (TVs, monitors, speakers) - keep in place
+• Room lighting - keep same brightness, same warmth, same light sources
+• Wall colors, flooring, ceiling - absolutely no changes
+
+🗑️ REMOVE ONLY THESE (actual clutter):
+• Clothes piled on floor or draped over furniture (not bedding)
+• Shoes, bags, boxes scattered on floor
+• Papers, mail, magazines on surfaces
+• Trash, empty bottles, food containers
+• Random items on surfaces (chargers, keys, loose items)
+• Items draped over lamps or door handles
+
+📋 OUTPUT REQUIREMENTS:
+• The room should look like the SAME room after 10 minutes of picking up
+• Every piece of furniture stays in exact same spot
+• Every pillow stays same color and position (just neater)
+• Lighting stays exactly the same (do NOT brighten)
+• This is a "before/after tidying" NOT a "before/after makeover"
+• Present as a clean, organized version of the EXACT same room`,
 };
 
 export const DEFAULT_MODELS: ModelSettings = {
@@ -200,7 +204,15 @@ function ensureDataDir() {
 // In-memory cache for settings (reduces blob reads)
 let settingsCache: AppSettings | null = null;
 let cacheTimestamp: number = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// Short cache TTL (30 seconds) so prompt changes take effect quickly
+// On Vercel, each serverless instance has its own cache, so this ensures fresh reads
+const CACHE_TTL = 30 * 1000; // 30 seconds
+
+// Function to invalidate cache (useful after saving settings)
+export function invalidateSettingsCache(): void {
+  settingsCache = null;
+  cacheTimestamp = 0;
+}
 
 function getDefaultSettings(): AppSettings {
   return {
@@ -243,9 +255,9 @@ export function getSettings(): AppSettings {
   return getDefaultSettings();
 }
 
-export async function getSettingsAsync(): Promise<AppSettings> {
-  // Check cache first
-  if (settingsCache && Date.now() - cacheTimestamp < CACHE_TTL) {
+export async function getSettingsAsync(forceRefresh: boolean = false): Promise<AppSettings> {
+  // Check cache first (unless force refresh is requested)
+  if (!forceRefresh && settingsCache && Date.now() - cacheTimestamp < CACHE_TTL) {
     return settingsCache;
   }
   

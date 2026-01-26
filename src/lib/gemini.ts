@@ -180,10 +180,11 @@ export async function chatWithGemini(
 export async function declutterImageWithGemini(
   base64Image: string,
   declutteringPlan?: string,
-  options?: { creativityLevel?: 'strict' | 'balanced' | 'creative'; keepItems?: string }
+  options?: { creativityLevel?: 'strict' | 'balanced' | 'creative'; keepItems?: string; settings?: { prompts: { imageTransformation: string } } }
 ): Promise<string> {
   const model = getGeminiImageGen();
-  const settings = getSettings();
+  // Use passed settings if available (for fresh prompt reads), otherwise fall back to cached
+  const currentSettings = options?.settings || getSettings();
 
   // Remove data URL prefix if present
   const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
@@ -196,7 +197,7 @@ export async function declutterImageWithGemini(
   }
 
   // Use the prompt from settings, appending the decluttering plan
-  let basePrompt = settings.prompts.imageTransformation;
+  let basePrompt = currentSettings.prompts.imageTransformation;
 
   // Adjust prompt based on creativity level
   const creativityLevel = options?.creativityLevel || 'strict';

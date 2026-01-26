@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, X, ArrowUpRight, Settings, ExternalLink } from 'lucide-react';
+import { ArrowRight, X, ArrowUpRight, Settings, ExternalLink, Camera, Upload } from 'lucide-react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -13,8 +13,9 @@ interface BioData {
 }
 
 // Compress and resize image to max dimensions while maintaining quality
-// Targets 1-2MB max for mobile photos (especially iPhone which can be 3-8MB+)
-async function compressImage(file: File, maxDimension: number = 1920, quality: number = 0.8): Promise<string> {
+// Optimized for speed: 1440px max dimension balances quality and processing time
+// Targets 1-1.5MB max for faster API calls
+async function compressImage(file: File, maxDimension: number = 1440, quality: number = 0.75): Promise<string> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -51,9 +52,9 @@ async function compressImage(file: File, maxDimension: number = 1920, quality: n
       // Check resulting size and compress more aggressively if needed
       const sizeInMB = (compressedDataUrl.length * 3) / 4 / (1024 * 1024); // Rough base64 to bytes conversion
 
-      if (sizeInMB > 2 && quality > 0.5) {
+      if (sizeInMB > 1.5 && quality > 0.5) {
         // Re-compress with lower quality if still too large
-        const newQuality = Math.max(0.5, quality - 0.2);
+        const newQuality = Math.max(0.5, quality - 0.15);
         const recompressed = canvas.toDataURL('image/jpeg', newQuality);
         resolve(recompressed);
       } else {
@@ -88,6 +89,12 @@ export default function Home() {
   const [keepItems, setKeepItems] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -111,6 +118,83 @@ export default function Home() {
       })
       .catch(() => {});
   }, []);
+
+  // Camera functions
+  const startCamera = async () => {
+    setCameraError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment', // Prefer rear camera on mobile
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+      });
+      setCameraStream(stream);
+      setShowCamera(true);
+      // Attach stream to video element after state update
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (err) {
+      console.error('Camera error:', err);
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          setCameraError('Camera access denied. Please allow camera access in your browser settings.');
+        } else if (err.name === 'NotFoundError') {
+          setCameraError('No camera found on this device.');
+        } else {
+          setCameraError('Could not access camera. Please try uploading a photo instead.');
+        }
+      } else {
+        setCameraError('Could not access camera.');
+      }
+    }
+  };
+
+  const stopCamera = useCallback(() => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    setShowCamera(false);
+  }, [cameraStream]);
+
+  const capturePhoto = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) return;
+
+    // Set canvas size to video dimensions
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Draw video frame to canvas
+    ctx.drawImage(video, 0, 0);
+
+    // Convert to blob and create a file
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      stopCamera();
+      await handleFileSelect(file);
+    }, 'image/jpeg', 0.9);
+  };
+
+  // Handle mobile camera input (fallback for devices without getUserMedia)
+  const handleCameraInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -170,8 +254,12 @@ export default function Home() {
   const clearImage = () => {
     setSelectedImage(null);
     setSelectedFile(null);
+    stopCamera();
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
     }
   };
 
@@ -303,7 +391,7 @@ export default function Home() {
           className="card"
         >
           <AnimatePresence mode="wait">
-            {!selectedImage ? (
+            {!selectedImage && !showCamera ? (
               <motion.div
                 key="upload"
                 initial={{ opacity: 0 }}
@@ -316,7 +404,6 @@ export default function Home() {
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
                 >
                   <input
                     ref={fileInputRef}
@@ -325,20 +412,65 @@ export default function Home() {
                     className="hidden"
                     onChange={handleInputChange}
                   />
-                  
+                  {/* Hidden camera input for mobile fallback */}
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleCameraInput}
+                  />
+
                   <div className="mb-4 w-12 h-12 rounded-full border border-dashed border-[var(--color-text-muted)] flex items-center justify-center">
                     <ArrowUpRight className="w-5 h-5 text-[var(--color-text-muted)]" />
                   </div>
-                  
-                  <p className="text-sm text-[var(--color-text-primary)] mb-1 font-medium">
-                    Drop your room photo
+
+                  <p className="text-sm text-[var(--color-text-primary)] mb-3 font-medium">
+                    Add your room photo
                   </p>
-                  <p className="text-xs text-[var(--color-text-muted)]">
-                    or click to browse
-                  </p>
-                  <p className="text-xs text-[var(--color-text-muted)] mt-2 opacity-75">
+
+                  {/* Camera and Upload buttons */}
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Try native camera API first, fall back to input capture
+                        if (typeof navigator !== 'undefined' && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+                          startCamera();
+                        } else {
+                          cameraInputRef.current?.click();
+                        }
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg text-xs font-medium hover:bg-[var(--color-accent-hover)] transition-colors"
+                    >
+                      <Camera className="w-4 h-4" />
+                      Take Photo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-[rgba(255,255,255,0.1)] text-[var(--color-text-primary)] rounded-lg text-xs font-medium hover:bg-[rgba(255,255,255,0.15)] transition-colors"
+                    >
+                      <Upload className="w-4 h-4" />
+                      Upload
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-[var(--color-text-muted)] opacity-75">
                     Well-lit, straight-on photos work best
                   </p>
+
+                  {cameraError && (
+                    <div className="mt-3 bg-[var(--color-error)]/10 border border-[var(--color-error)]/20 text-[var(--color-error)] px-3 py-2 rounded-lg text-xs text-center">
+                      {cameraError}
+                    </div>
+                  )}
+
                   {isCompressing && (
                     <div className="mt-3 flex items-center justify-center gap-2">
                       <div className="w-3 h-3 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
@@ -346,6 +478,45 @@ export default function Home() {
                     </div>
                   )}
                 </div>
+              </motion.div>
+            ) : showCamera && !selectedImage ? (
+              <motion.div
+                key="camera"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4"
+              >
+                <div className="relative rounded-lg overflow-hidden bg-black aspect-[4/3]">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                  />
+                  <canvas ref={canvasRef} className="hidden" />
+
+                  {/* Camera controls overlay */}
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+                    <button
+                      onClick={stopCamera}
+                      className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+                    >
+                      <X className="w-5 h-5 text-white" />
+                    </button>
+                    <button
+                      onClick={capturePhoto}
+                      className="w-14 h-14 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-colors border-4 border-white/50"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]" />
+                    </button>
+                    <div className="w-10 h-10" /> {/* Spacer for balance */}
+                  </div>
+                </div>
+                <p className="text-xs text-[var(--color-text-muted)] text-center">
+                  Position your room in the frame and tap to capture
+                </p>
               </motion.div>
             ) : (
               <motion.div
@@ -357,7 +528,7 @@ export default function Home() {
               >
                 <div className="relative">
                   <img
-                    src={selectedImage}
+                    src={selectedImage!}
                     alt="Selected room"
                     className="w-full rounded-lg object-cover max-h-56"
                   />
@@ -481,6 +652,19 @@ export default function Home() {
                     <>Transform <ArrowRight className="w-3.5 h-3.5" /></>
                   )}
                 </button>
+                <p className="text-[10px] text-[var(--color-text-muted)] text-center mt-2 opacity-70">
+                  AI image results may vary
+                </p>
+
+                {/* Privacy Notice */}
+                <div className="mt-3 pt-3 border-t border-[var(--glass-border)]">
+                  <p className="text-[10px] text-[var(--color-text-muted)] text-center flex items-center justify-center gap-1.5">
+                    <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Your photos are processed securely and not stored after your session
+                  </p>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -608,15 +792,36 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">
-        <div className="flex items-center justify-center gap-4">
-          <p>© 2026 Loftie</p>
-          <Link 
-            href="/settings" 
-            className="opacity-50 hover:opacity-100 transition-opacity"
-            title="AI Settings"
-          >
-            <Settings className="w-3.5 h-3.5" />
-          </Link>
+        <div className="flex flex-col items-center gap-3">
+          {/* Privacy Notice */}
+          <div className="flex items-center gap-2 text-[10px] bg-[rgba(255,255,255,0.03)] px-4 py-2 rounded-full">
+            <svg className="w-3.5 h-3.5 text-[var(--color-success)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span>Photos processed securely • Not stored or used for AI training</span>
+          </div>
+          <div className="flex items-center justify-center gap-4">
+            <p>© 2026 Loftie</p>
+            <span className="text-[var(--color-text-muted)]">•</span>
+            <a
+              href="https://innovaedesigns.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[var(--color-accent)] transition-colors"
+            >
+              Created by Sejal Parekh
+            </a>
+            <Link
+              href="/settings"
+              className="opacity-50 hover:opacity-100 transition-opacity"
+              title="AI Settings"
+            >
+              <Settings className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <p className="text-[10px] opacity-60">
+            Powered by AI • Results may vary
+          </p>
         </div>
       </footer>
     </div>

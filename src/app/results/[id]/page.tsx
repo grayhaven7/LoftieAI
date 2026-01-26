@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X, Settings, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X, Settings, RefreshCw, MessageSquare, ThumbsUp, ThumbsDown, Printer, Square, CheckSquare, HelpCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { use } from 'react';
@@ -55,6 +55,13 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
   const [comparisonMode, setComparisonMode] = useState<'toggle' | 'slider'>('slider');
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [feedbackHelpful, setFeedbackHelpful] = useState<boolean | null>(null);
+  const [feedbackSending, setFeedbackSending] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [viewMode, setViewMode] = useState<'list' | 'checklist'>('list');
+  const [showFollowUp, setShowFollowUp] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const processingRequestFired = useRef(false);
   const sliderContainerRef = useRef<HTMLDivElement | null>(null);
@@ -242,6 +249,33 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
     }
   };
 
+  const handleFeedbackSubmit = async () => {
+    if (feedbackSending || (!feedbackComment.trim() && feedbackHelpful === null)) return;
+
+    setFeedbackSending(true);
+    try {
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transformationId: id,
+          helpful: feedbackHelpful,
+          comment: feedbackComment.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        setFeedbackSubmitted(true);
+      } else {
+        console.error('Failed to submit feedback');
+      }
+    } catch (err) {
+      console.error('Failed to submit feedback:', err);
+    } finally {
+      setFeedbackSending(false);
+    }
+  };
+
   const handleSliderMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (!sliderContainerRef.current) return;
     const rect = sliderContainerRef.current.getBoundingClientRect();
@@ -290,8 +324,26 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
     return plan.split(/\d+\.\s+/).filter((step) => step.trim()).slice(0, 6);
   };
 
+  const toggleStepComplete = (stepIndex: number) => {
+    setCompletedSteps(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(stepIndex)) {
+        newSet.delete(stepIndex);
+      } else {
+        newSet.add(stepIndex);
+      }
+      return newSet;
+    });
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   // useMemo must be called unconditionally (before any early returns)
   const steps = useMemo(() => parseSteps(data?.declutteringPlan), [data?.declutteringPlan]);
+
+  const allStepsCompleted = steps.length > 0 && completedSteps.size === steps.length;
 
   if (loading) {
     return (
@@ -549,6 +601,16 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             </div>
           </div>
 
+          {/* AI Visualization Disclaimer */}
+          {data.status === 'completed' && data.afterImageUrl && (
+            <div className="mt-3 flex items-start gap-2 text-[10px] text-[var(--color-text-muted)] bg-[rgba(255,255,255,0.03)] px-3 py-2 rounded-lg">
+              <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>This is an AI visualization to inspire you — your actual results may look different based on your decluttering choices.</span>
+            </div>
+          )}
+
           <div className="flex gap-2 mt-4">
             <button
               onClick={handleDownload}
@@ -574,29 +636,112 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
         </motion.div>
 
         {/* Plan */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-6 print-section">
           <div className="card">
-            <button onClick={() => setPlanExpanded(!planExpanded)} className="w-full flex items-center justify-between mb-3">
-              <h2 className="text-sm text-[var(--color-text-primary)] font-medium">Declutter Plan</h2>
-              <ChevronDown className={`w-4 h-4 text-[var(--color-text-muted)] transition-transform ${planExpanded ? 'rotate-180' : ''}`} />
-            </button>
+            <div className="flex items-center justify-between mb-3">
+              <button onClick={() => setPlanExpanded(!planExpanded)} className="flex items-center gap-2">
+                <h2 className="text-sm text-[var(--color-text-primary)] font-medium">Declutter Plan</h2>
+                <ChevronDown className={`w-4 h-4 text-[var(--color-text-muted)] transition-transform print:hidden ${planExpanded ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* View mode toggle and print button */}
+              <div className="flex items-center gap-2 print:hidden">
+                <button
+                  onClick={() => setViewMode(viewMode === 'list' ? 'checklist' : 'list')}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    viewMode === 'checklist'
+                      ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)]'
+                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+                  }`}
+                  title={viewMode === 'list' ? 'Switch to checklist view' : 'Switch to list view'}
+                >
+                  {viewMode === 'checklist' ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+                  title="Print instructions"
+                >
+                  <Printer className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Progress indicator for checklist mode */}
+            {viewMode === 'checklist' && steps.length > 0 && (
+              <div className="mb-4 print:hidden">
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="text-[var(--color-text-muted)]">Progress</span>
+                  <span className="text-[var(--color-accent)]">{completedSteps.size} of {steps.length} complete</span>
+                </div>
+                <div className="progress-bar">
+                  <div
+                    className="progress-bar-fill"
+                    style={{ width: `${(completedSteps.size / steps.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
 
             <AnimatePresence>
               {planExpanded && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
                   <div className="space-y-2">
                     {steps.map((step, i) => (
-                      <div key={i} className="step-card">
-                        <div className="flex gap-3">
-                          <span className="text-[var(--color-accent)] font-semibold text-xs">{String(i + 1).padStart(2, '0')}</span>
-                          <p className="text-[var(--color-text-secondary)] text-xs leading-relaxed flex-1">{formatStepWithEmoji(step.trim())}</p>
+                      <div
+                        key={i}
+                        className={`step-card transition-all ${
+                          viewMode === 'checklist' && completedSteps.has(i)
+                            ? 'opacity-60 border-l-[var(--color-success)]'
+                            : ''
+                        }`}
+                        onClick={() => viewMode === 'checklist' && toggleStepComplete(i)}
+                        style={{ cursor: viewMode === 'checklist' ? 'pointer' : 'default' }}
+                      >
+                        <div className="flex gap-3 items-start">
+                          {viewMode === 'checklist' ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleStepComplete(i);
+                              }}
+                              className={`flex-shrink-0 w-5 h-5 rounded border transition-colors print:border-gray-400 ${
+                                completedSteps.has(i)
+                                  ? 'bg-[var(--color-success)] border-[var(--color-success)] text-white'
+                                  : 'border-[var(--color-text-muted)] hover:border-[var(--color-accent)]'
+                              }`}
+                            >
+                              {completedSteps.has(i) && <Check className="w-3 h-3 m-auto" />}
+                            </button>
+                          ) : (
+                            <span className="text-[var(--color-accent)] font-semibold text-xs print:text-gray-600">{String(i + 1).padStart(2, '0')}</span>
+                          )}
+                          <p className={`text-xs leading-relaxed flex-1 ${
+                            viewMode === 'checklist' && completedSteps.has(i)
+                              ? 'line-through text-[var(--color-text-muted)]'
+                              : 'text-[var(--color-text-secondary)]'
+                          } print:text-gray-700`}>
+                            {formatStepWithEmoji(step.trim())}
+                          </p>
                         </div>
                       </div>
                     ))}
                   </div>
-                  
+
+                  {/* Completion celebration */}
+                  {allStepsCompleted && viewMode === 'checklist' && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="mt-4 p-4 bg-[var(--color-success)]/10 border border-[var(--color-success)]/20 rounded-lg text-center print:hidden"
+                    >
+                      <p className="text-[var(--color-success)] text-sm font-medium mb-1">Amazing work!</p>
+                      <p className="text-[var(--color-text-muted)] text-xs">You've completed all the steps. Your space is looking great!</p>
+                    </motion.div>
+                  )}
+
                   {data.audioUrl && (
-                    <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+                    <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.06)] print:hidden">
                       <button onClick={toggleAudio} className="btn-secondary w-full">
                         {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                         {isPlaying ? 'Pause Audio' : 'Play Audio Guide'}
@@ -609,13 +754,126 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
           </div>
         </motion.div>
 
+        {/* What's Next Section */}
+        {data.status === 'completed' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="mb-6 print:hidden">
+            <div className="card">
+              <div className="flex items-center gap-2 mb-3">
+                <ArrowRight className="w-4 h-4 text-[var(--color-accent)]" />
+                <h3 className="text-sm text-[var(--color-text-primary)] font-medium">What's Next?</h3>
+              </div>
+
+              {!showFollowUp ? (
+                <div className="space-y-3">
+                  <p className="text-xs text-[var(--color-text-secondary)]">
+                    Ready to continue your decluttering journey? Here are some ways to keep going:
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setShowFollowUp(true)}
+                      className="flex items-center gap-2 p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg text-left hover:border-[var(--color-accent)] transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--color-accent)]/20 transition-colors">
+                        <Check className="w-4 h-4 text-[var(--color-accent)]" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-[var(--color-text-primary)]">I did these steps!</p>
+                        <p className="text-[10px] text-[var(--color-text-muted)]">Get guidance on what's next</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setShowFollowUp(true)}
+                      className="flex items-center gap-2 p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg text-left hover:border-[var(--color-accent)] transition-colors group"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--color-accent)]/20 transition-colors">
+                        <HelpCircle className="w-4 h-4 text-[var(--color-accent)]" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-[var(--color-text-primary)]">I have questions</p>
+                        <p className="text-[10px] text-[var(--color-text-muted)]">Get help if you're stuck</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg p-4">
+                    <h4 className="text-xs font-medium text-[var(--color-text-primary)] mb-3">Next Steps to Continue</h4>
+                    <div className="space-y-3 text-xs text-[var(--color-text-secondary)]">
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-success)] font-medium">1.</span>
+                        <p><strong>Process your piles:</strong> Take your donate items to Goodwill or schedule a pickup. List sellable items on Facebook Marketplace or Poshmark.</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-success)] font-medium">2.</span>
+                        <p><strong>Tackle the next area:</strong> Ready for another room? Upload a new photo and keep the momentum going!</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-[var(--color-success)] font-medium">3.</span>
+                        <p><strong>Prevent future clutter:</strong> Set a weekly 10-minute tidy session. When you buy something new, try to donate something old.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg p-4">
+                    <h4 className="text-xs font-medium text-[var(--color-text-primary)] mb-3">Quick Tips for Common Challenges</h4>
+                    <div className="space-y-2 text-xs text-[var(--color-text-secondary)]">
+                      <details className="group">
+                        <summary className="cursor-pointer hover:text-[var(--color-text-primary)] transition-colors list-none flex items-center gap-2">
+                          <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" />
+                          <span>"I can't decide what to keep"</span>
+                        </summary>
+                        <p className="pl-5 mt-2 text-[var(--color-text-muted)]">
+                          Ask yourself: Have I used this in the last year? Does it bring me joy? Would I buy it again today? If no to all three, it's time to let it go.
+                        </p>
+                      </details>
+                      <details className="group">
+                        <summary className="cursor-pointer hover:text-[var(--color-text-primary)] transition-colors list-none flex items-center gap-2">
+                          <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" />
+                          <span>"I'm feeling overwhelmed"</span>
+                        </summary>
+                        <p className="pl-5 mt-2 text-[var(--color-text-muted)]">
+                          Take a break! Decluttering is a marathon, not a sprint. Focus on just one small area at a time. Even 15 minutes makes a difference.
+                        </p>
+                      </details>
+                      <details className="group">
+                        <summary className="cursor-pointer hover:text-[var(--color-text-primary)] transition-colors list-none flex items-center gap-2">
+                          <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" />
+                          <span>"I made piles, now what?"</span>
+                        </summary>
+                        <p className="pl-5 mt-2 text-[var(--color-text-muted)]">
+                          Get those piles out of your home ASAP! Schedule a donation pickup, list items for sale tonight, and take trash out immediately.
+                        </p>
+                      </details>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowFollowUp(false)}
+                      className="btn-secondary flex-1"
+                    >
+                      Close
+                    </button>
+                    <a href="/" className="btn-primary flex-1 text-center">
+                      Transform Another Room
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         {/* Email */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card print:hidden">
           <div className="flex items-center gap-2 mb-3">
             <Mail className="w-4 h-4 text-[var(--color-accent)]" />
             <h3 className="text-sm text-[var(--color-text-primary)] font-medium">Save to Email</h3>
           </div>
-          
+
           {emailSent ? (
             <div className="flex items-center gap-2 text-[var(--color-success)] text-sm">
               <Check className="w-3.5 h-3.5" /> Sent to {email}
@@ -636,18 +894,93 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             </div>
           )}
         </motion.div>
+
+        {/* Feedback */}
+        {data.status === 'completed' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card print:hidden">
+            <div className="flex items-center gap-2 mb-3">
+              <MessageSquare className="w-4 h-4 text-[var(--color-accent)]" />
+              <h3 className="text-sm text-[var(--color-text-primary)] font-medium">Did this help you declutter?</h3>
+            </div>
+
+            {feedbackSubmitted ? (
+              <div className="flex items-center gap-2 text-[var(--color-success)] text-sm">
+                <Check className="w-3.5 h-3.5" /> Thank you for your feedback!
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Helpful buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setFeedbackHelpful(true)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                      feedbackHelpful === true
+                        ? 'bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/30'
+                        : 'bg-[rgba(255,255,255,0.05)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
+                    }`}
+                    disabled={feedbackSending}
+                  >
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                    Yes, helpful
+                  </button>
+                  <button
+                    onClick={() => setFeedbackHelpful(false)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                      feedbackHelpful === false
+                        ? 'bg-[var(--color-error)]/20 text-[var(--color-error)] border border-[var(--color-error)]/30'
+                        : 'bg-[rgba(255,255,255,0.05)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
+                    }`}
+                    disabled={feedbackSending}
+                  >
+                    <ThumbsDown className="w-3.5 h-3.5" />
+                    Not really
+                  </button>
+                </div>
+
+                {/* Comment field */}
+                <textarea
+                  value={feedbackComment}
+                  onChange={(e) => setFeedbackComment(e.target.value)}
+                  placeholder="Tell us more about your experience (optional)"
+                  className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] border border-[var(--glass-border)] rounded-lg text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] resize-none focus:outline-none focus:border-[var(--color-accent)]"
+                  rows={3}
+                  disabled={feedbackSending}
+                />
+
+                <button
+                  onClick={handleFeedbackSubmit}
+                  disabled={feedbackSending || (!feedbackComment.trim() && feedbackHelpful === null)}
+                  className="btn-secondary w-full"
+                >
+                  {feedbackSending ? 'Sending...' : 'Submit Feedback'}
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
       </main>
 
-      <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">
-        <div className="flex items-center justify-center gap-4">
-          <p>© 2026 Loftie</p>
-          <Link 
-            href="/settings" 
-            className="opacity-50 hover:opacity-100 transition-opacity"
-            title="AI Settings"
-          >
-            <Settings className="w-3.5 h-3.5" />
-          </Link>
+      <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)] print:hidden">
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center justify-center gap-4">
+            <p>© 2026 Loftie</p>
+            <span className="text-[var(--color-text-muted)]">•</span>
+            <a
+              href="https://innovaedesigns.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[var(--color-accent)] transition-colors"
+            >
+              Created by Sejal Parekh
+            </a>
+            <Link
+              href="/settings"
+              className="opacity-50 hover:opacity-100 transition-opacity"
+              title="AI Settings"
+            >
+              <Settings className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

@@ -28,3 +28,11 @@ export interface TransformationResponse {
   declutteringPlan: string;
 }
 
+export interface Feedback {
+  id: string;
+  transformationId: string;
+  helpful: boolean | null;
+  comment: string;
+  createdAt: string;
+}
+

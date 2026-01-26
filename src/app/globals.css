@@ -473,3 +473,80 @@ textarea {
   .nav-item { font-size: 0.6rem; padding: 6px 10px; }
   .promo-banner { font-size: 0.6rem; padding: 3px 8px; }
 }
+
+/* Print Styles */
+@media print {
+  body {
+    background: white !important;
+    color: #1a1a1a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .gradient-bg {
+    background: white !important;
+    min-height: auto;
+  }
+
+  header, footer, [class*="print:hidden"] {
+    display: none !important;
+  }
+
+  .card {
+    background: white !important;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    page-break-inside: avoid;
+  }
+
+  .step-card {
+    background: #f9f9f9 !important;
+    border-left: 3px solid #5a9cbf !important;
+    page-break-inside: avoid;
+  }
+
+  .print-section {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+  }
+
+  h1, h2, h3 {
+    color: #1a1a1a !important;
+  }
+
+  p, span {
+    color: #333 !important;
+  }
+
+  /* Print header */
+  .print-section::before {
+    content: "Loftie Decluttering Plan";
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #1a1a1a;
+    border-bottom: 2px solid #5a9cbf;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Make checkboxes visible in print */
+  input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #666;
+    border-radius: 3px;
+    background: white;
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+  }
+
+  .progress-bar, .badge, .btn-primary, .btn-secondary, .btn-icon, .voice-btn {
+    display: none !important;
+  }
+}
