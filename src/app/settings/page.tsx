@@ -11,7 +11,10 @@ interface PromptSettings {
   imageTransformation: string;
 }
 
+type ImageProvider = 'gemini' | 'openrouter';
+
 interface ModelSettings {
+  imageProvider: ImageProvider;
   imageGeneration: string;
   textAnalysis: string;
   ttsModel: string;
@@ -31,7 +34,10 @@ interface AppSettings {
 }
 
 interface AvailableModels {
+  imageProvider: { value: string; label: string }[];
   imageGeneration: { value: string; label: string }[];
+  imageGenerationGemini: { value: string; label: string }[];
+  imageGenerationOpenRouter: { value: string; label: string }[];
   textAnalysis: { value: string; label: string }[];
   ttsModel: { value: string; label: string }[];
   ttsVoice: { value: string; label: string }[];
@@ -520,69 +526,116 @@ export default function SettingsPage() {
               <h2 className="text-lg text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
                 <span className="text-emphasis">Models</span>
               </h2>
-              
+
               <div className="card">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-6">
                   {availableModels && (
                     <>
-                      <div>
-                        <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
-                          Image Generation
-                        </label>
-                        <select
-                          value={settings.models.imageGeneration}
-                          onChange={(e) => updateModel('imageGeneration', e.target.value)}
-                          className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
-                        >
-                          {availableModels.imageGeneration.map((m) => (
-                            <option key={m.value} value={m.value}>{m.label}</option>
-                          ))}
-                        </select>
+                      {/* Image Generation Provider Section */}
+                      <div className="pb-4 border-b border-[var(--glass-border)]">
+                        <h3 className="text-sm text-[var(--color-text-primary)] font-medium mb-3">Image Generation</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                              Provider
+                            </label>
+                            <select
+                              value={settings.models.imageProvider || 'gemini'}
+                              onChange={(e) => {
+                                const newProvider = e.target.value as ImageProvider;
+                                // When switching providers, set a default model for that provider
+                                const defaultModel = newProvider === 'openrouter'
+                                  ? 'google/gemini-3-pro-image-preview'
+                                  : 'gemini-2.0-flash-exp-image-generation';
+                                setSettings({
+                                  ...settings,
+                                  models: {
+                                    ...settings.models,
+                                    imageProvider: newProvider,
+                                    imageGeneration: defaultModel
+                                  },
+                                });
+                              }}
+                              className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                            >
+                              {availableModels.imageProvider?.map((m) => (
+                                <option key={m.value} value={m.value}>{m.label}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                              Model
+                            </label>
+                            <select
+                              value={settings.models.imageGeneration}
+                              onChange={(e) => updateModel('imageGeneration', e.target.value)}
+                              className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                            >
+                              {(settings.models.imageProvider === 'openrouter'
+                                ? availableModels.imageGenerationOpenRouter
+                                : availableModels.imageGenerationGemini
+                              )?.map((m) => (
+                                <option key={m.value} value={m.value}>{m.label}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        {settings.models.imageProvider === 'openrouter' && (
+                          <p className="mt-2 text-xs text-[var(--color-text-muted)]">
+                            Using OpenRouter provides access to GPT-5 Image, FLUX, Seedream, and more models.
+                            Requires <code className="text-[var(--color-accent)]">OPENROUTER_API_KEY</code> environment variable.
+                          </p>
+                        )}
                       </div>
 
-                      <div>
-                        <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
-                          Text Analysis
-                        </label>
-                        <select
-                          value={settings.models.textAnalysis}
-                          onChange={(e) => updateModel('textAnalysis', e.target.value)}
-                          className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
-                        >
-                          {availableModels.textAnalysis.map((m) => (
-                            <option key={m.value} value={m.value}>{m.label}</option>
-                          ))}
-                        </select>
-                      </div>
+                      {/* Other Model Settings */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                            Text Analysis
+                          </label>
+                          <select
+                            value={settings.models.textAnalysis}
+                            onChange={(e) => updateModel('textAnalysis', e.target.value)}
+                            className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                          >
+                            {availableModels.textAnalysis.map((m) => (
+                              <option key={m.value} value={m.value}>{m.label}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                      <div>
-                        <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
-                          Text-to-Speech Model
-                        </label>
-                        <select
-                          value={settings.models.ttsModel}
-                          onChange={(e) => updateModel('ttsModel', e.target.value)}
-                          className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
-                        >
-                          {availableModels.ttsModel.map((m) => (
-                            <option key={m.value} value={m.value}>{m.label}</option>
-                          ))}
-                        </select>
-                      </div>
+                        <div>
+                          <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                            Text-to-Speech Model
+                          </label>
+                          <select
+                            value={settings.models.ttsModel}
+                            onChange={(e) => updateModel('ttsModel', e.target.value)}
+                            className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                          >
+                            {availableModels.ttsModel.map((m) => (
+                              <option key={m.value} value={m.value}>{m.label}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                      <div>
-                        <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
-                          TTS Voice
-                        </label>
-                        <select
-                          value={settings.models.ttsVoice}
-                          onChange={(e) => updateModel('ttsVoice', e.target.value)}
-                          className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
-                        >
-                          {availableModels.ttsVoice.map((m) => (
-                            <option key={m.value} value={m.value}>{m.label}</option>
-                          ))}
-                        </select>
+                        <div>
+                          <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                            TTS Voice
+                          </label>
+                          <select
+                            value={settings.models.ttsVoice}
+                            onChange={(e) => updateModel('ttsVoice', e.target.value)}
+                            className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                          >
+                            {availableModels.ttsVoice.map((m) => (
+                              <option key={m.value} value={m.value}>{m.label}</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                     </>
                   )}

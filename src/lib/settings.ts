@@ -8,7 +8,10 @@ export interface PromptSettings {
   imageTransformation: string;
 }
 
+export type ImageProvider = 'gemini' | 'openrouter';
+
 export interface ModelSettings {
+  imageProvider: ImageProvider;
   imageGeneration: string;
   textAnalysis: string;
   ttsModel: string;
@@ -129,6 +132,7 @@ Use only plain text. No HTML tags.`,
 };
 
 export const DEFAULT_MODELS: ModelSettings = {
+  imageProvider: 'gemini',
   imageGeneration: 'gemini-2.0-flash-exp-image-generation',
   textAnalysis: 'gemini-2.5-flash',
   ttsModel: 'tts-1',
@@ -145,6 +149,38 @@ Sejal is also past President of the Real Estate Staging Association's (RESA) Sil
 };
 
 export const AVAILABLE_MODELS = {
+  imageProvider: [
+    { value: 'gemini', label: 'Google Gemini (Direct API)' },
+    { value: 'openrouter', label: 'OpenRouter (Multiple Providers)' },
+  ],
+  // Gemini models (used when imageProvider is 'gemini')
+  imageGenerationGemini: [
+    { value: 'gemini-2.0-flash-exp-image-generation', label: 'Gemini 2.0 Flash Image Gen' },
+    { value: 'gemini-2.5-flash-preview-native-audio-dialog', label: 'Gemini 2.5 Flash Preview (Native)' },
+    { value: 'imagen-3.0-generate-002', label: 'Imagen 3.0' },
+    { value: 'imagen-3.0-capability-001', label: 'Imagen 3.0 (Editing)' },
+    { value: 'gemini-2.5-pro-preview-05-06', label: 'Gemini 2.5 Pro Preview' },
+    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+  ],
+  // OpenRouter models (used when imageProvider is 'openrouter')
+  imageGenerationOpenRouter: [
+    // Google models via OpenRouter
+    { value: 'google/gemini-3-pro-image-preview', label: 'Nano Banana Pro (Gemini 3 Pro)' },
+    { value: 'google/gemini-2.5-flash-image-preview', label: 'Nano Banana (Gemini 2.5 Flash)' },
+    // OpenAI models
+    { value: 'openai/gpt-5-image', label: 'GPT-5 Image' },
+    { value: 'openai/gpt-5-image-mini', label: 'GPT-5 Image Mini' },
+    // Black Forest Labs FLUX models
+    { value: 'black-forest-labs/flux.2-max', label: 'FLUX.2 Max' },
+    { value: 'black-forest-labs/flux.2-pro', label: 'FLUX.2 Pro' },
+    { value: 'black-forest-labs/flux.2-flex', label: 'FLUX.2 Flex' },
+    { value: 'black-forest-labs/flux.2-klein', label: 'FLUX.2 Klein (Fast)' },
+    // ByteDance
+    { value: 'bytedance-seed/seedream-4.5', label: 'Seedream 4.5 (ByteDance)' },
+    // Sourceful
+    { value: 'sourceful/riverflow-v2-standard-preview', label: 'Riverflow V2 Standard' },
+  ],
+  // Combined list for backwards compatibility
   imageGeneration: [
     { value: 'gemini-2.0-flash-exp-image-generation', label: 'Gemini 2.0 Flash Image Gen' },
     { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
