@@ -78,6 +78,8 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
@@ -276,6 +278,8 @@ export default function Home() {
         body: JSON.stringify({
           imageBase64: selectedImage,
           userEmail: email || undefined,
+          firstName: firstName.trim() || undefined,
+          lastName: lastName.trim() || undefined,
           creativityLevel,
           keepItems: keepItems.trim() || undefined,
         }),
@@ -303,17 +307,17 @@ export default function Home() {
     {
       image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80',
       title: 'Visualize',
-      desc: 'AI-generated vision of your decluttered space',
+      desc: 'See an AI-generated preview of your space — calm, tidy, and clutter-free',
     },
     {
       image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80',
       title: 'Plan',
-      desc: 'Step-by-step guidance to achieve it',
+      desc: 'Get a personalized, step-by-step decluttering plan with donation & selling tips',
     },
     {
       image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80',
       title: 'Listen',
-      desc: 'Audio companion walks you through',
+      desc: 'Play the audio guide and let your personal organizer walk you through it',
     },
   ];
 
@@ -354,19 +358,19 @@ export default function Home() {
           className="text-center mb-10"
         >
           <span className="promo-banner mb-6 inline-block">
-            Transform your space in seconds
+            ✨ Your calm, clutter-free space is just one photo away
           </span>
           
           <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em]">
-            <span className="text-emphasis">Declutter</span> your home,<br />
-            <span className="text-emphasis">design</span> your life.
+            <span className="text-emphasis">See</span> your space<br />
+            <span className="text-emphasis">transformed</span> by AI.
           </h1>
           
           <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto">
-            Upload a photo. Get an AI-powered vision of your space, clutter-free.
+            Snap a photo of any room. Get a personalized decluttering plan + a vision of your tidy space — all in under a minute.
           </p>
           <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] max-w-md mx-auto mt-2">
-            No signup needed. Give Loftie a try with one room photo.
+            No signup needed. Free to try. Your photos stay private.
           </p>
         </motion.div>
         
@@ -545,11 +549,30 @@ export default function Home() {
                   </div>
                 </div>
 
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="First name"
+                    disabled={isProcessing}
+                    className="flex-1"
+                  />
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Last name"
+                    disabled={isProcessing}
+                    className="flex-1"
+                  />
+                </div>
+
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email (optional)"
+                  placeholder="Email (optional — we'll send your plan)"
                   disabled={isProcessing}
                 />
 
@@ -724,10 +747,10 @@ export default function Home() {
       {/* CTA */}
       <section className="max-w-md mx-auto px-4 py-12 text-center">
         <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] mb-2">
-          Ready to <span className="text-emphasis">transform</span>?
+          Ready to love your <span className="text-emphasis">space</span> again?
         </h2>
         <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-          Be one of the first to declutter with AI.
+          It starts with one photo. You&apos;ve got this! 💪
         </p>
         <button
           onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}

@@ -5,6 +5,8 @@ export interface RoomTransformation {
   declutteringPlan: string;
   audioUrl?: string;
   userEmail?: string;
+  firstName?: string;
+  lastName?: string;
   createdAt: string;
   status: 'processing' | 'completed' | 'failed';
   originalImageBase64?: string; // Stored temporarily for processing
@@ -18,6 +20,8 @@ export interface RoomTransformation {
 export interface TransformationRequest {
   imageBase64: string;
   userEmail?: string;
+  firstName?: string;
+  lastName?: string;
   creativityLevel?: 'strict' | 'balanced' | 'creative';
   keepItems?: string;
 }

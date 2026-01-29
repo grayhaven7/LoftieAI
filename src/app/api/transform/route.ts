@@ -9,7 +9,7 @@ export const maxDuration = 60; // Increase timeout for image upload and room che
 
 export async function POST(request: NextRequest) {
   try {
-    const { imageBase64, userEmail, creativityLevel, keepItems } = await request.json();
+    const { imageBase64, userEmail, firstName, lastName, creativityLevel, keepItems } = await request.json();
 
     if (!imageBase64) {
       return NextResponse.json(
@@ -53,6 +53,8 @@ export async function POST(request: NextRequest) {
       afterImageUrl: '',
       declutteringPlan: '',
       userEmail,
+      firstName: firstName || undefined,
+      lastName: lastName || undefined,
       createdAt: new Date().toISOString(),
       status: 'processing',
       // Store the original base64 so the process endpoint can use it

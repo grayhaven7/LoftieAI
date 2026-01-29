@@ -15,6 +15,8 @@ interface TransformationData {
   declutteringPlan: string;
   audioUrl?: string;
   userEmail?: string;
+  firstName?: string;
+  lastName?: string;
   createdAt: string;
   status: 'processing' | 'completed' | 'failed';
   creativityLevel?: 'strict' | 'balanced' | 'creative';
@@ -211,13 +213,16 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const shareText = 'I decluttered my room with Loftie! 🏠✨';
+    const shareUrl = 'https://loftie.ai';
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'My Room Transformation', url });
+        await navigator.share({ title: 'My Room Transformation', text: shareText, url: shareUrl });
       } catch {}
     } else {
-      await navigator.clipboard.writeText(url);
+      // Fallback: open Twitter/X share
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+      window.open(twitterUrl, '_blank', 'width=550,height=420');
     }
   };
 
@@ -753,6 +758,58 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             </AnimatePresence>
           </div>
         </motion.div>
+
+        {/* Donation Links */}
+        {data.status === 'completed' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }} className="mb-6 print:hidden">
+            <div className="card">
+              <div className="flex items-center gap-2 mb-3">
+                <svg className="w-4 h-4 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <h3 className="text-sm text-[var(--color-text-primary)] font-medium">Donate Your Items</h3>
+              </div>
+              <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+                Give your decluttered items a second life! Find a drop-off location near you:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <a
+                  href="https://www.goodwill.org/locator/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg hover:border-[var(--color-accent)] transition-colors group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                    <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-[var(--color-text-primary)]">Goodwill Locator</p>
+                    <p className="text-[10px] text-[var(--color-text-muted)]">Find a drop-off near you</p>
+                  </div>
+                </a>
+                <a
+                  href="https://satruck.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg hover:border-[var(--color-accent)] transition-colors group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/20 transition-colors">
+                    <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-[var(--color-text-primary)]">Salvation Army</p>
+                    <p className="text-[10px] text-[var(--color-text-muted)]">Schedule a free pickup</p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* What's Next Section */}
         {data.status === 'completed' && (

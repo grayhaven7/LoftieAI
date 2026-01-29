@@ -329,20 +329,20 @@ export default function SettingsPage() {
   // Login screen
   if (!isAuthenticated) {
     return (
-      <div className="gradient-bg min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: '#f8f9fa', color: '#1a1a2e' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card max-w-sm w-full"
+          className="max-w-sm w-full bg-white rounded-2xl shadow-lg p-6 border border-gray-100"
         >
           <div className="text-center mb-6">
             <div className="w-12 h-12 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center mx-auto mb-4">
               <Lock className="w-5 h-5 text-[var(--color-accent)]" />
             </div>
-            <h1 className="text-xl text-[var(--color-text-primary)] tracking-tight mb-1">
-              <span className="text-emphasis">Settings</span>
+            <h1 className="text-xl text-gray-900 tracking-tight mb-1 font-semibold">
+              Settings
             </h1>
-            <p className="text-xs text-[var(--color-text-muted)]">
+            <p className="text-xs text-gray-500">
               Enter password to access AI settings
             </p>
           </div>
@@ -367,7 +367,7 @@ export default function SettingsPage() {
             </div>
 
             {authError && (
-              <div className="text-[var(--color-error)] text-xs text-center">
+              <div className="text-red-500 text-xs text-center">
                 {authError}
               </div>
             )}
@@ -375,14 +375,14 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={authLoading || !password}
-              className="btn-primary w-full"
+              className="w-full py-2.5 px-4 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >
               {authLoading ? 'Authenticating...' : 'Access Settings'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <Link href="/" className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors">
+            <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
               ← Back to Home
             </Link>
           </div>
@@ -392,9 +392,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="gradient-bg min-h-screen">
+    <div className="min-h-screen" style={{ background: '#f8f9fa', color: '#1a1a2e' }}>
       {/* Header */}
-      <header className="py-4 px-4 sm:px-6 border-b border-[rgba(255,255,255,0.04)]">
+      <header className="py-4 px-4 sm:px-6 border-b border-gray-200 bg-white">
         <nav className="max-w-4xl mx-auto flex justify-between items-center">
           <Link href="/admin" className="flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />

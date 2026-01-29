@@ -101,6 +101,12 @@ export async function POST(
     console.log(`Generating decluttering plan...`);
     let planPrompt = settings.prompts.declutteringPlan;
 
+    // Personalize prompt with user's name if available
+    const userName = transformation.firstName || '';
+    if (userName) {
+      planPrompt = `The user's name is ${userName}. Address them by name warmly, e.g. "Hi ${userName}! Let's transform your space together."\n\n` + planPrompt;
+    }
+
     // Adjust prompt based on creativity level
     const creativityLevel = transformation.creativityLevel || 'strict';
     if (creativityLevel === 'strict') {
@@ -143,10 +149,14 @@ export async function POST(
       if (!declutteringPlan) return '';
       try {
         console.log(`Generating TTS audio...`);
+        // Personalize TTS with user's name
+        const ttsInput = userName
+          ? `Hi ${userName}! Here's your personalized decluttering plan. ${declutteringPlan}`
+          : declutteringPlan;
         const ttsResponse = await openai.audio.speech.create({
           model: settings.models.ttsModel as 'tts-1' | 'tts-1-hd',
           voice: settings.models.ttsVoice as 'nova' | 'alloy' | 'echo' | 'fable' | 'onyx' | 'shimmer',
-          input: declutteringPlan,
+          input: ttsInput,
           speed: 0.95,
         });
 
