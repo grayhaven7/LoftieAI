@@ -275,7 +275,8 @@
 
   /* Feature cards */
   .feature-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(10, 15, 26, 0.85);
+    backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 14px;
     overflow: hidden;
