@@ -3,13 +3,14 @@ import type { NextRequest } from 'next/server';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'loftie-admin-2026';
 
-const PROTECTED_PATHS = ['/admin', '/settings', '/api/transformations', '/api/debug'];
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  const isProtected = PROTECTED_PATHS.some(p => pathname.startsWith(p));
-  if (!isProtected) return NextResponse.next();
+  // Allow individual transformation lookups (public results pages need these)
+  // Only protect the list endpoint /api/transformations (no trailing ID)
+  if (pathname.match(/^\/api\/transformations\/[^/]+$/)) {
+    return NextResponse.next();
+  }
 
   // Check for auth cookie
   const authCookie = request.cookies.get('loftie-admin-auth');
