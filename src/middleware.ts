@@ -6,9 +6,10 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'loftie-admin-2026';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Allow individual transformation lookups (public results pages need these)
-  // Only protect the list endpoint /api/transformations (no trailing ID)
-  if (pathname.match(/^\/api\/transformations\/[^/]+$/)) {
+  // Allow public endpoints:
+  // - /api/transformations/mine (browser-based photo history)
+  // - /api/transformations/[id] (individual result lookups for shared links)
+  if (pathname === '/api/transformations/mine' || pathname.match(/^\/api\/transformations\/[0-9a-f-]{36}$/)) {
     return NextResponse.next();
   }
 
