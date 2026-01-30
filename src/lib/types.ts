@@ -15,6 +15,7 @@ export interface RoomTransformation {
   // User controls
   creativityLevel?: 'strict' | 'balanced' | 'creative'; // How creative the AI can be
   keepItems?: string; // Items the user wants to preserve
+  browserId?: string; // Browser fingerprint for ownership
 }
 
 export interface TransformationRequest {
@@ -24,6 +25,7 @@ export interface TransformationRequest {
   lastName?: string;
   creativityLevel?: 'strict' | 'balanced' | 'creative';
   keepItems?: string;
+  browserId?: string;
 }
 
 export interface TransformationResponse {

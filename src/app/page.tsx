@@ -90,6 +90,14 @@ export default function Home() {
   const [creativityLevel, setCreativityLevel] = useState<'strict' | 'balanced' | 'creative'>('strict');
   const [keepItems, setKeepItems] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [browserId, setBrowserId] = useState<string>('');
+  const [recentTransformations, setRecentTransformations] = useState<Array<{
+    id: string;
+    beforeImageUrl: string;
+    afterImageUrl: string;
+    status: string;
+    createdAt: string;
+  }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -100,6 +108,24 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
+    // Generate or retrieve browser ID
+    let id = localStorage.getItem('loftie-browser-id');
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem('loftie-browser-id', id);
+    }
+    setBrowserId(id);
+
+    // Fetch recent transformations for this browser
+    fetch(`/api/transformations/mine?browserId=${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.transformations) {
+          setRecentTransformations(data.transformations);
+        }
+      })
+      .catch(() => {});
+
     // Check if storage is configured
     fetch('/api/debug/storage')
       .then(res => res.json())
@@ -282,6 +308,7 @@ export default function Home() {
           lastName: lastName.trim() || undefined,
           creativityLevel,
           keepItems: keepItems.trim() || undefined,
+          browserId: browserId || undefined,
         }),
       });
 
@@ -693,6 +720,56 @@ export default function Home() {
           </AnimatePresence>
         </motion.div>
       </section>
+
+      {/* Recent Transformations */}
+      {recentTransformations.length > 0 && (
+        <section className="max-w-4xl mx-auto px-4 py-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-6"
+          >
+            <h2 className="text-xl sm:text-2xl text-[var(--color-text-primary)] tracking-tight mb-2">
+              Your Recent <span className="text-emphasis">Transformations</span>
+            </h2>
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Pick up where you left off
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {recentTransformations.slice(0, 8).map((t, i) => (
+              <motion.a
+                key={t.id}
+                href={`/results/${t.id}`}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className="group relative aspect-square rounded-xl overflow-hidden border border-[var(--glass-border)] hover:border-[var(--color-accent)] transition-colors"
+              >
+                <NextImage
+                  src={t.afterImageUrl || t.beforeImageUrl}
+                  alt="Transformation"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                    t.status === 'completed' ? 'bg-green-500/80 text-white' :
+                    t.status === 'processing' ? 'bg-yellow-500/80 text-white' :
+                    'bg-red-500/80 text-white'
+                  }`}>
+                    {t.status}
+                  </span>
+                </div>
+              </motion.a>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Features */}
       <section id="features" className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
