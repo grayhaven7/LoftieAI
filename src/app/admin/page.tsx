@@ -23,10 +23,15 @@ export default function AdminPage() {
   const fetchTransformations = async () => {
     try {
       setError(null);
+      // Get auth from cookie for API requests
+      const authCookie = document.cookie.split('; ').find(c => c.startsWith('loftie-admin-auth='));
+      const token = authCookie?.split('=')[1] || '';
+      
       const response = await fetch('/api/transformations', {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache',
+          'Authorization': `Bearer ${token}`,
         },
       });
 
