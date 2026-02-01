@@ -384,10 +384,6 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <span className="promo-banner mb-6 inline-block">
-            ✨ Your calm, clutter-free space is just one photo away
-          </span>
-          
           <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em]">
             <span className="text-emphasis">See</span> your space<br />
             <span className="text-emphasis">transformed</span> by AI.
@@ -826,9 +822,6 @@ export default function Home() {
         <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] mb-2">
           Ready to love your <span className="text-emphasis">space</span> again?
         </h2>
-        <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-          It starts with one photo. You&apos;ve got this! 💪
-        </p>
         <button
           onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}
           className="btn-primary"
