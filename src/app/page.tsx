@@ -369,7 +369,7 @@ export default function Home() {
             <a href="#features" className="nav-item hidden sm:block">
               How it Works
             </a>
-            <a href="/admin" className="nav-item">
+            <a href="/dashboard" className="nav-item">
               Dashboard
             </a>
           </motion.div>
