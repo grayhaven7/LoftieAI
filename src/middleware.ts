@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'loftie-admin-2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'loftie2024';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
