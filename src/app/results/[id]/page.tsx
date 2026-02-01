@@ -326,7 +326,18 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
 
   const parseSteps = (plan: string | undefined): string[] => {
     if (!plan) return [];
-    return plan.split(/\d+\.\s+/).filter((step) => step.trim()).slice(0, 6);
+    // Try splitting on numbered steps (e.g., "1. ", "2. ")
+    let steps = plan.split(/\d+\.\s+/).filter((step) => step.trim());
+    // If only 0-1 steps found, try splitting on newlines (fallback for unnumbered plans)
+    if (steps.length <= 1) {
+      steps = plan.split(/\n+/).filter((step) => step.trim().length > 20);
+    }
+    // If still one big block, try splitting on sentence patterns that look like step boundaries
+    if (steps.length <= 1 && plan.length > 200) {
+      steps = plan.split(/(?<=[.!])\s+(?=[A-Z](?:ext|tep|ow|hen|inally|rab|ort|lear|ake|ove))/)
+        .filter((step) => step.trim().length > 20);
+    }
+    return steps.slice(0, 6);
   };
 
   const toggleStepComplete = (stepIndex: number) => {

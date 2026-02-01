@@ -125,6 +125,9 @@ export async function POST(
     // Clean up any potential HTML tags just in case
     declutteringPlan = declutteringPlan.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, "");
     
+    // Ensure numbered steps have newlines before them for consistent parsing
+    declutteringPlan = declutteringPlan.replace(/([^\n])\s*(\d+\.\s)/g, '$1\n$2');
+    
     console.log(`Generated decluttering plan (${declutteringPlan.length} chars)`);
 
     // STEP 2: Generate the organized room image based on the decluttering plan
