@@ -160,12 +160,6 @@ export default function Home() {
       });
       setCameraStream(stream);
       setShowCamera(true);
-      // Attach stream to video element after state update
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      }, 100);
     } catch (err) {
       console.error('Camera error:', err);
       if (err instanceof Error) {
@@ -181,6 +175,13 @@ export default function Home() {
       }
     }
   };
+
+  // Attach camera stream to video element when both are available
+  useEffect(() => {
+    if (videoRef.current && cameraStream) {
+      videoRef.current.srcObject = cameraStream;
+    }
+  }, [cameraStream, showCamera]);
 
   const stopCamera = useCallback(() => {
     if (cameraStream) {
