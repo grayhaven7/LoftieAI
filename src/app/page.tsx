@@ -386,8 +386,8 @@ export default function Home() {
           className="text-center mb-10"
         >
           <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em]">
-            <span className="text-emphasis">See</span> your space<br />
-            <span className="text-emphasis">transformed</span> by AI.
+            See your space<br />
+            transformed in seconds
           </h1>
           
           <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto">
