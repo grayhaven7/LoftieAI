@@ -13,65 +13,48 @@ interface BioData {
 }
 
 // Compress and resize image to max dimensions while maintaining quality
-// Optimized for speed: 1440px max dimension balances quality and processing time
-// Targets 1-1.5MB max for faster API calls
-async function compressImage(file: File, maxDimension: number = 1440, quality: number = 0.75): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
+// Optimized for speed: 1024px max dimension keeps uploads fast while retaining enough detail for AI
+// Targets under 1MB for faster API calls and lower latency
+async function compressImage(file: File, maxDimension: number = 1024, quality: number = 0.7): Promise<string> {
+  // Use createImageBitmap for faster decode (avoids FileReader + Image roundtrip)
+  const bitmap = await createImageBitmap(file);
+  let { width, height } = bitmap;
 
-    img.onload = () => {
-      let { width, height } = img;
+  // Calculate new dimensions while maintaining aspect ratio
+  if (width > maxDimension || height > maxDimension) {
+    if (width > height) {
+      height = Math.round((height * maxDimension) / width);
+      width = maxDimension;
+    } else {
+      width = Math.round((width * maxDimension) / height);
+      height = maxDimension;
+    }
+  }
 
-      // Calculate new dimensions while maintaining aspect ratio
-      if (width > maxDimension || height > maxDimension) {
-        if (width > height) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        } else {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
-        }
-      }
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
 
-      canvas.width = width;
-      canvas.height = height;
+  if (ctx) {
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'medium';
+    ctx.drawImage(bitmap, 0, 0, width, height);
+  }
+  bitmap.close();
 
-      // Use high-quality image smoothing
-      if (ctx) {
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, width, height);
-      }
+  // Always use JPEG for smaller payloads
+  const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
 
-      // Convert to JPEG for better compression (unless PNG is needed for transparency)
-      const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-      const compressedDataUrl = canvas.toDataURL(mimeType, quality);
+  // Check resulting size and compress more aggressively if needed
+  const sizeInMB = (compressedDataUrl.length * 3) / 4 / (1024 * 1024);
 
-      // Check resulting size and compress more aggressively if needed
-      const sizeInMB = (compressedDataUrl.length * 3) / 4 / (1024 * 1024); // Rough base64 to bytes conversion
+  if (sizeInMB > 1 && quality > 0.5) {
+    const newQuality = Math.max(0.5, quality - 0.15);
+    return canvas.toDataURL('image/jpeg', newQuality);
+  }
 
-      if (sizeInMB > 1.5 && quality > 0.5) {
-        // Re-compress with lower quality if still too large
-        const newQuality = Math.max(0.5, quality - 0.15);
-        const recompressed = canvas.toDataURL('image/jpeg', newQuality);
-        resolve(recompressed);
-      } else {
-        resolve(compressedDataUrl);
-      }
-    };
-
-    img.onerror = () => reject(new Error('Failed to load image for compression'));
-
-    // Read file and set as image source
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = () => reject(new Error('Failed to read image file'));
-    reader.readAsDataURL(file);
-  });
+  return compressedDataUrl;
 }
 
 export default function Home() {
@@ -386,16 +369,14 @@ export default function Home() {
           className="text-center mb-10"
         >
           <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em]">
-            See your space<br />
-            transformed in seconds
+            <span className="text-emphasis">See</span> your space<br />
+            <span className="text-emphasis">transformed</span> in seconds
           </h1>
           
           <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto">
             Snap a photo of any room. Get a personalized decluttering plan + a vision of your tidy space — all in under a minute.
           </p>
-          <p className="text-xs sm:text-sm text-[var(--color-text-secondary)] max-w-md mx-auto mt-2">
-            No signup needed. Free to try. Your photos stay private.
-          </p>
+
         </motion.div>
         
         {configWarning && (

@@ -28,8 +28,11 @@ export async function POST(
   try {
     console.log(`Processing transformation ${id}`);
 
-    // Get the transformation record
-    const transformation = await getTransformation(id, blobUrl);
+    // Fetch transformation and settings in parallel (both are async I/O)
+    const [transformation, settings] = await Promise.all([
+      getTransformation(id, blobUrl),
+      getSettingsAsync(true),
+    ]);
     
     if (!transformation) {
       return NextResponse.json(
@@ -71,9 +74,9 @@ export async function POST(
       });
     }
 
-    // Mark as started processing to lock other requests
+    // Mark as started processing to lock other requests (in-memory only to avoid
+    // re-uploading the full base64 payload just for the claim timestamp)
     transformation.processingStartedAt = now;
-    await saveTransformation(transformation);
     console.log(`Claimed transformation ${id} for processing. Image size: ${transformation.originalImageBase64?.length || 0} chars`);
 
     // Check if we have the original image to process
@@ -90,9 +93,6 @@ export async function POST(
     const openai = getOpenAIClient();
     const timestamp = Date.now();
 
-    // Get current settings for prompts and models (force refresh to get latest prompts)
-    const settings = await getSettingsAsync(true);
-    
     // Ensure proper base64 data URL format
     const imageUrl = transformation.originalImageBase64.startsWith('data:') 
       ? transformation.originalImageBase64 
