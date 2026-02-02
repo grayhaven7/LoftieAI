@@ -162,7 +162,10 @@ export default function Home() {
   // Attach camera stream to video element when both are available
   useEffect(() => {
     if (videoRef.current && cameraStream) {
-      videoRef.current.srcObject = cameraStream;
+      const video = videoRef.current;
+      video.srcObject = cameraStream;
+      // Ensure playback starts on mobile browsers that ignore autoPlay
+      video.play().catch(() => {});
     }
   }, [cameraStream, showCamera]);
 
@@ -498,7 +501,13 @@ export default function Home() {
               >
                 <div className="relative rounded-lg overflow-hidden bg-black aspect-[4/3]">
                   <video
-                    ref={videoRef}
+                    ref={(el) => {
+                      videoRef.current = el;
+                      if (el && cameraStream) {
+                        el.srcObject = cameraStream;
+                        el.play().catch(() => {});
+                      }
+                    }}
                     autoPlay
                     playsInline
                     muted
