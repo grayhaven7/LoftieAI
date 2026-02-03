@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Save, RotateCcw, Check, Lock, Eye, EyeOff, Settings, Info, User } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Check, Lock, Eye, EyeOff, Settings, Info, User, Image as ImageIcon, ThumbsUp, ThumbsDown, Mail, Download, RefreshCw, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
 interface PromptSettings {
@@ -54,6 +54,20 @@ interface PromptVariables {
   imageTransformation: PromptVariable[];
 }
 
+interface TransformationRecord {
+  id: string;
+  beforeImageUrl: string;
+  afterImageUrl: string;
+  createdAt: string;
+  accessedAt?: string;
+  status: 'processing' | 'completed' | 'failed';
+  firstName?: string;
+  userEmail?: string;
+  feedbackHelpful?: boolean | null;
+  feedbackComment?: string;
+  feedbackSubmittedAt?: string;
+}
+
 export default function SettingsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -70,6 +84,10 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Transformations data
+  const [transformations, setTransformations] = useState<TransformationRecord[]>([]);
+  const [transformationsLoading, setTransformationsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,10 +136,35 @@ export default function SettingsPage() {
       setDefaults(data.defaults);
       setAvailableModels(data.availableModels);
       setPromptVariables(data.promptVariables);
+
+      // Also fetch transformations
+      fetchTransformations();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load settings');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTransformations = async () => {
+    setTransformationsLoading(true);
+    try {
+      const response = await fetch('/api/transformations?limit=50', {
+        cache: 'no-store',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Sort by createdAt descending
+        const sorted = (data.transformations || []).sort(
+          (a: TransformationRecord, b: TransformationRecord) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setTransformations(sorted);
+      }
+    } catch (err) {
+      console.error('Failed to fetch transformations:', err);
+    } finally {
+      setTransformationsLoading(false);
     }
   };
 
@@ -748,6 +791,173 @@ export default function SettingsPage() {
                     )}
                   </button>
                 </div>
+              </div>
+            </motion.section>
+
+            {/* Transformations & Feedback */}
+            <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg text-[var(--color-text-primary)] flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-[var(--color-accent)]" />
+                  <span className="text-emphasis">Transformations & Feedback</span>
+                </h2>
+                <button
+                  onClick={fetchTransformations}
+                  disabled={transformationsLoading}
+                  className="btn-secondary text-xs"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${transformationsLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+
+              <div className="card">
+                {transformationsLoading ? (
+                  <div className="text-center py-8">
+                    <div className="w-6 h-6 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <p className="text-xs text-[var(--color-text-muted)]">Loading transformations...</p>
+                  </div>
+                ) : transformations.length === 0 ? (
+                  <div className="text-center py-8">
+                    <ImageIcon className="w-10 h-10 text-[var(--color-text-muted)] mx-auto mb-3 opacity-50" />
+                    <p className="text-sm text-[var(--color-text-muted)]">No transformations yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Summary stats */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pb-4 border-b border-[var(--glass-border)]">
+                      <div className="text-center p-3 bg-[rgba(255,255,255,0.02)] rounded-lg">
+                        <div className="text-2xl font-semibold text-[var(--color-text-primary)]">{transformations.length}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Total</div>
+                      </div>
+                      <div className="text-center p-3 bg-[rgba(255,255,255,0.02)] rounded-lg">
+                        <div className="text-2xl font-semibold text-[var(--color-success)]">
+                          {transformations.filter(t => t.status === 'completed').length}
+                        </div>
+                        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Completed</div>
+                      </div>
+                      <div className="text-center p-3 bg-[rgba(255,255,255,0.02)] rounded-lg">
+                        <div className="text-2xl font-semibold text-[var(--color-accent)]">
+                          {transformations.filter(t => t.feedbackSubmittedAt).length}
+                        </div>
+                        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">With Feedback</div>
+                      </div>
+                      <div className="text-center p-3 bg-[rgba(255,255,255,0.02)] rounded-lg">
+                        <div className="text-2xl font-semibold text-[var(--color-success)]">
+                          {transformations.filter(t => t.feedbackHelpful === true).length}
+                        </div>
+                        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Helpful</div>
+                      </div>
+                    </div>
+
+                    {/* Transformations list */}
+                    <div className="max-h-[600px] overflow-y-auto space-y-3">
+                      {transformations.map((t) => (
+                        <div
+                          key={t.id}
+                          className="flex gap-4 p-3 bg-[rgba(255,255,255,0.02)] border border-[var(--glass-border)] rounded-lg hover:border-[var(--color-accent)]/30 transition-all"
+                        >
+                          {/* Thumbnail */}
+                          <div className="flex-shrink-0 w-20 h-20 relative rounded-lg overflow-hidden bg-[var(--color-bg-secondary)]">
+                            {t.afterImageUrl ? (
+                              <img src={t.afterImageUrl} alt="After" className="w-full h-full object-cover" />
+                            ) : t.beforeImageUrl ? (
+                              <img src={t.beforeImageUrl} alt="Before" className="w-full h-full object-cover opacity-50" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <ImageIcon className="w-6 h-6 text-[var(--color-text-muted)]" />
+                              </div>
+                            )}
+                            <span className={`absolute bottom-1 right-1 text-[8px] px-1.5 py-0.5 rounded ${
+                              t.status === 'completed' ? 'bg-[var(--color-success)]/80 text-white' :
+                              t.status === 'processing' ? 'bg-[var(--color-accent)]/80 text-white' :
+                              'bg-red-500/80 text-white'
+                            }`}>
+                              {t.status}
+                            </span>
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              {t.firstName && (
+                                <span className="flex items-center gap-1 text-xs text-[var(--color-text-primary)]">
+                                  <User className="w-3 h-3" />
+                                  {t.firstName}
+                                </span>
+                              )}
+                              {t.userEmail && (
+                                <span className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] truncate">
+                                  <Mail className="w-3 h-3" />
+                                  {t.userEmail}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="text-[10px] text-[var(--color-text-muted)] mb-2">
+                              Created: {new Date(t.createdAt).toLocaleString()}
+                              {t.accessedAt && (
+                                <span className="ml-2">• Last accessed: {new Date(t.accessedAt).toLocaleString()}</span>
+                              )}
+                            </div>
+
+                            {/* Feedback */}
+                            {t.feedbackSubmittedAt ? (
+                              <div className="flex items-start gap-2">
+                                {t.feedbackHelpful === true && (
+                                  <span className="flex items-center gap-1 text-xs text-[var(--color-success)] bg-[var(--color-success)]/10 px-2 py-0.5 rounded">
+                                    <ThumbsUp className="w-3 h-3" /> Helpful
+                                  </span>
+                                )}
+                                {t.feedbackHelpful === false && (
+                                  <span className="flex items-center gap-1 text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded">
+                                    <ThumbsDown className="w-3 h-3" /> Not helpful
+                                  </span>
+                                )}
+                                {t.feedbackComment && (
+                                  <span className="text-xs text-[var(--color-text-secondary)] italic truncate flex-1" title={t.feedbackComment}>
+                                    "{t.feedbackComment}"
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-[var(--color-text-muted)]">No feedback yet</span>
+                            )}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex-shrink-0 flex flex-col gap-1">
+                            <a
+                              href={`/results/${t.id}`}
+                              target="_blank"
+                              className="text-[10px] text-[var(--color-accent)] hover:underline"
+                            >
+                              View →
+                            </a>
+                            {t.beforeImageUrl && (
+                              <a
+                                href={t.beforeImageUrl}
+                                download={`before-${t.id}.jpg`}
+                                className="text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex items-center gap-1"
+                              >
+                                <Download className="w-3 h-3" /> Before
+                              </a>
+                            )}
+                            {t.afterImageUrl && (
+                              <a
+                                href={t.afterImageUrl}
+                                download={`after-${t.id}.png`}
+                                className="text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex items-center gap-1"
+                              >
+                                <Download className="w-3 h-3" /> After
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.section>
 
