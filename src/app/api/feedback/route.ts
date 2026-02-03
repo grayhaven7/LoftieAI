@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { Feedback } from '@/lib/types';
+import { getTransformation, saveTransformation } from '@/lib/storage';
 
 const LOCAL_FEEDBACK_PATH = path.join(process.cwd(), 'data', 'feedback.json');
 
@@ -70,6 +71,21 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`Saved feedback ${feedback.id} for transformation ${transformationId}`);
+
+    // Also update the transformation record with feedback data
+    try {
+      const transformation = await getTransformation(transformationId);
+      if (transformation) {
+        transformation.feedbackHelpful = helpful ?? null;
+        transformation.feedbackComment = comment || '';
+        transformation.feedbackSubmittedAt = feedback.createdAt;
+        await saveTransformation(transformation);
+        console.log(`Updated transformation ${transformationId} with feedback`);
+      }
+    } catch (updateError) {
+      console.error('Failed to update transformation with feedback:', updateError);
+      // Don't fail the request - feedback was still saved separately
+    }
 
     return NextResponse.json({ success: true, id: feedback.id });
   } catch (error) {

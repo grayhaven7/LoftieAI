@@ -69,10 +69,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [configWarning, setConfigWarning] = useState<string | null>(null);
   const [bio, setBio] = useState<BioData | null>(null);
-  // User controls
-  const [creativityLevel, setCreativityLevel] = useState<'strict' | 'balanced' | 'creative'>('strict');
-  const [keepItems, setKeepItems] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  // User controls - using strict mode for consistent results
+  const creativityLevel = 'strict' as const;
   const [browserId, setBrowserId] = useState<string>('');
   const [recentTransformations, setRecentTransformations] = useState<Array<{
     id: string;
@@ -294,7 +292,6 @@ export default function Home() {
           firstName: firstName.trim() || undefined,
           lastName: lastName.trim() || undefined,
           creativityLevel,
-          keepItems: keepItems.trim() || undefined,
           browserId: browserId || undefined,
         }),
       });
@@ -568,9 +565,10 @@ export default function Home() {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="First name"
+                    placeholder="First name *"
                     disabled={isProcessing}
                     className="flex-1"
+                    required
                   />
                   <input
                     type="text"
@@ -586,82 +584,10 @@ export default function Home() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email (optional — we'll send your plan)"
+                  placeholder="Email * (we'll send your plan)"
                   disabled={isProcessing}
+                  required
                 />
-
-                {/* Advanced Options */}
-                <div className="border border-[var(--glass-border)] rounded-lg overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setShowAdvanced(!showAdvanced)}
-                    className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[rgba(255,255,255,0.02)] transition-colors"
-                    disabled={isProcessing}
-                  >
-                    <span>Advanced Options</span>
-                    <svg
-                      className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-
-                  {showAdvanced && (
-                    <div className="px-3 pb-3 space-y-3 border-t border-[var(--glass-border)]">
-                      {/* Creativity Level */}
-                      <div className="pt-3">
-                        <label className="block text-xs text-[var(--color-text-secondary)] mb-2">
-                          Transformation Style
-                        </label>
-                        <div className="flex gap-1">
-                          {(['strict', 'balanced', 'creative'] as const).map((level) => (
-                            <button
-                              key={level}
-                              type="button"
-                              onClick={() => setCreativityLevel(level)}
-                              disabled={isProcessing}
-                              className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
-                                creativityLevel === level
-                                  ? 'bg-[var(--color-accent)] text-white'
-                                  : 'bg-[rgba(255,255,255,0.05)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
-                              }`}
-                            >
-                              {level === 'strict' ? 'Strict' : level === 'balanced' ? 'Balanced' : 'Creative'}
-                            </button>
-                          ))}
-                        </div>
-                        <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5">
-                          {creativityLevel === 'strict'
-                            ? 'Minimal changes - only removes obvious clutter'
-                            : creativityLevel === 'balanced'
-                            ? 'Removes clutter and tidies surfaces'
-                            : 'More styling freedom - may reorganize items'}
-                        </p>
-                      </div>
-
-                      {/* Keep Items */}
-                      <div>
-                        <label className="block text-xs text-[var(--color-text-secondary)] mb-2">
-                          Items to Keep (optional)
-                        </label>
-                        <input
-                          type="text"
-                          value={keepItems}
-                          onChange={(e) => setKeepItems(e.target.value)}
-                          placeholder="e.g., books on shelf, plant by window"
-                          disabled={isProcessing}
-                          className="text-xs"
-                        />
-                        <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5">
-                          Describe specific items you want the AI to preserve
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
 
                 {isProcessing && (
                   <motion.div
@@ -682,7 +608,7 @@ export default function Home() {
 
                 <button
                   onClick={handleSubmit}
-                  disabled={isProcessing}
+                  disabled={isProcessing || !firstName.trim() || !email.trim()}
                   className="btn-primary w-full"
                 >
                   {isProcessing ? 'Transforming...' : (
@@ -699,7 +625,7 @@ export default function Home() {
                     <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    Your photos are processed securely and not stored after your session
+                    Photos processed and stored securely
                   </p>
                 </div>
               </motion.div>
@@ -882,7 +808,7 @@ export default function Home() {
             <svg className="w-3.5 h-3.5 text-[var(--color-success)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <span>Photos processed securely • Not stored or used for AI training</span>
+            <span>Photos processed and stored securely</span>
           </div>
           <div className="flex items-center justify-center gap-4">
             <p>© 2026 Loftie</p>

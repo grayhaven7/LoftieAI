@@ -2,16 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, RefreshCw, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Image as ImageIcon, Download, ThumbsUp, ThumbsDown, Mail, User } from 'lucide-react';
 import Link from 'next/link';
 
 interface TransformationRecord {
   id: string;
   beforeImageUrl: string;
   afterImageUrl: string;
+  combinedImageUrl?: string;
   createdAt: string;
+  accessedAt?: string;
   status: 'processing' | 'completed' | 'failed';
   declutteringPlan?: string;
+  firstName?: string;
+  userEmail?: string;
+  feedbackHelpful?: boolean | null;
+  feedbackComment?: string;
+  feedbackSubmittedAt?: string;
 }
 
 export default function DashboardPage() {
@@ -108,38 +115,112 @@ export default function DashboardPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
               >
-                <Link href={`/results/${t.id}`} className="block group">
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg overflow-hidden hover:border-[var(--color-accent)]/30 transition-all">
+                <div className="bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg overflow-hidden hover:border-[var(--color-accent)]/30 transition-all">
+                  {/* Images */}
+                  <Link href={`/results/${t.id}`} className="block group">
                     <div className="grid grid-cols-2 gap-0.5 bg-[var(--color-bg-secondary)]">
                       {t.beforeImageUrl && (
                         <div className="aspect-[4/3] relative">
-                          <img src={t.beforeImageUrl} alt="Before" className="w-full h-full object-cover" />
+                          <img src={t.beforeImageUrl} alt="Before" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           <span className="absolute top-2 left-2 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">Before</span>
                         </div>
                       )}
                       {t.afterImageUrl && (
                         <div className="aspect-[4/3] relative">
-                          <img src={t.afterImageUrl} alt="After" className="w-full h-full object-cover" />
+                          <img src={t.afterImageUrl} alt="After" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           <span className="absolute top-2 left-2 text-[10px] bg-[var(--color-accent)]/80 text-white px-1.5 py-0.5 rounded">After</span>
                         </div>
                       )}
                     </div>
-                    <div className="p-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-[var(--color-text-muted)]">
-                          {new Date(t.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </Link>
+
+                  {/* Info section */}
+                  <div className="p-3 space-y-2">
+                    {/* User info row */}
+                    <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
+                      {t.firstName && (
+                        <span className="flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          {t.firstName}
                         </span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          t.status === 'completed' ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' :
-                          t.status === 'processing' ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]' :
-                          'bg-red-500/10 text-red-400'
-                        }`}>
-                          {t.status}
+                      )}
+                      {t.userEmail && (
+                        <span className="flex items-center gap-1 truncate max-w-[150px]">
+                          <Mail className="w-3 h-3" />
+                          {t.userEmail}
                         </span>
-                      </div>
+                      )}
                     </div>
+
+                    {/* Date and status row */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-[var(--color-text-muted)]">
+                        {new Date(t.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                        t.status === 'completed' ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' :
+                        t.status === 'processing' ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]' :
+                        'bg-red-500/10 text-red-400'
+                      }`}>
+                        {t.status}
+                      </span>
+                    </div>
+
+                    {/* Feedback row */}
+                    {t.feedbackSubmittedAt && (
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-[var(--color-text-muted)]">Feedback:</span>
+                        {t.feedbackHelpful === true && (
+                          <span className="flex items-center gap-1 text-[var(--color-success)]">
+                            <ThumbsUp className="w-3 h-3" /> Helpful
+                          </span>
+                        )}
+                        {t.feedbackHelpful === false && (
+                          <span className="flex items-center gap-1 text-red-400">
+                            <ThumbsDown className="w-3 h-3" /> Not helpful
+                          </span>
+                        )}
+                        {t.feedbackComment && (
+                          <span className="text-[var(--color-text-muted)] truncate max-w-[150px]" title={t.feedbackComment}>
+                            "{t.feedbackComment}"
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Download buttons */}
+                    {t.status === 'completed' && (
+                      <div className="flex items-center gap-2 pt-2 border-t border-[var(--glass-border)]">
+                        {t.beforeImageUrl && (
+                          <a
+                            href={t.beforeImageUrl}
+                            download={`loftie-before-${t.id}.jpg`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+                          >
+                            <Download className="w-3 h-3" /> Before
+                          </a>
+                        )}
+                        {t.afterImageUrl && (
+                          <a
+                            href={t.afterImageUrl}
+                            download={`loftie-after-${t.id}.png`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+                          >
+                            <Download className="w-3 h-3" /> After
+                          </a>
+                        )}
+                        <Link
+                          href={`/results/${t.id}`}
+                          className="ml-auto text-[10px] text-[var(--color-accent)] hover:underline"
+                        >
+                          View Details →
+                        </Link>
+                      </div>
+                    )}
                   </div>
-                </Link>
+                </div>
               </motion.div>
             ))}
           </div>

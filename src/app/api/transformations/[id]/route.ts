@@ -38,6 +38,20 @@ export async function GET(
       }
     }
 
+    // Track access time for completed transformations (don't save on every poll during processing)
+    if (transformation.status === 'completed') {
+      const lastAccess = transformation.accessedAt ? new Date(transformation.accessedAt).getTime() : 0;
+      const now = Date.now();
+      // Only update if it's been more than 5 minutes since last access to avoid excessive writes
+      if (now - lastAccess > 5 * 60 * 1000) {
+        transformation.accessedAt = new Date().toISOString();
+        // Fire and forget - don't wait for save to complete
+        saveTransformation(transformation).catch(err =>
+          console.error('Failed to update accessedAt:', err)
+        );
+      }
+    }
+
     // For completed/failed transformations, allow stale-while-revalidate
     // For processing transformations, don't cache
     const cacheControl = transformation.status === 'processing'

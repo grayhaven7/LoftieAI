@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X, Settings, RefreshCw, MessageSquare, ThumbsUp, ThumbsDown, Printer, Square, CheckSquare, HelpCircle, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Download, Mail, ChevronDown, Check, Share2, Play, Pause, Volume2, X, Settings, RefreshCw, MessageSquare, ThumbsUp, ThumbsDown, Printer, HelpCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { use } from 'react';
@@ -62,7 +62,6 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
   const [feedbackHelpful, setFeedbackHelpful] = useState<boolean | null>(null);
   const [feedbackSending, setFeedbackSending] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const [viewMode, setViewMode] = useState<'list' | 'checklist'>('list');
   const [showFollowUp, setShowFollowUp] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const processingRequestFired = useRef(false);
@@ -212,17 +211,124 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
     }
   };
 
+  // Generate combined before/after image for sharing
+  const generateCombinedImage = async (): Promise<Blob | null> => {
+    if (!data?.beforeImageUrl || !data?.afterImageUrl) return null;
+
+    try {
+      // Load both images
+      const loadImage = (src: string): Promise<HTMLImageElement> => {
+        return new Promise((resolve, reject) => {
+          const img = new window.Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = src;
+        });
+      };
+
+      const [beforeImg, afterImg] = await Promise.all([
+        loadImage(data.beforeImageUrl),
+        loadImage(data.afterImageUrl)
+      ]);
+
+      // Create canvas with side-by-side layout
+      const canvas = document.createElement('canvas');
+      const padding = 20;
+      const labelHeight = 40;
+      const imgWidth = Math.max(beforeImg.width, afterImg.width);
+      const imgHeight = Math.max(beforeImg.height, afterImg.height);
+
+      canvas.width = imgWidth * 2 + padding * 3;
+      canvas.height = imgHeight + padding * 2 + labelHeight * 2;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      // Background
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Header
+      ctx.fillStyle = '#9CAF88';
+      ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('I decluttered my room with Loftie! 🏠✨', canvas.width / 2, padding + 20);
+
+      // Labels
+      ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText('BEFORE', padding + imgWidth / 2, labelHeight + padding + 20);
+      ctx.fillText('AFTER', padding * 2 + imgWidth + imgWidth / 2, labelHeight + padding + 20);
+
+      // Draw images
+      const imageY = labelHeight + padding + 30;
+      ctx.drawImage(beforeImg, padding, imageY, imgWidth, imgHeight);
+      ctx.drawImage(afterImg, padding * 2 + imgWidth, imageY, imgWidth, imgHeight);
+
+      // Footer with URL
+      ctx.fillStyle = '#666666';
+      ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillText('loftie.ai', canvas.width / 2, canvas.height - 10);
+
+      return new Promise((resolve) => {
+        canvas.toBlob(resolve, 'image/png', 0.9);
+      });
+    } catch (error) {
+      console.error('Failed to generate combined image:', error);
+      return null;
+    }
+  };
+
   const handleShare = async () => {
     const shareText = 'I decluttered my room with Loftie! 🏠✨';
     const shareUrl = 'https://loftie.ai';
-    if (navigator.share) {
+
+    // Try to share with image if supported
+    if (navigator.share && navigator.canShare) {
       try {
+        const combinedBlob = await generateCombinedImage();
+        if (combinedBlob) {
+          const file = new File([combinedBlob], 'loftie-transformation.png', { type: 'image/png' });
+          const shareData = {
+            title: 'My Room Transformation',
+            text: shareText,
+            url: shareUrl,
+            files: [file]
+          };
+
+          if (navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            return;
+          }
+        }
+        // Fallback to text-only share
         await navigator.share({ title: 'My Room Transformation', text: shareText, url: shareUrl });
-      } catch {}
+      } catch (err) {
+        // User cancelled or error - try fallback
+        if ((err as Error).name !== 'AbortError') {
+          const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+          window.open(twitterUrl, '_blank', 'width=550,height=420');
+        }
+      }
     } else {
       // Fallback: open Twitter/X share
       const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
       window.open(twitterUrl, '_blank', 'width=550,height=420');
+    }
+  };
+
+  // Download combined image
+  const handleDownloadCombined = async () => {
+    const combinedBlob = await generateCombinedImage();
+    if (combinedBlob) {
+      const url = URL.createObjectURL(combinedBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `loftie-transformation-${id}.png`;
+      link.click();
+      URL.revokeObjectURL(url);
     }
   };
 
@@ -324,10 +430,50 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
     });
   };
 
+  // Parse greeting (text before first numbered step)
+  const parseGreeting = (plan: string | undefined): string => {
+    if (!plan) return '';
+    // Find the first numbered step (1. )
+    const firstStepMatch = plan.match(/^([\s\S]*?)(?=\n\s*1\.\s)/);
+    if (firstStepMatch && firstStepMatch[1]) {
+      return firstStepMatch[1].trim();
+    }
+    return '';
+  };
+
+  // Parse closing (text after last numbered step, typically includes "Quick Organization Tip" and encouragement)
+  const parseClosing = (plan: string | undefined): string => {
+    if (!plan) return '';
+    // Find text after the last numbered step (look for patterns like "Quick Organization Tip" or encouraging closing)
+    const closingMatch = plan.match(/(?:\n\s*(?:Quick Organization Tip|You did it|You've done|I'm so proud|Amazing work|Great job|You should feel)[^\n]*[\s\S]*)$/i);
+    if (closingMatch) {
+      // Get everything from "Quick Organization Tip" onward if present
+      const tipMatch = plan.match(/\n\s*(Quick Organization Tip[\s\S]*)$/i);
+      if (tipMatch) {
+        return tipMatch[1].trim();
+      }
+      return closingMatch[0].trim();
+    }
+    return '';
+  };
+
   const parseSteps = (plan: string | undefined): string[] => {
     if (!plan) return [];
-    // Try splitting on numbered steps (e.g., "1. ", "2. ")
+    // Extract only numbered steps (1. through 8.)
+    const stepMatches = plan.match(/(?:^|\n)\s*(\d+)\.\s+([^\n]+(?:\n(?!\s*\d+\.\s)[^\n]+)*)/g);
+    if (stepMatches && stepMatches.length > 0) {
+      return stepMatches
+        .map(match => match.replace(/^\n?\s*\d+\.\s+/, '').trim())
+        .filter(step => step.length > 10)
+        .slice(0, 8); // Allow up to 8 steps
+    }
+
+    // Fallback: Try splitting on numbered steps (e.g., "1. ", "2. ")
     let steps = plan.split(/\d+\.\s+/).filter((step) => step.trim());
+    // Remove the first element if it's the greeting (text before step 1)
+    if (steps.length > 0 && !steps[0].match(/^\s*(Let's|Start|First|Grab|Pick|Take|Now|Clear|Sort)/i)) {
+      steps = steps.slice(1);
+    }
     // If only 0-1 steps found, try splitting on newlines (fallback for unnumbered plans)
     if (steps.length <= 1) {
       steps = plan.split(/\n+/).filter((step) => step.trim().length > 20);
@@ -337,7 +483,9 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
       steps = plan.split(/(?<=[.!])\s+(?=[A-Z](?:ext|tep|ow|hen|inally|rab|ort|lear|ake|ove))/)
         .filter((step) => step.trim().length > 20);
     }
-    return steps.slice(0, 6);
+    // Filter out closing paragraphs (Quick Organization Tip, encouraging messages)
+    steps = steps.filter(step => !step.match(/^(Quick Organization Tip|You did it|You've done|I'm so proud|Amazing work)/i));
+    return steps.slice(0, 8); // Allow up to 8 steps
   };
 
   const toggleStepComplete = (stepIndex: number) => {
@@ -357,6 +505,8 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
   };
 
   // useMemo must be called unconditionally (before any early returns)
+  const greeting = useMemo(() => parseGreeting(data?.declutteringPlan), [data?.declutteringPlan]);
+  const closing = useMemo(() => parseClosing(data?.declutteringPlan), [data?.declutteringPlan]);
   const steps = useMemo(() => parseSteps(data?.declutteringPlan), [data?.declutteringPlan]);
 
   const allStepsCompleted = steps.length > 0 && completedSteps.size === steps.length;
@@ -627,13 +777,20 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             </div>
           )}
 
-          <div className="flex gap-2 mt-4">
+          <div className="flex flex-wrap gap-2 mt-4">
             <button
               onClick={handleDownload}
               className="btn-secondary"
               disabled={!data?.afterImageUrl}
             >
-              <Download className="w-3.5 h-3.5" /> Download
+              <Download className="w-3.5 h-3.5" /> After Image
+            </button>
+            <button
+              onClick={handleDownloadCombined}
+              className="btn-secondary"
+              disabled={!data?.afterImageUrl || !data?.beforeImageUrl}
+            >
+              <Download className="w-3.5 h-3.5" /> Before/After
             </button>
             <button onClick={handleShare} className="btn-secondary">
               <Share2 className="w-3.5 h-3.5" /> Share
@@ -660,19 +817,8 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                 <ChevronDown className={`w-4 h-4 text-[var(--color-text-muted)] transition-transform print:hidden ${planExpanded ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* View mode toggle and print button */}
+              {/* Print button */}
               <div className="flex items-center gap-2 print:hidden">
-                <button
-                  onClick={() => setViewMode(viewMode === 'list' ? 'checklist' : 'list')}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    viewMode === 'checklist'
-                      ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)]'
-                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
-                  }`}
-                  title={viewMode === 'list' ? 'Switch to checklist view' : 'Switch to list view'}
-                >
-                  {viewMode === 'checklist' ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-                </button>
                 <button
                   onClick={handlePrint}
                   className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
@@ -683,8 +829,8 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
               </div>
             </div>
 
-            {/* Progress indicator for checklist mode */}
-            {viewMode === 'checklist' && steps.length > 0 && (
+            {/* Progress indicator */}
+            {steps.length > 0 && (
               <div className="mb-4 print:hidden">
                 <div className="flex items-center justify-between text-xs mb-1.5">
                   <span className="text-[var(--color-text-muted)]">Progress</span>
@@ -702,38 +848,43 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             <AnimatePresence>
               {planExpanded && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
+                  {/* Greeting - displayed before steps */}
+                  {greeting && (
+                    <div className="mb-4 p-3 bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 rounded-lg">
+                      <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">
+                        {data?.firstName && greeting.includes('Hi!') ? greeting.replace('Hi!', `Hi ${data.firstName}!`) : greeting}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     {steps.map((step, i) => (
                       <div
                         key={i}
                         className={`step-card transition-all ${
-                          viewMode === 'checklist' && completedSteps.has(i)
+                          completedSteps.has(i)
                             ? 'opacity-60 border-l-[var(--color-success)]'
                             : ''
                         }`}
-                        onClick={() => viewMode === 'checklist' && toggleStepComplete(i)}
-                        style={{ cursor: viewMode === 'checklist' ? 'pointer' : 'default' }}
+                        onClick={() => toggleStepComplete(i)}
+                        style={{ cursor: 'pointer' }}
                       >
                         <div className="flex gap-3 items-start">
-                          {viewMode === 'checklist' ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleStepComplete(i);
-                              }}
-                              className={`flex-shrink-0 w-5 h-5 rounded border transition-colors print:border-gray-400 ${
-                                completedSteps.has(i)
-                                  ? 'bg-[var(--color-success)] border-[var(--color-success)] text-white'
-                                  : 'border-[var(--color-text-muted)] hover:border-[var(--color-accent)]'
-                              }`}
-                            >
-                              {completedSteps.has(i) && <Check className="w-3 h-3 m-auto" />}
-                            </button>
-                          ) : (
-                            <span className="text-[var(--color-accent)] font-semibold text-xs print:text-gray-600">{String(i + 1).padStart(2, '0')}</span>
-                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleStepComplete(i);
+                            }}
+                            className={`flex-shrink-0 w-5 h-5 rounded border transition-colors print:border-gray-400 ${
+                              completedSteps.has(i)
+                                ? 'bg-[var(--color-success)] border-[var(--color-success)] text-white'
+                                : 'border-[var(--color-text-muted)] hover:border-[var(--color-accent)]'
+                            }`}
+                          >
+                            {completedSteps.has(i) && <Check className="w-3 h-3 m-auto" />}
+                          </button>
                           <p className={`text-xs leading-relaxed flex-1 ${
-                            viewMode === 'checklist' && completedSteps.has(i)
+                            completedSteps.has(i)
                               ? 'line-through text-[var(--color-text-muted)]'
                               : 'text-[var(--color-text-secondary)]'
                           } print:text-gray-700`}>
@@ -744,8 +895,17 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                     ))}
                   </div>
 
+                  {/* Closing - displayed after steps */}
+                  {closing && (
+                    <div className="mt-4 p-3 bg-[var(--color-success)]/10 border border-[var(--color-success)]/20 rounded-lg">
+                      <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed whitespace-pre-line">
+                        {closing}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Completion celebration */}
-                  {allStepsCompleted && viewMode === 'checklist' && (
+                  {allStepsCompleted && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -935,32 +1095,39 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
           </motion.div>
         )}
 
-        {/* Email */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card print:hidden">
-          <div className="flex items-center gap-2 mb-3">
-            <Mail className="w-4 h-4 text-[var(--color-accent)]" />
-            <h3 className="text-sm text-[var(--color-text-primary)] font-medium">Save to Email</h3>
-          </div>
+        {/* Email CTA - More prominent call to action */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card print:hidden bg-[var(--color-accent)]/10 border-[var(--color-accent)]/20">
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center mx-auto mb-3">
+              <Mail className="w-6 h-6 text-[var(--color-accent)]" />
+            </div>
+            <h3 className="text-base text-[var(--color-text-primary)] font-medium mb-2">
+              Want this checklist and AI photo emailed to you?
+            </h3>
+            <p className="text-xs text-[var(--color-text-muted)] mb-4">
+              Get your personalized decluttering plan and transformed room image delivered to your inbox
+            </p>
 
-          {emailSent ? (
-            <div className="flex items-center gap-2 text-[var(--color-success)] text-sm">
-              <Check className="w-3.5 h-3.5" /> Sent to {email}
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="flex-1"
-                disabled={emailSending}
-              />
-              <button onClick={handleEmailSend} disabled={!email || emailSending} className="btn-primary">
-                {emailSending ? '...' : 'Send'}
-              </button>
-            </div>
-          )}
+            {emailSent ? (
+              <div className="flex items-center justify-center gap-2 text-[var(--color-success)] text-sm py-2">
+                <Check className="w-4 h-4" /> Sent to {email}!
+              </div>
+            ) : (
+              <div className="flex gap-2 max-w-sm mx-auto">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="flex-1"
+                  disabled={emailSending}
+                />
+                <button onClick={handleEmailSend} disabled={!email || emailSending} className="btn-primary">
+                  {emailSending ? 'Sending...' : 'Yes, Email Me!'}
+                </button>
+              </div>
+            )}
+          </div>
         </motion.div>
 
         {/* Feedback */}
