@@ -551,7 +551,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             </button>
             <Link href="/" className="btn-secondary">Go Home</Link>
           </div>
-          <div className="mt-6 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+          <div className="mt-6 pt-4 border-t border-[var(--glass-border)]">
             <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-2">Technical Info</p>
             <div className="flex flex-col gap-1">
               <code className="text-[10px] bg-[rgba(0,0,0,0.2)] px-2 py-1 rounded text-[var(--color-text-secondary)] break-all">
@@ -575,7 +575,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
       {data.audioUrl && <audio ref={audioRef} src={data.audioUrl} onEnded={() => setIsPlaying(false)} />}
 
       {/* Header */}
-      <header className="py-4 px-4 sm:px-6 border-b border-[rgba(255,255,255,0.04)]">
+      <header className="py-4 px-4 sm:px-6 border-b border-[var(--glass-border)]">
         <nav className="max-w-4xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
@@ -635,7 +635,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
           <div className="card overflow-hidden p-0">
             {/* Mode toggle and before/after tabs */}
-            <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.06)] px-2">
+            <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-2">
               {comparisonMode === 'toggle' ? (
                 <div className="flex flex-1">
                   <button
@@ -918,7 +918,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                   )}
 
                   {data.audioUrl && (
-                    <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.06)] print:hidden">
+                    <div className="mt-4 pt-4 border-t border-[var(--glass-border)] print:hidden">
                       <button onClick={toggleAudio} className="btn-secondary w-full">
                         {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                         {isPlaying ? 'Pause Audio' : 'Play Audio Guide'}
@@ -1152,7 +1152,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                       feedbackHelpful === true
                         ? 'bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/30'
-                        : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
+                        : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-tertiary)]'
                     }`}
                     disabled={feedbackSending}
                   >
@@ -1164,7 +1164,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                       feedbackHelpful === false
                         ? 'bg-[var(--color-error)]/20 text-[var(--color-error)] border border-[var(--color-error)]/30'
-                        : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
+                        : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-tertiary)]'
                     }`}
                     disabled={feedbackSending}
                   >
@@ -1196,7 +1196,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
         )}
       </main>
 
-      <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)] print:hidden">
+      <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[var(--glass-border)] print:hidden">
         <div className="flex flex-col items-center gap-2">
           <div className="flex items-center justify-center gap-4">
             <p>© 2026 Loftie</p>

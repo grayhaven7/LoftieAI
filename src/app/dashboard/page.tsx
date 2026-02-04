@@ -115,7 +115,7 @@ export default function DashboardPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
               >
-                <div className="bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg overflow-hidden hover:border-[var(--color-accent)]/30 transition-all">
+                <div className="bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg overflow-hidden hover:border-[var(--color-accent)]/30 transition-all">
                   {/* Images */}
                   <Link href={`/results/${t.id}`} className="block group">
                     <div className="grid grid-cols-2 gap-0.5 bg-[var(--color-bg-secondary)]">

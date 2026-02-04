@@ -489,7 +489,7 @@ export default function Home() {
                         e.stopPropagation();
                         fileInputRef.current?.click();
                       }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[rgba(255,255,255,0.1)] text-[var(--color-text-primary)] rounded-lg text-xs font-medium hover:bg-[rgba(255,255,255,0.15)] transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)] rounded-lg text-xs font-medium hover:bg-[var(--glass-border-hover)] transition-colors"
                     >
                       <Upload className="w-4 h-4" />
                       Upload
@@ -612,7 +612,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setShowAdvanced(!showAdvanced)}
-                    className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[rgba(255,255,255,0.02)] transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
                     disabled={isProcessing}
                   >
                     <span>Advanced Options</span>
@@ -643,7 +643,7 @@ export default function Home() {
                               className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
                                 creativityLevel === level
                                   ? 'bg-[var(--color-accent)] text-white'
-                                  : 'bg-[rgba(255,255,255,0.05)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
+                                  : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-tertiary)]'
                               }`}
                             >
                               {level === 'strict' ? 'Strict' : level === 'balanced' ? 'Balanced' : 'Creative'}
@@ -892,7 +892,7 @@ export default function Home() {
       )}
 
       {/* Footer */}
-      <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">
+      <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[var(--glass-border)]">
         <div className="flex flex-col items-center gap-3">
           {/* Privacy Notice */}
           <div className="flex items-center gap-2 text-[10px] bg-[var(--color-bg-secondary)] px-4 py-2 rounded-full">

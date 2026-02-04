@@ -536,7 +536,7 @@ export default function SettingsPage() {
                     <textarea
                       value={settings.prompts[key]}
                       onChange={(e) => updatePrompt(key, e.target.value)}
-                      className="w-full min-h-[200px] p-4 bg-[rgba(255,255,255,0.02)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono leading-relaxed"
+                      className="w-full min-h-[200px] p-4 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono leading-relaxed"
                       placeholder="Enter prompt..."
                     />
 
@@ -599,7 +599,7 @@ export default function SettingsPage() {
                                   },
                                 });
                               }}
-                              className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                              className="w-full p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
                             >
                               {availableModels.imageProvider?.map((m) => (
                                 <option key={m.value} value={m.value}>{m.label}</option>
@@ -614,7 +614,7 @@ export default function SettingsPage() {
                             <select
                               value={settings.models.imageGeneration}
                               onChange={(e) => updateModel('imageGeneration', e.target.value)}
-                              className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                              className="w-full p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
                             >
                               {(settings.models.imageProvider === 'openrouter'
                                 ? availableModels.imageGenerationOpenRouter
@@ -642,7 +642,7 @@ export default function SettingsPage() {
                           <select
                             value={settings.models.textAnalysis}
                             onChange={(e) => updateModel('textAnalysis', e.target.value)}
-                            className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                            className="w-full p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
                           >
                             {availableModels.textAnalysis.map((m) => (
                               <option key={m.value} value={m.value}>{m.label}</option>
@@ -657,7 +657,7 @@ export default function SettingsPage() {
                           <select
                             value={settings.models.ttsModel}
                             onChange={(e) => updateModel('ttsModel', e.target.value)}
-                            className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                            className="w-full p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
                           >
                             {availableModels.ttsModel.map((m) => (
                               <option key={m.value} value={m.value}>{m.label}</option>
@@ -672,7 +672,7 @@ export default function SettingsPage() {
                           <select
                             value={settings.models.ttsVoice}
                             onChange={(e) => updateModel('ttsVoice', e.target.value)}
-                            className="w-full p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                            className="w-full p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)] transition-colors"
                           >
                             {availableModels.ttsVoice.map((m) => (
                               <option key={m.value} value={m.value}>{m.label}</option>
@@ -740,7 +740,7 @@ export default function SettingsPage() {
                     <textarea
                       value={settings.bio.content}
                       onChange={(e) => updateBio('content', e.target.value)}
-                      className="w-full min-h-[200px] p-4 bg-[rgba(255,255,255,0.02)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors leading-relaxed"
+                      className="w-full min-h-[200px] p-4 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors leading-relaxed"
                       placeholder="Enter founder bio..."
                     />
                   </div>
@@ -826,23 +826,23 @@ export default function SettingsPage() {
                   <div className="space-y-4">
                     {/* Summary stats */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pb-4 border-b border-[var(--glass-border)]">
-                      <div className="text-center p-3 bg-[rgba(255,255,255,0.02)] rounded-lg">
+                      <div className="text-center p-3 bg-[var(--color-bg-secondary)] rounded-lg">
                         <div className="text-2xl font-semibold text-[var(--color-text-primary)]">{transformations.length}</div>
                         <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Total</div>
                       </div>
-                      <div className="text-center p-3 bg-[rgba(255,255,255,0.02)] rounded-lg">
+                      <div className="text-center p-3 bg-[var(--color-bg-secondary)] rounded-lg">
                         <div className="text-2xl font-semibold text-[var(--color-success)]">
                           {transformations.filter(t => t.status === 'completed').length}
                         </div>
                         <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Completed</div>
                       </div>
-                      <div className="text-center p-3 bg-[rgba(255,255,255,0.02)] rounded-lg">
+                      <div className="text-center p-3 bg-[var(--color-bg-secondary)] rounded-lg">
                         <div className="text-2xl font-semibold text-[var(--color-accent)]">
                           {transformations.filter(t => t.feedbackSubmittedAt).length}
                         </div>
                         <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">With Feedback</div>
                       </div>
-                      <div className="text-center p-3 bg-[rgba(255,255,255,0.02)] rounded-lg">
+                      <div className="text-center p-3 bg-[var(--color-bg-secondary)] rounded-lg">
                         <div className="text-2xl font-semibold text-[var(--color-success)]">
                           {transformations.filter(t => t.feedbackHelpful === true).length}
                         </div>
@@ -855,7 +855,7 @@ export default function SettingsPage() {
                       {transformations.map((t) => (
                         <div
                           key={t.id}
-                          className="flex gap-4 p-3 bg-[rgba(255,255,255,0.02)] border border-[var(--glass-border)] rounded-lg hover:border-[var(--color-accent)]/30 transition-all"
+                          className="flex gap-4 p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg hover:border-[var(--color-accent)]/30 transition-all"
                         >
                           {/* Thumbnail */}
                           <div className="flex-shrink-0 w-20 h-20 relative rounded-lg overflow-hidden bg-[var(--color-bg-secondary)]">

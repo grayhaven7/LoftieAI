@@ -59,25 +59,11 @@
     font-weight: 500;
   }
 
-  /* Hero with image */
+  /* Hero with subtle background */
   .hero-bg {
     position: relative;
     min-height: 100vh;
-  }
-
-  .hero-bg::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: 
-      linear-gradient(180deg, rgba(10, 15, 26, 0.3) 0%, rgba(10, 15, 26, 0.85) 70%, rgba(10, 15, 26, 1) 100%),
-      url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=80') center/cover no-repeat;
-    z-index: 0;
-  }
-
-  .hero-bg > * {
-    position: relative;
-    z-index: 1;
+    background: linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
   }
 
   .gradient-bg {
