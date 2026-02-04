@@ -13,48 +13,65 @@ interface BioData {
 }
 
 // Compress and resize image to max dimensions while maintaining quality
-// Optimized for speed: 1024px max dimension keeps uploads fast while retaining enough detail for AI
-// Targets under 1MB for faster API calls and lower latency
-async function compressImage(file: File, maxDimension: number = 1024, quality: number = 0.7): Promise<string> {
-  // Use createImageBitmap for faster decode (avoids FileReader + Image roundtrip)
-  const bitmap = await createImageBitmap(file);
-  let { width, height } = bitmap;
+// Optimized for speed: 1440px max dimension balances quality and processing time
+// Targets 1-1.5MB max for faster API calls
+async function compressImage(file: File, maxDimension: number = 1440, quality: number = 0.75): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
 
-  // Calculate new dimensions while maintaining aspect ratio
-  if (width > maxDimension || height > maxDimension) {
-    if (width > height) {
-      height = Math.round((height * maxDimension) / width);
-      width = maxDimension;
-    } else {
-      width = Math.round((width * maxDimension) / height);
-      height = maxDimension;
-    }
-  }
+    img.onload = () => {
+      let { width, height } = img;
 
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
+      // Calculate new dimensions while maintaining aspect ratio
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
 
-  if (ctx) {
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'medium';
-    ctx.drawImage(bitmap, 0, 0, width, height);
-  }
-  bitmap.close();
+      canvas.width = width;
+      canvas.height = height;
 
-  // Always use JPEG for smaller payloads
-  const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+      // Use high-quality image smoothing
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+      }
 
-  // Check resulting size and compress more aggressively if needed
-  const sizeInMB = (compressedDataUrl.length * 3) / 4 / (1024 * 1024);
+      // Convert to JPEG for better compression (unless PNG is needed for transparency)
+      const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      const compressedDataUrl = canvas.toDataURL(mimeType, quality);
 
-  if (sizeInMB > 1 && quality > 0.5) {
-    const newQuality = Math.max(0.5, quality - 0.15);
-    return canvas.toDataURL('image/jpeg', newQuality);
-  }
+      // Check resulting size and compress more aggressively if needed
+      const sizeInMB = (compressedDataUrl.length * 3) / 4 / (1024 * 1024); // Rough base64 to bytes conversion
 
-  return compressedDataUrl;
+      if (sizeInMB > 1.5 && quality > 0.5) {
+        // Re-compress with lower quality if still too large
+        const newQuality = Math.max(0.5, quality - 0.15);
+        const recompressed = canvas.toDataURL('image/jpeg', newQuality);
+        resolve(recompressed);
+      } else {
+        resolve(compressedDataUrl);
+      }
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image for compression'));
+
+    // Read file and set as image source
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error('Failed to read image file'));
+    reader.readAsDataURL(file);
+  });
 }
 
 export default function Home() {
@@ -69,8 +86,10 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [configWarning, setConfigWarning] = useState<string | null>(null);
   const [bio, setBio] = useState<BioData | null>(null);
-  // User controls - using strict mode for consistent results
-  const creativityLevel = 'strict' as const;
+  // User controls
+  const [creativityLevel, setCreativityLevel] = useState<'strict' | 'balanced' | 'creative'>('strict');
+  const [keepItems, setKeepItems] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [browserId, setBrowserId] = useState<string>('');
   const [recentTransformations, setRecentTransformations] = useState<Array<{
     id: string;
@@ -141,6 +160,19 @@ export default function Home() {
       });
       setCameraStream(stream);
       setShowCamera(true);
+      // Wait for React to render the video element, then attach stream
+      const attachStream = () => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().catch(() => {});
+          };
+        } else {
+          // Video element not mounted yet, retry
+          requestAnimationFrame(attachStream);
+        }
+      };
+      requestAnimationFrame(attachStream);
     } catch (err) {
       console.error('Camera error:', err);
       if (err instanceof Error) {
@@ -156,16 +188,6 @@ export default function Home() {
       }
     }
   };
-
-  // Attach camera stream to video element when both are available
-  useEffect(() => {
-    if (videoRef.current && cameraStream) {
-      const video = videoRef.current;
-      video.srcObject = cameraStream;
-      // Ensure playback starts on mobile browsers that ignore autoPlay
-      video.play().catch(() => {});
-    }
-  }, [cameraStream, showCamera]);
 
   const stopCamera = useCallback(() => {
     if (cameraStream) {
@@ -292,6 +314,7 @@ export default function Home() {
           firstName: firstName.trim() || undefined,
           lastName: lastName.trim() || undefined,
           creativityLevel,
+          keepItems: keepItems.trim() || undefined,
           browserId: browserId || undefined,
         }),
       });
@@ -368,15 +391,18 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em]">
-            <span className="text-emphasis">See</span> your space<br />
-            <span className="text-emphasis">transformed</span> in seconds
+          <span className="badge badge-accent mb-6">
+            Transform your space in seconds
+          </span>
+
+          <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em] leading-[1.15]">
+            <span className="text-emphasis">Declutter</span> your home,<br />
+            <span className="text-emphasis">design</span> your life.
           </h1>
           
           <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto">
-            Snap a photo of any room. Get a personalized decluttering plan + a vision of your tidy space — all in under a minute.
+            Upload a photo. Get a vision of your space, clutter-free.
           </p>
-
         </motion.div>
         
         {configWarning && (
@@ -498,13 +524,7 @@ export default function Home() {
               >
                 <div className="relative rounded-lg overflow-hidden bg-black aspect-[4/3]">
                   <video
-                    ref={(el) => {
-                      videoRef.current = el;
-                      if (el && cameraStream) {
-                        el.srcObject = cameraStream;
-                        el.play().catch(() => {});
-                      }
-                    }}
+                    ref={videoRef}
                     autoPlay
                     playsInline
                     muted
@@ -565,10 +585,9 @@ export default function Home() {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="First name *"
+                    placeholder="First name"
                     disabled={isProcessing}
                     className="flex-1"
-                    required
                   />
                   <input
                     type="text"
@@ -584,10 +603,82 @@ export default function Home() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email * (we'll send your plan)"
+                  placeholder="Email (optional — we'll send your plan)"
                   disabled={isProcessing}
-                  required
                 />
+
+                {/* Advanced Options */}
+                <div className="border border-[var(--glass-border)] rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[rgba(255,255,255,0.02)] transition-colors"
+                    disabled={isProcessing}
+                  >
+                    <span>Advanced Options</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {showAdvanced && (
+                    <div className="px-3 pb-3 space-y-3 border-t border-[var(--glass-border)]">
+                      {/* Creativity Level */}
+                      <div className="pt-3">
+                        <label className="block text-xs text-[var(--color-text-secondary)] mb-2">
+                          Transformation Style
+                        </label>
+                        <div className="flex gap-1">
+                          {(['strict', 'balanced', 'creative'] as const).map((level) => (
+                            <button
+                              key={level}
+                              type="button"
+                              onClick={() => setCreativityLevel(level)}
+                              disabled={isProcessing}
+                              className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
+                                creativityLevel === level
+                                  ? 'bg-[var(--color-accent)] text-white'
+                                  : 'bg-[rgba(255,255,255,0.05)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
+                              }`}
+                            >
+                              {level === 'strict' ? 'Strict' : level === 'balanced' ? 'Balanced' : 'Creative'}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5">
+                          {creativityLevel === 'strict'
+                            ? 'Minimal changes - only removes obvious clutter'
+                            : creativityLevel === 'balanced'
+                            ? 'Removes clutter and tidies surfaces'
+                            : 'More styling freedom - may reorganize items'}
+                        </p>
+                      </div>
+
+                      {/* Keep Items */}
+                      <div>
+                        <label className="block text-xs text-[var(--color-text-secondary)] mb-2">
+                          Items to Keep (optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={keepItems}
+                          onChange={(e) => setKeepItems(e.target.value)}
+                          placeholder="e.g., books on shelf, plant by window"
+                          disabled={isProcessing}
+                          className="text-xs"
+                        />
+                        <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5">
+                          Describe specific items you want the AI to preserve
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {isProcessing && (
                   <motion.div
@@ -608,7 +699,7 @@ export default function Home() {
 
                 <button
                   onClick={handleSubmit}
-                  disabled={isProcessing || !firstName.trim() || !email.trim()}
+                  disabled={isProcessing}
                   className="btn-primary w-full"
                 >
                   {isProcessing ? 'Transforming...' : (
@@ -625,7 +716,7 @@ export default function Home() {
                     <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    Photos processed and stored securely
+                    Your photos are processed securely and not stored after your session
                   </p>
                 </div>
               </motion.div>
@@ -808,7 +899,7 @@ export default function Home() {
             <svg className="w-3.5 h-3.5 text-[var(--color-success)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <span>Photos processed and stored securely</span>
+            <span>Photos processed securely • Not stored or used for AI training</span>
           </div>
           <div className="flex items-center justify-center gap-4">
             <p>© 2026 Loftie</p>
