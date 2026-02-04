@@ -641,7 +641,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                   <button
                     onClick={() => setShowAfter(false)}
                     className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                      !showAfter ? 'text-[var(--color-text-primary)] bg-[rgba(255,255,255,0.04)]' : 'text-[var(--color-text-muted)]'
+                      !showAfter ? 'text-[var(--color-text-primary)] bg-[var(--color-bg-tertiary)]' : 'text-[var(--color-text-muted)]'
                     }`}
                   >
                     Before
@@ -649,7 +649,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                   <button
                     onClick={() => setShowAfter(true)}
                     className={`flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                      showAfter ? 'text-[var(--color-text-primary)] bg-[rgba(255,255,255,0.04)]' : 'text-[var(--color-text-muted)]'
+                      showAfter ? 'text-[var(--color-text-primary)] bg-[var(--color-bg-tertiary)]' : 'text-[var(--color-text-muted)]'
                     }`}
                   >
                     After
@@ -689,7 +689,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
               ) : data.status === 'failed' || !data.afterImageUrl || afterImageError ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]">
                   <div className="text-center px-4">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center">
                       <svg className="w-6 h-6 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
@@ -769,11 +769,11 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
 
           {/* AI Visualization Disclaimer */}
           {data.status === 'completed' && data.afterImageUrl && (
-            <div className="mt-3 flex items-start gap-2 text-[10px] text-[var(--color-text-muted)] bg-[rgba(255,255,255,0.03)] px-3 py-2 rounded-lg">
+            <div className="mt-3 flex items-start gap-2 text-[10px] text-[var(--color-text-muted)] bg-[var(--color-bg-secondary)] px-3 py-2 rounded-lg">
               <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>This is an AI visualization to inspire you — your actual results may look different based on your decluttering choices.</span>
+              <span>This is a room visualization to inspire you. AI image results may contain some variance from your actual photo.</span>
             </div>
           )}
 
@@ -813,7 +813,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
           <div className="card">
             <div className="flex items-center justify-between mb-3">
               <button onClick={() => setPlanExpanded(!planExpanded)} className="flex items-center gap-2">
-                <h2 className="text-sm text-[var(--color-text-primary)] font-medium">Declutter Plan</h2>
+                <h2 className="text-sm text-[var(--color-text-primary)] font-medium">Transformation Plan</h2>
                 <ChevronDown className={`w-4 h-4 text-[var(--color-text-muted)] transition-transform print:hidden ${planExpanded ? 'rotate-180' : ''}`} />
               </button>
 
@@ -828,6 +828,16 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                 </button>
               </div>
             </div>
+
+            {/* Greeting - displayed above progress */}
+            {greeting && (
+              <div className="mb-4 p-3 bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 rounded-lg">
+                <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">
+                  {data?.firstName && greeting.includes('Hi!') ? greeting.replace('Hi!', `Hi ${data.firstName}!`) : greeting}
+                </p>
+                <p className="text-xs text-[var(--color-text-secondary)] mt-2 italic">Check off each box as you make progress.</p>
+              </div>
+            )}
 
             {/* Progress indicator */}
             {steps.length > 0 && (
@@ -848,15 +858,6 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             <AnimatePresence>
               {planExpanded && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
-                  {/* Greeting - displayed before steps */}
-                  {greeting && (
-                    <div className="mb-4 p-3 bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 rounded-lg">
-                      <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">
-                        {data?.firstName && greeting.includes('Hi!') ? greeting.replace('Hi!', `Hi ${data.firstName}!`) : greeting}
-                      </p>
-                    </div>
-                  )}
-
                   <div className="space-y-2">
                     {steps.map((step, i) => (
                       <div
@@ -948,7 +949,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                   href="https://www.goodwill.org/locator/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg hover:border-[var(--color-accent)] transition-colors group"
+                  className="flex items-center gap-3 p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg hover:border-[var(--color-accent)] transition-colors group"
                 >
                   <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
                     <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -965,7 +966,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                   href="https://satruck.org/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg hover:border-[var(--color-accent)] transition-colors group"
+                  className="flex items-center gap-3 p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg hover:border-[var(--color-accent)] transition-colors group"
                 >
                   <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/20 transition-colors">
                     <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -974,7 +975,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                   </div>
                   <div>
                     <p className="text-xs font-medium text-[var(--color-text-primary)]">Salvation Army</p>
-                    <p className="text-[10px] text-[var(--color-text-muted)]">Schedule a free pickup</p>
+                    <p className="text-[10px] text-[var(--color-text-muted)]">Find a drop-off near you or schedule a free pick-up</p>
                   </div>
                 </a>
               </div>
@@ -1000,7 +1001,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button
                       onClick={() => setShowFollowUp(true)}
-                      className="flex items-center gap-2 p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg text-left hover:border-[var(--color-accent)] transition-colors group"
+                      className="flex items-center gap-2 p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg text-left hover:border-[var(--color-accent)] transition-colors group"
                     >
                       <div className="w-8 h-8 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--color-accent)]/20 transition-colors">
                         <Check className="w-4 h-4 text-[var(--color-accent)]" />
@@ -1013,7 +1014,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
 
                     <button
                       onClick={() => setShowFollowUp(true)}
-                      className="flex items-center gap-2 p-3 bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg text-left hover:border-[var(--color-accent)] transition-colors group"
+                      className="flex items-center gap-2 p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg text-left hover:border-[var(--color-accent)] transition-colors group"
                     >
                       <div className="w-8 h-8 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--color-accent)]/20 transition-colors">
                         <HelpCircle className="w-4 h-4 text-[var(--color-accent)]" />
@@ -1027,7 +1028,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg p-4">
+                  <div className="bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg p-4">
                     <h4 className="text-xs font-medium text-[var(--color-text-primary)] mb-3">Next Steps to Continue</h4>
                     <div className="space-y-3 text-xs text-[var(--color-text-secondary)]">
                       <div className="flex gap-2">
@@ -1045,7 +1046,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                     </div>
                   </div>
 
-                  <div className="bg-[rgba(255,255,255,0.03)] border border-[var(--glass-border)] rounded-lg p-4">
+                  <div className="bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg p-4">
                     <h4 className="text-xs font-medium text-[var(--color-text-primary)] mb-3">Quick Tips for Common Challenges</h4>
                     <div className="space-y-2 text-xs text-[var(--color-text-secondary)]">
                       <details className="group">
@@ -1151,7 +1152,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                       feedbackHelpful === true
                         ? 'bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/30'
-                        : 'bg-[rgba(255,255,255,0.05)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
+                        : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
                     }`}
                     disabled={feedbackSending}
                   >
@@ -1163,7 +1164,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                       feedbackHelpful === false
                         ? 'bg-[var(--color-error)]/20 text-[var(--color-error)] border border-[var(--color-error)]/30'
-                        : 'bg-[rgba(255,255,255,0.05)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
+                        : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] hover:bg-[rgba(255,255,255,0.1)]'
                     }`}
                     disabled={feedbackSending}
                   >
@@ -1177,7 +1178,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                   value={feedbackComment}
                   onChange={(e) => setFeedbackComment(e.target.value)}
                   placeholder="Tell us more about your experience (optional)"
-                  className="w-full px-3 py-2 bg-[rgba(255,255,255,0.05)] border border-[var(--glass-border)] rounded-lg text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] resize-none focus:outline-none focus:border-[var(--color-accent)]"
+                  className="w-full px-3 py-2 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] resize-none focus:outline-none focus:border-[var(--color-accent)]"
                   rows={3}
                   disabled={feedbackSending}
                 />

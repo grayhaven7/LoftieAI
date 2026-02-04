@@ -65,6 +65,9 @@ export async function POST(request: NextRequest) {
               <p style="color: #8A8A8A; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
                 Great news! Your room transformation is complete. Take a look at what your space could become with a little decluttering magic.
               </p>
+              <p style="color: #9CAF88; font-size: 12px; line-height: 1.5; margin-bottom: 24px; font-style: italic;">
+                This is a room visualization to inspire you. AI image results may contain some variance from your actual photo.
+              </p>
 
               <!-- Before/After Images -->
               <div style="margin-bottom: 32px;">
@@ -82,7 +85,8 @@ export async function POST(request: NextRequest) {
               <!-- Decluttering Plan -->
               ${formattedPlan ? `
               <div style="background-color: #F9F9F9; border-radius: 16px; padding: 24px; margin-bottom: 32px; border-left: 4px solid #9CAF88;">
-                <h2 style="font-size: 18px; color: #3A3A3A; margin-top: 0; margin-bottom: 16px; font-weight: 600;">Your Decluttering Plan:</h2>
+                <h2 style="font-size: 18px; color: #3A3A3A; margin-top: 0; margin-bottom: 16px; font-weight: 600;">Your Transformation Plan:</h2>
+                <p style="color: #718096; font-size: 13px; font-style: italic; margin-bottom: 16px;">Check off each box as you make progress.</p>
                 <div style="color: #555555; font-size: 15px; line-height: 1.6;">
                   ${formattedPlan}
                 </div>

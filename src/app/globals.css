@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --color-bg-primary: #0a0f1a;
-  --color-bg-secondary: #0d1320;
-  --color-bg-tertiary: #141c2b;
-  --color-bg-card: rgba(20, 28, 43, 0.6);
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-tertiary: #f0f2f5;
+  --color-bg-card: rgba(255, 255, 255, 0.95);
   
-  --color-accent: #5a9cbf;
-  --color-accent-light: #7cb8d9;
-  --color-accent-muted: #3d6a7a;
+  --color-accent: #9CAF88;
+  --color-accent-light: #b5c4a3;
+  --color-accent-muted: #7a9166;
   
-  --color-text-primary: #f0f4f8;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #5a6a7a;
+  --color-text-primary: #2d3748;
+  --color-text-secondary: #4a5568;
+  --color-text-muted: #718096;
   
-  --color-success: #34d399;
-  --color-error: #f87171;
+  --color-success: #48bb78;
+  --color-error: #f56565;
   
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-border-hover: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-hover: rgba(0, 0, 0, 0.15);
 }
 
 @layer base {
@@ -35,16 +35,16 @@
     overflow-x: hidden;
   }
 
+  ::selection {
+    background: var(--color-accent);
+    color: white;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'General Sans', sans-serif;
     font-weight: 500;
     letter-spacing: -0.03em;
     line-height: 1.1;
-  }
-
-  ::selection {
-    background: var(--color-accent);
-    color: white;
   }
 
   ::-webkit-scrollbar { width: 5px; }
@@ -81,7 +81,7 @@
   }
 
   .gradient-bg {
-    background: linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
+    background: var(--color-bg-primary);
     min-height: 100vh;
   }
 
@@ -132,8 +132,8 @@
 
   /* Upload zone */
   .upload-zone {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px dashed rgba(255, 255, 255, 0.12);
+    background: var(--color-bg-secondary);
+    border: 1px dashed var(--glass-border-hover);
     border-radius: 12px;
     transition: all 0.2s ease;
     cursor: pointer;
@@ -142,13 +142,13 @@
   .upload-zone:hover,
   .upload-zone.drag-over {
     border-color: var(--color-accent);
-    background: rgba(90, 156, 191, 0.06);
+    background: rgba(156, 175, 136, 0.08);
   }
 
   /* Buttons */
   .btn-primary {
-    background: rgba(255, 255, 255, 0.92);
-    color: #1a2530;
+    background: var(--color-accent);
+    color: white;
     padding: 12px 24px;
     border-radius: 100px;
     font-weight: 600;
@@ -167,9 +167,9 @@
   }
 
   .btn-primary:hover {
-    background: #fff;
+    background: var(--color-accent-muted);
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 24px rgba(156, 175, 136, 0.25);
   }
 
   .btn-primary:disabled {
@@ -179,7 +179,7 @@
   }
 
   .btn-secondary {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--color-bg-secondary);
     color: var(--color-text-primary);
     padding: 10px 18px;
     border-radius: 100px;
@@ -199,7 +199,7 @@
   }
 
   .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--color-bg-tertiary);
     border-color: var(--glass-border-hover);
   }
 
@@ -210,7 +210,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--color-bg-secondary);
     border: 1px solid var(--glass-border);
     color: var(--color-text-secondary);
     cursor: pointer;
@@ -219,7 +219,7 @@
   }
 
   .btn-icon:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--color-bg-tertiary);
     color: var(--color-text-primary);
   }
 
@@ -275,7 +275,7 @@
 
   /* Feature cards */
   .feature-card {
-    background: rgba(10, 15, 26, 0.85);
+    background: var(--color-bg-card);
     backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 14px;
@@ -286,6 +286,7 @@
   .feature-card:hover {
     border-color: var(--glass-border-hover);
     transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   }
 
   .feature-card-image {
@@ -306,7 +307,7 @@
 
   /* Step cards */
   .step-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--color-bg-secondary);
     border-left: 2px solid var(--color-accent-muted);
     padding: 12px 16px;
     border-radius: 0 10px 10px 0;
@@ -315,14 +316,14 @@
   }
 
   .step-card:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--color-bg-tertiary);
     border-left-color: var(--color-accent);
   }
 
   /* Progress */
   .progress-bar {
     height: 2px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--glass-border);
     border-radius: 1px;
     overflow: hidden;
   }
@@ -335,7 +336,7 @@
 
   /* Stats */
   .stat-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--color-bg-secondary);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
     padding: 16px 12px;

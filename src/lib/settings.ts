@@ -95,6 +95,8 @@ Hello! Let's create some calm in your bedroom today. I can see a few things we c
 
 5. Finally, do a quick sweep of any small items that don't belong. Give each one a home or add it to your donate pile.
 
+6. Drop off your unneeded items: See below to find a donation drop off location, schedule a pick-up, or drop things off to your favorite donation organization.
+
 Quick Organization Tip: A small basket on your nightstand would help corral those everyday items.
 
 You did it! I'm so proud of you for taking this step. Your space is going to feel so much calmer and more peaceful now. Every little bit counts, and you should feel amazing about what you accomplished today!
@@ -107,6 +109,7 @@ RULES:
 • Keep all furniture, bedding, pillows, rugs, art exactly where they are
 • The greeting and closing are NOT numbered steps
 • Only the actionable decluttering steps are numbered 1-8
+• ALWAYS include this as the LAST numbered step before the closing: "Drop off your unneeded items: See below to find a donation drop off location, schedule a pick-up, or drop things off to your favorite donation organization."
 
 STEP FORMAT:
 - Start with an unnumbered greeting paragraph
