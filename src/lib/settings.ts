@@ -192,21 +192,12 @@ export const AVAILABLE_MODELS = {
   ],
   // OpenRouter models (used when imageProvider is 'openrouter')
   imageGenerationOpenRouter: [
-    // Google models via OpenRouter
-    { value: 'google/gemini-3-pro-image-preview', label: 'Nano Banana Pro (Gemini 3 Pro)' },
-    { value: 'google/gemini-2.5-flash-image-preview', label: 'Nano Banana (Gemini 2.5 Flash)' },
-    // OpenAI models
+    // Google models via OpenRouter (image generation capable)
+    { value: 'google/gemini-2.5-flash-image', label: 'Gemini 2.5 Flash Image (Nano Banana)' },
+    { value: 'google/gemini-3-pro-image-preview', label: 'Gemini 3 Pro Image (Nano Banana Pro)' },
+    // OpenAI models (image generation capable)
     { value: 'openai/gpt-5-image', label: 'GPT-5 Image' },
     { value: 'openai/gpt-5-image-mini', label: 'GPT-5 Image Mini' },
-    // Black Forest Labs FLUX models
-    { value: 'black-forest-labs/flux.2-max', label: 'FLUX.2 Max' },
-    { value: 'black-forest-labs/flux.2-pro', label: 'FLUX.2 Pro' },
-    { value: 'black-forest-labs/flux.2-flex', label: 'FLUX.2 Flex' },
-    { value: 'black-forest-labs/flux.2-klein', label: 'FLUX.2 Klein (Fast)' },
-    // ByteDance
-    { value: 'bytedance-seed/seedream-4.5', label: 'Seedream 4.5 (ByteDance)' },
-    // Sourceful
-    { value: 'sourceful/riverflow-v2-standard-preview', label: 'Riverflow V2 Standard' },
   ],
   // Combined list for backwards compatibility
   imageGeneration: [
