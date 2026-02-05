@@ -63,7 +63,42 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
   const [feedbackSending, setFeedbackSending] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [showFollowUp, setShowFollowUp] = useState(false);
+  const [loadingSlideIndex, setLoadingSlideIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Inspirational content for loading state
+  const loadingSlides = [
+    {
+      image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80',
+      quote: '"The first step in crafting the life you want is to get rid of everything you don\'t."',
+      author: '— Joshua Becker'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
+      quote: '"Clutter is not just physical stuff. It\'s old ideas, toxic relationships, and bad habits."',
+      author: '— Eleanor Brownn'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80',
+      quote: '"Have nothing in your houses that you do not know to be useful or believe to be beautiful."',
+      author: '— William Morris'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80',
+      quote: '"The space in which we live should be for the person we are becoming now, not for the person we were in the past."',
+      author: '— Marie Kondo'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
+      quote: '"Simplicity is the ultimate sophistication."',
+      author: '— Leonardo da Vinci'
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80',
+      quote: '"Your home should be the antidote to stress, not the cause of it."',
+      author: '— Peter Walsh'
+    },
+  ];
   const processingRequestFired = useRef(false);
   const sliderContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -167,6 +202,17 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
     fetchData();
     return () => { if (interval) clearInterval(interval); };
   }, [id, blobUrl]);
+
+  // Rotate loading slides every 6 seconds during processing
+  useEffect(() => {
+    if (data?.status !== 'processing') return;
+    
+    const slideInterval = setInterval(() => {
+      setLoadingSlideIndex((prev) => (prev + 1) % loadingSlides.length);
+    }, 6000);
+
+    return () => clearInterval(slideInterval);
+  }, [data?.status, loadingSlides.length]);
 
   const toggleAudio = () => {
     if (!audioRef.current || !data?.audioUrl) return;
@@ -677,13 +723,62 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
 
             <div className="relative aspect-[4/3] overflow-hidden">
               {data.status === 'processing' ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-secondary)]">
-                  <div className="text-center px-4">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[rgba(251,191,36,0.1)] flex items-center justify-center">
-                      <div className="w-6 h-6 border-2 border-[rgb(251,191,36)] border-t-transparent rounded-full animate-spin" />
+                <div className="absolute inset-0 overflow-hidden bg-[var(--color-bg-secondary)]">
+                  {/* Rotating background image */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={loadingSlideIndex}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.8 }}
+                      className="absolute inset-0"
+                    >
+                      <img
+                        src={loadingSlides[loadingSlideIndex].image}
+                        alt="Inspiring space"
+                        className="w-full h-full object-cover opacity-30"
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                  
+                  {/* Overlay content */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-gradient-to-t from-[var(--color-bg-primary)]/80 to-transparent">
+                    {/* Spinner */}
+                    <div className="w-10 h-10 mb-4 rounded-full border-2 border-[var(--color-accent)] border-t-transparent animate-spin" />
+                    
+                    {/* Quote */}
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={loadingSlideIndex}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.5 }}
+                        className="text-center max-w-sm"
+                      >
+                        <p className="text-[var(--color-text-primary)] text-sm italic mb-2 leading-relaxed">
+                          {loadingSlides[loadingSlideIndex].quote}
+                        </p>
+                        <p className="text-[var(--color-text-muted)] text-xs">
+                          {loadingSlides[loadingSlideIndex].author}
+                        </p>
+                      </motion.div>
+                    </AnimatePresence>
+                    
+                    {/* Progress dots */}
+                    <div className="flex gap-1.5 mt-6">
+                      {loadingSlides.map((_, i) => (
+                        <div
+                          key={i}
+                          className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+                            i === loadingSlideIndex ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-text-muted)]/30'
+                          }`}
+                        />
+                      ))}
                     </div>
-                    <p className="text-[var(--color-text-secondary)] text-sm mb-1">Generating...</p>
-                    <p className="text-[var(--color-text-muted)] text-xs">Your transformation is being created</p>
+                    
+                    <p className="text-[var(--color-text-muted)] text-xs mt-4">Creating your transformation...</p>
                   </div>
                 </div>
               ) : data.status === 'failed' || !data.afterImageUrl || afterImageError ? (
