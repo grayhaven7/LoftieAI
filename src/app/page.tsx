@@ -89,7 +89,6 @@ export default function Home() {
   // User controls
   const [creativityLevel, setCreativityLevel] = useState<'strict' | 'balanced' | 'creative'>('strict');
   const [keepItems, setKeepItems] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [browserId, setBrowserId] = useState<string>('');
   const [recentTransformations, setRecentTransformations] = useState<Array<{
     id: string;
@@ -606,79 +605,6 @@ export default function Home() {
                   placeholder="Email (optional — we'll send your plan)"
                   disabled={isProcessing}
                 />
-
-                {/* Advanced Options */}
-                <div className="border border-[var(--glass-border)] rounded-lg overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setShowAdvanced(!showAdvanced)}
-                    className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
-                    disabled={isProcessing}
-                  >
-                    <span>Advanced Options</span>
-                    <svg
-                      className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-
-                  {showAdvanced && (
-                    <div className="px-3 pb-3 space-y-3 border-t border-[var(--glass-border)]">
-                      {/* Creativity Level */}
-                      <div className="pt-3">
-                        <label className="block text-xs text-[var(--color-text-secondary)] mb-2">
-                          Transformation Style
-                        </label>
-                        <div className="flex gap-1">
-                          {(['strict', 'balanced', 'creative'] as const).map((level) => (
-                            <button
-                              key={level}
-                              type="button"
-                              onClick={() => setCreativityLevel(level)}
-                              disabled={isProcessing}
-                              className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
-                                creativityLevel === level
-                                  ? 'bg-[var(--color-accent)] text-white'
-                                  : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] hover:bg-[var(--color-bg-tertiary)]'
-                              }`}
-                            >
-                              {level === 'strict' ? 'Strict' : level === 'balanced' ? 'Balanced' : 'Creative'}
-                            </button>
-                          ))}
-                        </div>
-                        <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5">
-                          {creativityLevel === 'strict'
-                            ? 'Minimal changes - only removes obvious clutter'
-                            : creativityLevel === 'balanced'
-                            ? 'Removes clutter and tidies surfaces'
-                            : 'More styling freedom - may reorganize items'}
-                        </p>
-                      </div>
-
-                      {/* Keep Items */}
-                      <div>
-                        <label className="block text-xs text-[var(--color-text-secondary)] mb-2">
-                          Items to Keep (optional)
-                        </label>
-                        <input
-                          type="text"
-                          value={keepItems}
-                          onChange={(e) => setKeepItems(e.target.value)}
-                          placeholder="e.g., books on shelf, plant by window"
-                          disabled={isProcessing}
-                          className="text-xs"
-                        />
-                        <p className="text-[10px] text-[var(--color-text-muted)] mt-1.5">
-                          Describe specific items you want the AI to preserve
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
 
                 {isProcessing && (
                   <motion.div
