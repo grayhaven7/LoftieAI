@@ -130,11 +130,19 @@ export async function generateImageWithOpenRouter(
     });
   }
 
-  // Add the text prompt
+  // Add the text prompt - prefix with explicit edit instruction for image models
+  const editPrefix = inputImage
+    ? 'Edit this image according to the following instructions. You MUST output a modified version of the attached image, not the original. Apply all the changes described below:\n\n'
+    : '';
   content.push({
     type: 'text',
-    text: prompt
+    text: editPrefix + prompt
   });
+
+  // Log request details for debugging
+  const inputImageSize = inputImage ? Math.round(inputImage.length / 1024) : 0;
+  console.log(`OpenRouter request: model=${modelId}, hasInputImage=${!!inputImage}, inputImageSizeKB=${inputImageSize}, promptLength=${prompt.length}`);
+  console.log(`OpenRouter prompt preview: ${(editPrefix + prompt).substring(0, 200)}...`);
 
   const response = await withRetry(async () => {
     const res = await fetch(OPENROUTER_API_URL, {
@@ -209,6 +217,7 @@ export async function generateImageWithOpenRouter(
   if (message.images && message.images.length > 0) {
     const firstImage = message.images[0];
     if (firstImage.image_url?.url) {
+      console.log(`OpenRouter returned image via images array, size: ${Math.round(firstImage.image_url.url.length / 1024)}KB`);
       return firstImage.image_url.url;
     }
   }
@@ -220,6 +229,7 @@ export async function generateImageWithOpenRouter(
     // Find the image in the content array - check multiple formats
     for (const part of messageContent) {
       if (part.type === 'image_url' && part.image_url?.url) {
+        console.log(`OpenRouter returned image via content array, size: ${Math.round(part.image_url.url.length / 1024)}KB`);
         return part.image_url.url;
       }
       if (part.type === 'image' && part.image) {
@@ -235,12 +245,16 @@ export async function generateImageWithOpenRouter(
   } else if (typeof messageContent === 'string' && messageContent.length > 0) {
     // Some models return base64 directly in text or as a data URL
     if (messageContent.startsWith('data:image/')) {
+      console.log(`OpenRouter returned image as data URL string, size: ${Math.round(messageContent.length / 1024)}KB`);
       return messageContent;
     }
     // Check if it's raw base64 (long string with base64 chars)
     if (messageContent.length > 1000 && messageContent.match(/^[A-Za-z0-9+/]+=*$/)) {
+      console.log(`OpenRouter returned raw base64 image, size: ${Math.round(messageContent.length / 1024)}KB`);
       return `data:image/png;base64,${messageContent}`;
     }
+    // Log text responses that aren't images
+    console.log(`OpenRouter returned text response (not image): ${messageContent.substring(0, 200)}`);
   }
 
   console.error('Full OpenRouter response (could not extract image):', JSON.stringify(response, null, 2));

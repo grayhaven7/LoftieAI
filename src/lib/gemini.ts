@@ -187,7 +187,7 @@ function buildImageTransformationPrompt(
   // Adjust prompt based on creativity level
   const creativityLevel = options?.creativityLevel || 'strict';
   if (creativityLevel === 'strict') {
-    prompt += `\n\nCRITICAL: Be EXTREMELY conservative. Make the MINIMUM changes necessary to remove obvious clutter. The room should look nearly identical to the original.`;
+    prompt += `\n\nIMPORTANT: Keep the room layout, furniture, and decor identical. However, you MUST still remove all visible clutter items (clothes on floor, scattered papers, trash, loose items on surfaces) as described in the plan. The room should look like the same room after a thorough tidying - not identical to the input.`;
   } else if (creativityLevel === 'creative') {
     prompt += `\n\nYou may make more noticeable tidying changes, neatly arranging items on surfaces, but still keep all furniture and major elements exactly in place.`;
   }
@@ -220,7 +220,28 @@ export async function declutterImageWithGemini(
 
   // Get provider and model from settings
   const imageProvider: ImageProvider = currentSettings.models?.imageProvider || 'gemini';
-  const imageGenModel = currentSettings.models?.imageGeneration || 'gemini-2.0-flash-exp-image-generation';
+  let imageGenModel = currentSettings.models?.imageGeneration || 'gemini-2.0-flash-exp-image-generation';
+
+  // Migrate deprecated model IDs to their replacements
+  const modelMigrations: Record<string, string> = {
+    'google/gemini-2.5-flash-image-preview': 'google/gemini-2.5-flash-image',
+  };
+  if (modelMigrations[imageGenModel]) {
+    console.warn(`Migrating deprecated model "${imageGenModel}" to "${modelMigrations[imageGenModel]}"`);
+    imageGenModel = modelMigrations[imageGenModel];
+  }
+
+  // Validate that the model is actually an image generation model (not a text-only model)
+  const validGeminiImageModels = [
+    'gemini-2.5-flash-image',
+    'gemini-2.0-flash-exp-image-generation',
+    'imagen-3.0-generate-002',
+    'imagen-3.0-capability-001',
+  ];
+  if (imageProvider === 'gemini' && !validGeminiImageModels.includes(imageGenModel)) {
+    console.warn(`Invalid Gemini image generation model "${imageGenModel}", falling back to gemini-2.0-flash-exp-image-generation`);
+    imageGenModel = 'gemini-2.0-flash-exp-image-generation';
+  }
 
   // Build the full prompt
   const prompt = buildImageTransformationPrompt(

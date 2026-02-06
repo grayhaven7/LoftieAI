@@ -183,26 +183,24 @@ export const AVAILABLE_MODELS = {
   ],
   // Gemini models (used when imageProvider is 'gemini')
   imageGenerationGemini: [
+    { value: 'gemini-2.5-flash-image', label: 'Gemini 2.5 Flash Image (Nano Banana)' },
     { value: 'gemini-2.0-flash-exp-image-generation', label: 'Gemini 2.0 Flash Image Gen' },
-    { value: 'gemini-2.5-flash-preview-native-audio-dialog', label: 'Gemini 2.5 Flash Preview (Native)' },
     { value: 'imagen-3.0-generate-002', label: 'Imagen 3.0' },
     { value: 'imagen-3.0-capability-001', label: 'Imagen 3.0 (Editing)' },
-    { value: 'gemini-2.5-pro-preview-05-06', label: 'Gemini 2.5 Pro Preview' },
-    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
   ],
   // OpenRouter models (used when imageProvider is 'openrouter')
   imageGenerationOpenRouter: [
     // Google models via OpenRouter (image generation capable)
-    { value: 'google/gemini-2.5-flash-image', label: 'Gemini 2.5 Flash Image (Nano Banana)' },
-    { value: 'google/gemini-3-pro-image-preview', label: 'Gemini 3 Pro Image (Nano Banana Pro)' },
+    { value: 'google/gemini-2.5-flash-image', label: 'Nano Banana (Gemini 2.5 Flash)' },
+    { value: 'google/gemini-3-pro-image-preview', label: 'Nano Banana Pro (Gemini 3 Pro)' },
     // OpenAI models (image generation capable)
     { value: 'openai/gpt-5-image', label: 'GPT-5 Image' },
     { value: 'openai/gpt-5-image-mini', label: 'GPT-5 Image Mini' },
   ],
   // Combined list for backwards compatibility
   imageGeneration: [
+    { value: 'gemini-2.5-flash-image', label: 'Gemini 2.5 Flash Image (Nano Banana)' },
     { value: 'gemini-2.0-flash-exp-image-generation', label: 'Gemini 2.0 Flash Image Gen' },
-    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
   ],
   textAnalysis: [
     { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
