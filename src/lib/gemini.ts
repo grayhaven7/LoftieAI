@@ -227,6 +227,11 @@ function buildImageTransformationPrompt(
 ): string {
   let prompt = basePrompt;
 
+  // Append the decluttering plan so the model knows what specific items to clean
+  if (declutteringPlan) {
+    prompt += `\n\n${declutteringPlan}`;
+  }
+
   // Add keep items instruction if specified
   if (options?.keepItems) {
     prompt += `\n\nException: keep these items exactly as they are: "${options.keepItems}".`;
@@ -294,20 +299,9 @@ export async function declutterImageWithGemini(
     }
   }
 
-  // Use Gemini (direct API) with two-pass editing for better results
+  // Use Gemini (direct API)
   console.log(`Using Gemini direct API with model: ${imageGenModel}`);
   const model = getGeminiImageGen(imageGenModel);
-
-  // Helper: extract image from Gemini response
-  function extractImage(response: { candidates?: Array<{ content?: { parts?: Array<{ inlineData?: { mimeType: string; data: string } }> } }> }): { mimeType: string; data: string } {
-    const part = response.candidates?.[0]?.content?.parts?.find(
-      (p: { inlineData?: { mimeType: string; data: string } }) => p.inlineData?.mimeType?.startsWith('image/')
-    );
-    if (!part?.inlineData?.data) {
-      throw new Error('No image returned from Gemini Image Generation model');
-    }
-    return { mimeType: part.inlineData.mimeType || 'image/png', data: part.inlineData.data };
-  }
 
   // Remove data URL prefix if present
   const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
@@ -319,43 +313,34 @@ export async function declutterImageWithGemini(
     mimeType = mimeMatch[1];
   }
 
-  // PASS 1: Remove clutter from floors and surfaces
-  console.log('Pass 1: Removing clutter...');
-  const pass1Result = await withRetry(async () => {
+  // Single call with short, direct prompt — Gemini works best with concise editing instructions
+  console.log('Sending image with editing prompt...');
+  const result = await withRetry(async () => {
     return await model.generateContent([
-      { text: prompt },
       {
         inlineData: {
           mimeType,
           data: base64Data,
         },
       },
+      { text: prompt },
     ]);
   });
 
-  const pass1Image = extractImage(pass1Result.response);
-  console.log('Pass 1 complete. Starting pass 2...');
+  const response = result.response;
 
-  // PASS 2: Neaten remaining items (bedding, surfaces) using pass 1 output
-  const pass2Prompt = `Using the provided image, neatly make the bed and smooth out any bedding, straighten any remaining items on surfaces, and remove any clutter that was missed. Keep everything else in the image exactly the same, preserving the original style, lighting, and composition. Do not add any new items.`;
+  // Extract the image from the response
+  const imagePart = response.candidates?.[0]?.content?.parts?.find(
+    (part: { inlineData?: { mimeType: string; data: string } }) => part.inlineData?.mimeType?.startsWith('image/')
+  );
 
-  const pass2Result = await withRetry(async () => {
-    return await model.generateContent([
-      { text: pass2Prompt },
-      {
-        inlineData: {
-          mimeType: pass1Image.mimeType,
-          data: pass1Image.data,
-        },
-      },
-    ]);
-  });
-
-  const pass2Image = extractImage(pass2Result.response);
-  console.log('Pass 2 complete.');
+  if (!imagePart?.inlineData?.data) {
+    throw new Error('No image returned from Gemini Image Generation model');
+  }
 
   // Return as data URL
-  return `data:${pass2Image.mimeType};base64,${pass2Image.data}`;
+  const outputMimeType = imagePart.inlineData.mimeType || 'image/png';
+  return `data:${outputMimeType};base64,${imagePart.inlineData.data}`;
 }
 
 export { getGeminiClient };

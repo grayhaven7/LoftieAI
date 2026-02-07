@@ -161,11 +161,7 @@ Loftie should feel like: "A trusted home expert gently walking beside me — not
 
 Use only plain text. No HTML tags.`,
 
-  imageTransformation: `Using the provided image of a room, remove all clutter and mess from the floors and surfaces. Keep everything else in the image exactly the same, preserving the original style, lighting, and composition.
-
-Specifically remove: clothes on floors or furniture, shoes, bags, boxes, papers, trash, bottles, food containers, and any random items scattered around. Where there was clutter, show the clean floor or surface underneath.
-
-Do not add any new items, plants, or decorations. Do not change the furniture positions. Do not brighten the lighting.`,
+  imageTransformation: `Clean up this messy room. Remove all the clutter from the floors and surfaces. Show me what this exact room looks like after being thoroughly tidied up.`,
 };
 
 export const DEFAULT_MODELS: ModelSettings = {
