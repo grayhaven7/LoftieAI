@@ -45,9 +45,8 @@ async function compressImage(file: File, maxDimension: number = 1440, quality: n
         ctx.drawImage(img, 0, 0, width, height);
       }
 
-      // Convert to JPEG for better compression (unless PNG is needed for transparency)
-      const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-      const compressedDataUrl = canvas.toDataURL(mimeType, quality);
+      // Always use JPEG for room photos — PNG transparency is not needed and adds size
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
 
       // Check resulting size and compress more aggressively if needed
       const sizeInMB = (compressedDataUrl.length * 3) / 4 / (1024 * 1024); // Rough base64 to bytes conversion
@@ -256,8 +255,8 @@ export default function Home() {
 
     try {
       // Automatically compress and resize large images (especially from mobile)
-      // Targets 1-2MB max with 1920px max dimension
-      const compressedImage = await compressImage(file, 1920, 0.8);
+      // Targets ~0.8-1MB max with 1440px max dimension for faster upload and AI processing
+      const compressedImage = await compressImage(file, 1440, 0.75);
       setSelectedImage(compressedImage);
 
       // Log compression stats for debugging

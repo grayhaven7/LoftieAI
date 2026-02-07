@@ -644,7 +644,17 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
       <main className="max-w-2xl mx-auto px-4 py-8 sm:py-10">
         {/* Status */}
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-          {data.status === 'processing' ? (
+          {data.status === 'processing' && data.declutteringPlan ? (
+            <>
+              <span className="badge mb-3 inline-flex" style={{ background: 'rgba(251, 191, 36, 0.15)', color: 'rgb(251, 191, 36)' }}>
+                <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" /> Generating image
+              </span>
+              <h1 className="text-2xl sm:text-3xl text-[var(--color-text-primary)] tracking-tight mb-1">
+                Your plan is <span className="text-emphasis">ready</span>
+              </h1>
+              <p className="text-sm text-[var(--color-text-secondary)]">Read your plan below while we generate your transformation image...</p>
+            </>
+          ) : data.status === 'processing' ? (
             <>
               <span className="badge mb-3 inline-flex" style={{ background: 'rgba(251, 191, 36, 0.15)', color: 'rgb(251, 191, 36)' }}>
                 <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" /> Processing
@@ -778,7 +788,9 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                       ))}
                     </div>
                     
-                    <p className="text-[var(--color-text-muted)] text-xs mt-4">Creating your transformation...</p>
+                    <p className="text-[var(--color-text-muted)] text-xs mt-4">
+                      {data.declutteringPlan ? 'Generating your transformation image...' : 'Creating your transformation...'}
+                    </p>
                   </div>
                 </div>
               ) : data.status === 'failed' || !data.afterImageUrl || afterImageError ? (

@@ -78,7 +78,7 @@ export function getGeminiImageGen(modelName: string = 'gemini-2.0-flash-exp-imag
     model: modelName,
     generationConfig: isImagenModel ? undefined : {
       // @ts-expect-error - responseModalities is valid but not in types yet
-      responseModalities: ['Text', 'Image'],
+      responseModalities: ['TEXT', 'IMAGE'],
     },
   });
 }
@@ -175,6 +175,49 @@ export async function chatWithGemini(
 }
 
 /**
+ * Build the decluttering plan prompt with personalization and creativity adjustments.
+ * Shared by /api/transform (background pre-generation) and /api/process/[id] (fallback).
+ */
+export function buildPlanPrompt(
+  basePrompt: string,
+  options?: { firstName?: string; creativityLevel?: 'strict' | 'balanced' | 'creative'; keepItems?: string }
+): string {
+  let prompt = basePrompt;
+
+  const userName = options?.firstName || '';
+  if (userName) {
+    prompt = `The user's name is ${userName}. Address them by name warmly, e.g. "Hi ${userName}! Let's transform your space together."\n\n` + prompt;
+  }
+
+  const creativityLevel = options?.creativityLevel || 'strict';
+  if (creativityLevel === 'strict') {
+    prompt += `\n\nIMPORTANT: Be VERY conservative. Only suggest removing the most obvious clutter. Preserve as much as possible.`;
+  } else if (creativityLevel === 'creative') {
+    prompt += `\n\nYou have more flexibility to suggest tidying, reorganizing items on surfaces, and light styling while still keeping all furniture and major elements in place.`;
+  }
+
+  if (options?.keepItems) {
+    prompt += `\n\nUSER REQUEST - MUST PRESERVE: The user specifically wants to keep these items: "${options.keepItems}". Do NOT suggest removing or moving these items.`;
+  }
+
+  return prompt;
+}
+
+/**
+ * Generate a decluttering plan from an image and clean up the result.
+ * Shared by /api/transform (background pre-generation) and /api/process/[id] (fallback).
+ */
+export async function generateDeclutteringPlan(
+  imageUrl: string,
+  planPrompt: string
+): Promise<string> {
+  let plan = await analyzeImageWithGemini(imageUrl, planPrompt);
+  plan = plan.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, '');
+  plan = plan.replace(/([^\n])\s*(\d+\.\s)/g, '$1\n$2');
+  return plan;
+}
+
+/**
  * Build the full prompt for image transformation
  */
 function buildImageTransformationPrompt(
@@ -184,20 +227,23 @@ function buildImageTransformationPrompt(
 ): string {
   let prompt = basePrompt;
 
+  // Add the decluttering plan as specific required edits
+  if (declutteringPlan) {
+    prompt += `\n\nHere is exactly what to clean up in this specific room. You MUST do ALL of these:\n${declutteringPlan}`;
+  }
+
   // Adjust prompt based on creativity level
   const creativityLevel = options?.creativityLevel || 'strict';
   if (creativityLevel === 'strict') {
-    prompt += `\n\nIMPORTANT: Keep the room layout, furniture, and decor identical. However, you MUST still remove all visible clutter items (clothes on floor, scattered papers, trash, loose items on surfaces) as described in the plan. The room should look like the same room after a thorough tidying - not identical to the input.`;
+    prompt += `\n\nDo not stop until EVERY piece of clutter in EVERY part of the image has been removed. The entire room must be spotless.`;
   } else if (creativityLevel === 'creative') {
-    prompt += `\n\nYou may make more noticeable tidying changes, neatly arranging items on surfaces, but still keep all furniture and major elements exactly in place.`;
+    prompt += `\n\nYou may also neatly arrange remaining items on surfaces, but still keep all furniture and major elements exactly in place.`;
   }
 
   // Add keep items instruction if specified
   if (options?.keepItems) {
-    prompt += `\n\nUSER-SPECIFIED ITEMS TO PRESERVE: The user specifically wants to keep these items exactly as they are: "${options.keepItems}". These items must NOT be removed, moved, or changed in any way.`;
+    prompt += `\n\nEXCEPTION — keep these items exactly as they are: "${options.keepItems}". Do not remove or move them.`;
   }
-
-  prompt += `\n\nFollow this plan:\n${declutteringPlan || 'Tidy all items into neat arrangements on existing surfaces.'}`;
 
   return prompt;
 }
@@ -276,16 +322,16 @@ export async function declutterImageWithGemini(
   }
 
   // Use retry logic for rate limit handling
-  // Put image FIRST, then prompt - this helps with image editing tasks
+  // Put prompt FIRST, then image - Google docs say text before image for editing tasks
   const result = await withRetry(async () => {
     return await model.generateContent([
+      { text: prompt },
       {
         inlineData: {
           mimeType,
           data: base64Data,
         },
       },
-      prompt,
     ]);
   });
 

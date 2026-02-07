@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { Resend } from 'resend';
 import { getTransformation, saveImage, saveTransformation, saveAudio } from '@/lib/storage';
-import { declutterImageWithGemini, analyzeImageWithGemini } from '@/lib/gemini';
+import { declutterImageWithGemini, buildPlanPrompt, generateDeclutteringPlan } from '@/lib/gemini';
 import { getSettingsAsync } from '@/lib/settings';
 
 // Increase timeout for Vercel serverless functions
@@ -98,62 +98,52 @@ export async function POST(
       ? transformation.originalImageBase64 
       : `data:image/jpeg;base64,${transformation.originalImageBase64}`;
 
-    // STEP 1: Generate the decluttering plan FIRST
-    console.log(`Generating decluttering plan...`);
-    let planPrompt = settings.prompts.declutteringPlan;
-
-    // Personalize prompt with user's name if available
+    // STEP 1: Get or generate the decluttering plan
     const userName = transformation.firstName || '';
-    if (userName) {
-      planPrompt = `The user's name is ${userName}. Address them by name warmly, e.g. "Hi ${userName}! Let's transform your space together."\n\n` + planPrompt;
-    }
-
-    // Adjust prompt based on creativity level
     const creativityLevel = transformation.creativityLevel || 'strict';
-    if (creativityLevel === 'strict') {
-      planPrompt += `\n\nIMPORTANT: Be VERY conservative. Only suggest removing the most obvious clutter. Preserve as much as possible.`;
-    } else if (creativityLevel === 'creative') {
-      planPrompt += `\n\nYou have more flexibility to suggest tidying, reorganizing items on surfaces, and light styling while still keeping all furniture and major elements in place.`;
+    let declutteringPlan = transformation.declutteringPlan || '';
+
+    if (declutteringPlan) {
+      // Plan was pre-generated during /api/transform — skip the 10-20s wait
+      console.log(`Using pre-generated decluttering plan (${declutteringPlan.length} chars)`);
+    } else {
+      // Plan not ready yet — wait briefly in case background generation is still running
+      console.log(`Plan not pre-generated, waiting briefly...`);
+      for (let i = 0; i < 3; i++) {
+        await new Promise(r => setTimeout(r, 1000));
+        const fresh = await getTransformation(id, blobUrl);
+        if (fresh?.declutteringPlan) {
+          declutteringPlan = fresh.declutteringPlan;
+          console.log(`Plan arrived after ${i + 1}s wait (${declutteringPlan.length} chars)`);
+          break;
+        }
+      }
+
+      if (!declutteringPlan) {
+        // Fallback: generate the plan now
+        console.log(`Generating decluttering plan (fallback)...`);
+        const planPrompt = buildPlanPrompt(settings.prompts.declutteringPlan, {
+          firstName: userName || undefined,
+          creativityLevel,
+          keepItems: transformation.keepItems,
+        });
+        declutteringPlan = await generateDeclutteringPlan(imageUrl, planPrompt);
+        console.log(`Generated decluttering plan (${declutteringPlan.length} chars)`);
+      }
     }
 
-    // Add keep items instruction if specified
-    if (transformation.keepItems) {
-      planPrompt += `\n\nUSER REQUEST - MUST PRESERVE: The user specifically wants to keep these items: "${transformation.keepItems}". Do NOT suggest removing or moving these items.`;
-    }
+    // Save plan immediately so client can display it while image generates (progressive results)
+    transformation.declutteringPlan = declutteringPlan;
+    await saveTransformation(transformation);
+    console.log(`Saved plan for ${id}, proceeding to image generation...`);
 
-    let declutteringPlan = await analyzeImageWithGemini(imageUrl, planPrompt);
-    
-    // Clean up any potential HTML tags just in case
-    declutteringPlan = declutteringPlan.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?[^>]+(>|$)/g, "");
-    
-    // Ensure numbered steps have newlines before them for consistent parsing
-    declutteringPlan = declutteringPlan.replace(/([^\n])\s*(\d+\.\s)/g, '$1\n$2');
-    
-    console.log(`Generated decluttering plan (${declutteringPlan.length} chars)`);
+    // STEP 2: Generate image + TTS in PARALLEL (TTS only needs the plan, not the image)
+    console.log(`Starting image generation and TTS in parallel...`);
 
-    // STEP 2: Generate the organized room image based on the decluttering plan
-    console.log(`Calling Gemini to generate organized room based on plan...`);
-    const declutteredImageBase64 = await declutterImageWithGemini(imageUrl, declutteringPlan, {
-      creativityLevel,
-      keepItems: transformation.keepItems,
-      settings, // Pass fresh settings to ensure latest prompts are used
-    });
-    console.log(`Gemini returned organized room image`);
-    
-    // Run image save and TTS generation in PARALLEL for speed
-    console.log(`Starting parallel save operations...`);
-
-    const saveImagePromise = saveImage(
-      declutteredImageBase64,
-      `after-${id}-${timestamp}.png`
-    );
-
-    // Generate TTS audio in parallel with image save
     const ttsPromise = (async () => {
       if (!declutteringPlan) return '';
       try {
         console.log(`Generating TTS audio...`);
-        // Personalize TTS with user's name
         const ttsInput = userName
           ? `Hi ${userName}! Here's your personalized decluttering plan. ${declutteringPlan}`
           : declutteringPlan;
@@ -174,9 +164,22 @@ export async function POST(
       }
     })();
 
-    // Wait for both to complete
+    console.log(`Calling Gemini to generate organized room based on plan...`);
+    const declutteredImageBase64 = await declutterImageWithGemini(imageUrl, declutteringPlan, {
+      creativityLevel,
+      keepItems: transformation.keepItems,
+      settings,
+    });
+    console.log(`Gemini returned organized room image`);
+
+    // Save image and wait for TTS to complete
+    const saveImagePromise = saveImage(
+      declutteredImageBase64,
+      `after-${id}-${timestamp}.png`
+    );
+
     const [afterImageUrl, audioUrl] = await Promise.all([saveImagePromise, ttsPromise]);
-    console.log(`Parallel save completed. Image: ${afterImageUrl}, Audio: ${audioUrl || 'none'}`);
+    console.log(`Parallel operations completed. Image: ${afterImageUrl}, Audio: ${audioUrl || 'none'}`);
 
     if (!afterImageUrl) {
       throw new Error('Failed to save organized image');
