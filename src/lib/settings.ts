@@ -161,21 +161,11 @@ Loftie should feel like: "A trusted home expert gently walking beside me — not
 
 Use only plain text. No HTML tags.`,
 
-  imageTransformation: `Edit this photo. This room is messy. Clean up EVERY single item of clutter in the ENTIRE image — not just part of it.
+  imageTransformation: `Using the provided image of a room, remove all clutter and mess from the floors and surfaces. Keep everything else in the image exactly the same, preserving the original style, lighting, and composition.
 
-Do ALL of these edits across the ENTIRE photo, left to right, top to bottom:
-• Remove ALL clothes from floors, beds, chairs, and furniture
-• Remove ALL shoes, bags, and boxes from the floor
-• Remove ALL papers, mail, and magazines from every surface
-• Remove ALL trash, bottles, and food containers
-• Remove ALL random loose items from every surface and the floor
-• Smooth and neatly make the bed if visible (same bedding, just tidy)
-• Every inch of floor should be completely clear
-• Every surface (desks, tables, nightstands, dressers) should be clear
+Specifically remove: clothes on floors or furniture, shoes, bags, boxes, papers, trash, bottles, food containers, and any random items scattered around. Where there was clutter, show the clean floor or surface underneath.
 
-The ENTIRE room must be cleaned, not just the center or one area. Check every corner, every surface, every part of the floor. If you can see clutter anywhere in the image, remove it.
-
-Keep the same room, same angle, same furniture positions, same lighting. Do not add new items or decorations.`,
+Do not add any new items, plants, or decorations. Do not change the furniture positions. Do not brighten the lighting.`,
 };
 
 export const DEFAULT_MODELS: ModelSettings = {
