@@ -22,6 +22,10 @@ export interface RoomTransformation {
   feedbackHelpful?: boolean | null; // Was this transformation helpful?
   feedbackComment?: string; // User's feedback comment
   feedbackSubmittedAt?: string; // When feedback was submitted
+  // Email tracking
+  emailSentAt?: string; // When the email was sent
+  emailOpenedAt?: string; // When the email was first opened
+  emailOpenCount?: number; // Number of times the email was opened
 }
 
 export interface TransformationRequest {

@@ -313,7 +313,9 @@ export async function declutterImageWithGemini(
     mimeType = mimeMatch[1];
   }
 
-  // Single call with short, direct prompt — Gemini works best with concise editing instructions
+  // Single call with editing-focused prompt
+  // Note: When an input image is provided, the model should edit it rather than generate new
+  // The prompt emphasizes this to prevent the model from creating a new room from scratch
   console.log('Sending image with editing prompt...');
   const result = await withRetry(async () => {
     return await model.generateContent([

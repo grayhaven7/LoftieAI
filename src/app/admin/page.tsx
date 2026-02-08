@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, RefreshCw, ExternalLink, Image as ImageIcon, Settings } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ExternalLink, Image as ImageIcon, Settings, Mail } from 'lucide-react';
 import Link from 'next/link';
 
 interface TransformationRecord {
@@ -12,6 +12,9 @@ interface TransformationRecord {
   userEmail?: string;
   createdAt: string;
   status: 'processing' | 'completed' | 'failed';
+  emailSentAt?: string;
+  emailOpenedAt?: string;
+  emailOpenCount?: number;
 }
 
 export default function AdminPage() {
@@ -78,6 +81,17 @@ export default function AdminPage() {
       hour: 'numeric',
       minute: '2-digit',
     });
+  };
+
+  const getEmailStatus = (t: TransformationRecord) => {
+    if (!t.userEmail) return null;
+    if (!t.emailSentAt) return { label: 'Not Sent', color: 'text-gray-400', bg: 'bg-gray-400/10' };
+    if (t.emailOpenedAt) return { 
+      label: `Opened ${t.emailOpenCount && t.emailOpenCount > 1 ? `(${t.emailOpenCount}x)` : ''}`, 
+      color: 'text-green-400', 
+      bg: 'bg-green-400/10' 
+    };
+    return { label: 'Sent', color: 'text-blue-400', bg: 'bg-blue-400/10' };
   };
 
   // Only show completed transformations in the main list
@@ -168,55 +182,85 @@ export default function AdminPage() {
                       <th className="w-16">Preview</th>
                       <th>ID</th>
                       <th>Email</th>
+                      <th>Status</th>
                       <th>Date</th>
                       <th className="w-12"></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {completedTransformations.map((t) => (
-                      <tr key={t.id}>
-                        <td>
-                          <img src={t.afterImageUrl} alt="" className="w-12 h-8 object-cover rounded" />
-                        </td>
-                        <td>
-                          <code className="text-xs text-[var(--color-text-muted)]">{t.id.slice(0, 10)}...</code>
-                        </td>
-                        <td className="text-sm text-[var(--color-text-secondary)]">{t.userEmail || '—'}</td>
-                        <td className="text-sm text-[var(--color-text-muted)]">{formatDate(t.createdAt)}</td>
-                        <td>
-                          <Link href={`/results/${t.id}`} className="btn-icon w-8 h-8">
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
+                    {completedTransformations.map((t) => {
+                      const emailStatus = getEmailStatus(t);
+                      return (
+                        <tr key={t.id}>
+                          <td>
+                            <img src={t.afterImageUrl} alt="" className="w-12 h-8 object-cover rounded" />
+                          </td>
+                          <td>
+                            <code className="text-xs text-[var(--color-text-muted)]">{t.id.slice(0, 10)}...</code>
+                          </td>
+                          <td>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-sm text-[var(--color-text-secondary)]">{t.userEmail || '—'}</span>
+                              {emailStatus && (
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full ${emailStatus.bg} ${emailStatus.color} w-fit`}>
+                                  {emailStatus.label}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              t.status === 'completed' ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' :
+                              t.status === 'processing' ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]' :
+                              'bg-red-500/10 text-red-400'
+                            }`}>
+                              {t.status}
+                            </span>
+                          </td>
+                          <td className="text-sm text-[var(--color-text-muted)]">{formatDate(t.createdAt)}</td>
+                          <td>
+                            <Link href={`/results/${t.id}`} className="btn-icon w-8 h-8">
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
               {/* Mobile */}
               <div className="md:hidden space-y-3">
-                {completedTransformations.map((t, i) => (
-                  <motion.div
-                    key={t.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="card p-3"
-                  >
-                    <div className="flex gap-3 items-center">
-                      <img src={t.afterImageUrl} alt="" className="w-14 h-10 object-cover rounded flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <code className="text-xs text-[var(--color-text-muted)] block truncate">{t.id.slice(0, 14)}...</code>
-                        {t.userEmail && <p className="text-xs text-[var(--color-text-secondary)] truncate">{t.userEmail}</p>}
-                        <p className="text-xs text-[var(--color-text-muted)]">{formatDate(t.createdAt)}</p>
+                {completedTransformations.map((t, i) => {
+                  const emailStatus = getEmailStatus(t);
+                  return (
+                    <motion.div
+                      key={t.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.03 }}
+                      className="card p-3"
+                    >
+                      <div className="flex gap-3 items-center">
+                        <img src={t.afterImageUrl} alt="" className="w-14 h-10 object-cover rounded flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <code className="text-xs text-[var(--color-text-muted)] block truncate">{t.id.slice(0, 14)}...</code>
+                          {t.userEmail && <p className="text-xs text-[var(--color-text-secondary)] truncate">{t.userEmail}</p>}
+                          {emailStatus && (
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${emailStatus.bg} ${emailStatus.color} inline-block mt-1`}>
+                              {emailStatus.label}
+                            </span>
+                          )}
+                          <p className="text-xs text-[var(--color-text-muted)] mt-1">{formatDate(t.createdAt)}</p>
+                        </div>
+                        <Link href={`/results/${t.id}`} className="btn-icon">
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
                       </div>
-                      <Link href={`/results/${t.id}`} className="btn-icon">
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  );
+                })}
               </div>
             </>
           )}

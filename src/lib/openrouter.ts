@@ -132,7 +132,7 @@ export async function generateImageWithOpenRouter(
 
   // Add the text prompt - prefix with explicit edit instruction for image models
   const editPrefix = inputImage
-    ? 'Edit this image according to the following instructions. You MUST output a modified version of the attached image, not the original. Apply all the changes described below:\n\n'
+    ? 'CRITICAL: You MUST edit the attached image, NOT generate a new one. Keep the EXACT same camera angle, perspective, walls, furniture positions, and room layout. This is a PHOTO EDITING task - remove objects from THIS specific photo like content-aware fill in Photoshop. DO NOT create a new room from scratch.\n\n'
     : '';
   content.push({
     type: 'text',

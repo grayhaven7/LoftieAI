@@ -161,42 +161,49 @@ Loftie should feel like: "A trusted home expert gently walking beside me — not
 
 Use only plain text. No HTML tags.`,
 
-  imageTransformation: `You are a professional home organizer editing this room photo. Your task is to remove ONLY clutter items while preserving the exact room structure.
+  imageTransformation: `EDIT THIS PHOTO by digitally removing clutter. DO NOT generate a new room - you must keep the EXACT same room, same angle, same camera perspective, same walls, same everything.
 
-CRITICAL - MUST PRESERVE (do not remove, alter, or change):
-• All walls, floors, ceilings, and architectural features
-• All windows, doors, and their frames
-• All furniture: beds, sofas, chairs, tables, desks, dressers, shelves, cabinets
-• All built-in fixtures: closets, lighting, outlets, vents
-• All large decor: curtains, blinds, rugs, wall art, mirrors, plants
-• All bedding: sheets, blankets, comforters, pillows on beds
-• The overall room layout, lighting, and perspective
+This is a PHOTO EDITING task, like using Photoshop's content-aware fill. You are removing objects from this specific photograph, not creating a new image.
 
-REMOVE ONLY:
-• Clothing scattered on floors, beds, or furniture surfaces (except items hanging properly in closets or on hooks)
-• Loose papers, documents, and mail on surfaces
-• Food items, dishes, cups, bottles, and food wrappers
-• Trash, empty containers, and obvious garbage
-• Bags, backpacks, and luggage sitting out
-• Shoes and accessories scattered around (but keep shoe racks/organizers if present)
-• Toys and small items not properly stored
-• Cables and chargers lying loose
-• Makeup, toiletries, and personal items left out on surfaces
+CRITICAL RULES:
+1. The camera angle, position, and perspective MUST stay EXACTLY the same
+2. All walls, windows, doors must be in the EXACT same position 
+3. All furniture must stay in the EXACT same location
+4. The room architecture and layout must be IDENTICAL
+5. Lighting and shadows must remain consistent with the original photo
+6. Only remove the clutter items listed below - nothing else
 
-TIDY AND ORGANIZE (don't remove, just organize):
-• Books on shelves should be neatly aligned
-• Items on desks should be organized in an orderly fashion
-• Closet contents should appear neat if visible
-• Items on nightstands should be minimally arranged
+MUST KEEP EXACTLY AS-IS:
+• Every wall, floor, ceiling - exact same position and color
+• Every window and door - exact same location
+• Every piece of furniture: beds, sofas, chairs, tables, desks, dressers, shelves, cabinets - same spot
+• All bedding: sheets, blankets, pillows on beds
+• Curtains, blinds, rugs, wall art, mirrors, large plants
+• Built-in fixtures: closets, lighting, outlets, vents
+• The room's dimensions, proportions, and perspective
 
-OUTPUT REQUIREMENTS:
-• The room must remain the exact same room with identical architecture
-• All permanent features and furniture must stay exactly where they are
-• The lighting, angle, and perspective must remain unchanged
-• Only clutter items should be missing - the room should look like someone spent time organizing it, not like it was redesigned
-• The style and character of the room should be preserved completely
+DIGITALLY REMOVE ONLY THESE CLUTTER ITEMS:
+• Clothing scattered on floors or draped on furniture (keep closet/drawer contents)
+• Papers, documents, mail lying on surfaces
+• Dishes, cups, bottles, food items, wrappers
+• Trash, empty containers, garbage
+• Bags, backpacks, luggage sitting out
+• Shoes scattered around (not on racks)
+• Toys not put away
+• Loose cables and chargers
+• Personal items left out (makeup, toiletries)
 
-Generate the cleaned-up version of this exact room with only the clutter removed.`,
+EDITING TECHNIQUE:
+When you remove clutter items, fill in the space naturally - show the floor/surface that was underneath. Don't leave blank spots. Make it look like the item was never there.
+
+FINAL CHECK:
+✓ Same room? Same walls? Same angle? Same furniture positions? Same window/door locations?
+✓ Only removed small clutter items?
+✓ Room structure unchanged?
+If YES to all → output the edited photo
+If NO to any → you're generating instead of editing - start over
+
+Return the edited version of THIS EXACT photo with clutter digitally removed.`,
 };
 
 export const DEFAULT_MODELS: ModelSettings = {

@@ -252,6 +252,8 @@ export async function POST(
                   <p>Made with 💚 by Loftie AI</p>
                 </div>
               </div>
+              <!-- Tracking Pixel -->
+              <img src="${baseUrl}/api/track-email/${id}${transformation.blobUrl ? `?blobUrl=${encodeURIComponent(transformation.blobUrl)}` : ''}" width="1" height="1" alt="" style="display: block; width: 1px; height: 1px;" />
             </body>
             </html>
           `,
@@ -261,6 +263,9 @@ export async function POST(
           console.error('Resend error:', result.error);
         } else {
           console.log(`Email sent successfully for transformation ${id}: ${result.data?.id}`);
+          // Update transformation with email sent timestamp
+          transformation.emailSentAt = new Date().toISOString();
+          await saveTransformation(transformation);
         }
       } catch (emailError) {
         console.error('Failed to send email:', emailError);

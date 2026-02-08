@@ -108,6 +108,8 @@ export async function POST(request: NextRequest) {
               <p style="margin-top: 8px;">Transform your space, transform your life</p>
             </div>
           </div>
+          <!-- Tracking Pixel -->
+          <img src="${baseUrl}/api/track-email/${transformation.id}${transformation.blobUrl ? `?blobUrl=${encodeURIComponent(transformation.blobUrl)}` : ''}" width="1" height="1" alt="" style="display: block; width: 1px; height: 1px;" />
         </body>
         </html>
       `,
@@ -116,6 +118,10 @@ export async function POST(request: NextRequest) {
     if (result.error) {
       throw new Error(result.error.message);
     }
+
+    // Update transformation with email sent timestamp
+    transformation.emailSentAt = new Date().toISOString();
+    await saveTransformation(transformation);
 
     console.log('Email sent successfully:', result);
     return NextResponse.json({ success: true, emailId: result.data?.id });
