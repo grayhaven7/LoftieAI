@@ -161,7 +161,42 @@ Loftie should feel like: "A trusted home expert gently walking beside me — not
 
 Use only plain text. No HTML tags.`,
 
-  imageTransformation: `Clean up this messy room. Remove all the clutter from the floors and surfaces. Show me what this exact room looks like after being thoroughly tidied up.`,
+  imageTransformation: `You are a professional home organizer editing this room photo. Your task is to remove ONLY clutter items while preserving the exact room structure.
+
+CRITICAL - MUST PRESERVE (do not remove, alter, or change):
+• All walls, floors, ceilings, and architectural features
+• All windows, doors, and their frames
+• All furniture: beds, sofas, chairs, tables, desks, dressers, shelves, cabinets
+• All built-in fixtures: closets, lighting, outlets, vents
+• All large decor: curtains, blinds, rugs, wall art, mirrors, plants
+• All bedding: sheets, blankets, comforters, pillows on beds
+• The overall room layout, lighting, and perspective
+
+REMOVE ONLY:
+• Clothing scattered on floors, beds, or furniture surfaces (except items hanging properly in closets or on hooks)
+• Loose papers, documents, and mail on surfaces
+• Food items, dishes, cups, bottles, and food wrappers
+• Trash, empty containers, and obvious garbage
+• Bags, backpacks, and luggage sitting out
+• Shoes and accessories scattered around (but keep shoe racks/organizers if present)
+• Toys and small items not properly stored
+• Cables and chargers lying loose
+• Makeup, toiletries, and personal items left out on surfaces
+
+TIDY AND ORGANIZE (don't remove, just organize):
+• Books on shelves should be neatly aligned
+• Items on desks should be organized in an orderly fashion
+• Closet contents should appear neat if visible
+• Items on nightstands should be minimally arranged
+
+OUTPUT REQUIREMENTS:
+• The room must remain the exact same room with identical architecture
+• All permanent features and furniture must stay exactly where they are
+• The lighting, angle, and perspective must remain unchanged
+• Only clutter items should be missing - the room should look like someone spent time organizing it, not like it was redesigned
+• The style and character of the room should be preserved completely
+
+Generate the cleaned-up version of this exact room with only the clutter removed.`,
 };
 
 export const DEFAULT_MODELS: ModelSettings = {
