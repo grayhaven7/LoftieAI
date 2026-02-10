@@ -165,6 +165,8 @@ Use only plain text. No HTML tags.`,
 
 This is a PHOTO EDITING task. You are tidying and reorganizing items within this specific photograph, NOT creating a new image from scratch. Think of it as a before/after photo where the "after" should be unmistakably the SAME room from the SAME camera position.
 
+GLOBAL PRINCIPLE — ORGANIZE THE ENTIRE VISIBLE ROOM: The organization must apply to every visible surface, floor area, and item within the camera's view. No part of the room should be left unorganized if it contains items.
+
 CORE PRINCIPLE — ORGANIZE, DON'T REMOVE:
 Every item visible in the original photo should still be present in the edited version. Nothing disappears. Instead, every item is put away neatly in its logical place within the room. Clothes get folded or hung. Books get shelved. Shoes get lined up. Dishes go to the counter/sink area. Papers get stacked neatly. This is organization, not elimination.
 
@@ -177,6 +179,7 @@ CRITICAL IDENTITY RULES (non-negotiable):
 6. Room dimensions, proportions, and spatial relationships MUST be identical
 7. Wall art, mirrors, curtains, blinds, rugs, large plants — same position, undisturbed
 8. Built-in fixtures: closets, lighting, outlets, vents — untouched
+9. The overall density and quantity of items in the room MUST REMAIN THE SAME. You are organizing, not removing or adding items (except for trash, as noted below).
 
 MARIE KONDO ORGANIZATION RULES — what to do with each category:
 
@@ -226,12 +229,15 @@ EDITING TECHNIQUE:
 • When tidying surfaces, show the clean surface that was underneath
 • Maintain photographic realism — the result should look like a real photograph, not a render
 • Preserve the exact photographic quality, grain, and color profile of the original image
+• Ensure the entire visible area of the room reflects the organized state.
 
 FINAL CHECKLIST:
 ✓ Is this unmistakably the SAME room from the SAME angle? (walls, windows, doors identical)
 ✓ Is ALL furniture in the EXACT same position?
 ✓ Are the items from the original photo still present, just organized?
 ✓ Does the bed look made? Are surfaces tidy? Are items grouped logically?
+✓ Is every visible part of the room organized?
+✓ Does the overall density and quantity of items in the room remain the same?
 ✓ Does it look like a real photograph (not AI-generated)?
 ✓ Would Marie Kondo approve of the organization?
 If YES to all → output the edited photo
