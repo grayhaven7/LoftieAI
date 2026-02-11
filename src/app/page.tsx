@@ -398,8 +398,12 @@ export default function Home() {
             <span className="text-emphasis">design</span> your life.
           </h1>
           
-          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto">
+          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-3">
             Upload a photo. Get a vision of your space, clutter-free.
+          </p>
+
+          <p className="text-xs sm:text-sm text-[var(--color-accent)] max-w-md mx-auto italic">
+            Created by a professional home stager & decluttering expert who understands how overwhelming clutter can feel and how to tackle it.
           </p>
         </motion.div>
         
