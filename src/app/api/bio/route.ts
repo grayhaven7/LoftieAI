@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server';
 import { getSettingsAsync } from '@/lib/settings';
 
-// Cache bio data for 1 hour (rarely changes)
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const settings = await getSettingsAsync();
+    const settings = await getSettingsAsync(true);
 
     return NextResponse.json(
       { bio: settings.bio },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+          'Cache-Control': 'no-store, max-age=0',
         },
       }
     );
