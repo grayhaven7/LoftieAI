@@ -402,7 +402,7 @@ export default function Home() {
             Upload a photo. Get a vision of your space, clutter-free.
           </p>
 
-          <p className="text-xs sm:text-sm text-[var(--color-accent)] max-w-md mx-auto italic">
+          <p className="text-xs sm:text-sm text-[var(--color-accent-muted)] max-w-md mx-auto italic">
             Created by a professional home stager & decluttering expert who understands how overwhelming clutter can feel and how to tackle it.
           </p>
         </motion.div>
