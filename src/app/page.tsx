@@ -402,7 +402,7 @@ export default function Home() {
             Upload a photo. Get a vision of your space, clutter-free.
           </p>
 
-          <p className="text-xs sm:text-sm text-[var(--color-accent-muted)] max-w-md mx-auto italic">
+          <p className="text-xs sm:text-sm text-[#6b7c5d] max-w-md mx-auto italic">
             Created by a professional home stager & decluttering expert who understands how overwhelming clutter can feel and how to tackle it.
           </p>
         </motion.div>
@@ -718,6 +718,36 @@ export default function Home() {
           <p className="text-sm text-[var(--color-text-secondary)]">
             Three simple steps to your dream space
           </p>
+        </motion.div>
+
+        {/* Before/After Demo Slider */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-12"
+        >
+          <div className="max-w-lg mx-auto">
+            <h3 className="text-center text-base text-[var(--color-text-primary)] font-medium mb-4">
+              See the transformation
+            </h3>
+            <div className="relative overflow-hidden rounded-lg border border-[var(--glass-border)]">
+              {/* Placeholder for before/after slider - needs actual images from Sejal */}
+              <div className="relative aspect-[4/3] bg-[var(--color-bg-secondary)] flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-sm text-[var(--color-text-muted)] mb-2">
+                    Interactive Before/After Demo
+                  </p>
+                  <p className="text-xs text-[var(--color-accent)]">
+                    Coming Soon: Sejal's red suitcase room transformation
+                  </p>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-center text-[var(--color-text-muted)] mt-3">
+              Drag the slider to see the difference
+            </p>
+          </div>
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
