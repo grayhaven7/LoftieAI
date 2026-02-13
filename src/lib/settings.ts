@@ -32,7 +32,7 @@ export interface AppSettings {
 
 // Default prompts based on current codebase
 export const DEFAULT_PROMPTS: PromptSettings = {
-  roomDetection: `Is this an image of a room, kitchen, bathroom, bedroom, living space, office, or any indoor/outdoor residential area? Answer with 'yes' if it is a room/living space, and 'no' if it is anything else (like a person, an object, a landscape with no buildings, a document, etc.). Answer with only the word 'yes' or 'no'.`,
+  roomDetection: `Is this an image of a room, kitchen, bathroom, bedroom, living space, office, closet, bookshelf, pantry, garage, basement, attic, or any indoor/outdoor residential area that can be organized and decluttered? Answer with 'yes' if it is a room/living space/storage area that contains items that could be organized, and 'no' if it is anything else (like a person, an object, a landscape with no buildings, a document, etc.). Answer with only the word 'yes' or 'no'.`,
   
   declutteringPlan: `You are Loftie — a calm, warm, supportive home decluttering guide.
 
@@ -161,82 +161,84 @@ Loftie should feel like: "A trusted home expert gently walking beside me — not
 
 Use only plain text. No HTML tags.`,
 
-  imageTransformation: `EDIT THIS PHOTO to show the same room after a thorough professional cleaning and organizing session — as if Marie Kondo and a professional cleaning crew spent hours transforming this space. The result should be a DRAMATICALLY cleaner, more organized version of this SAME room.
+  imageTransformation: `TRANSFORM THIS PHOTO.
 
-This is a PHOTO EDITING task — you are cleaning up and organizing this specific room, NOT generating a new room. The "after" must be unmistakably the SAME room from the SAME camera position, but visibly transformed.
+This is a PHOTO EDITING task — not a new image generation task.
 
-ROOM IDENTITY (keep these the same):
-• Same camera angle, perspective, and field of view
-• Same walls, ceiling, floor, windows, doors, and architectural features
-• Same furniture in the same positions (beds, sofas, chairs, tables, desks, dressers, shelves, cabinets)
-• Same lighting direction and color temperature
-• Same wall art, mirrors, curtains, blinds, rugs, large plants
-• Same built-in fixtures (closets, lighting, outlets, vents)
+You must show the SAME room from the SAME camera angle, SAME walls, SAME furniture placement, SAME lighting — but professionally decluttered, deeply cleaned, and beautifully organized.
 
-CLEANING GOAL — MAKE A VISIBLE DIFFERENCE:
-The edited photo should look NOTICEABLY cleaner and more organized than the original. Someone comparing before and after should immediately see the improvement. Clear the clutter, clean the surfaces, organize what remains. The room should feel calm, spacious, and well-maintained.
+The before and after must be clearly and immediately different at a glance.
 
-WHAT TO CLEAN UP AND ORGANIZE:
+CORE RULE: ORGANIZE AND CLEAN — DO NOT REDESIGN.
+
+KEEP EXACTLY THE SAME:
+• Walls, ceiling, flooring, windows, doors
+• All furniture pieces in the exact same position and orientation
+• Camera angle, lens perspective, crop, and framing
+• Lighting direction, color tone, and shadows
+• Architectural features and built-ins
+
+REMOVE OR RELOCATE ALL CLUTTER:
 
 FLOORS:
-• Clear all items off the floor — clothes, bags, shoes, toys, papers, boxes, random objects
-• Clothes → folded and placed in drawers, closet, or in a neat pile on a chair
-• Shoes → lined up neatly by the door or in the closet area
-• Bags/backpacks → placed upright against a wall or hung on a hook
-• Toys → gathered into a bin, shelf, or neat corner arrangement
-• The floor should be mostly clear and visible
+• Remove ALL loose items from the floor (clothes, shoes, bags, papers, boxes, random objects)
+• Floors should appear fully clear and clean
+• Only rugs, furniture legs, or intentional floor decor may remain
 
-SURFACES (desks, counters, nightstands, tables):
-• Remove excessive clutter from all surfaces — they should look clean with only a few intentional items
-• Papers and mail → stacked into one small neat pile or removed from the surface
-• Dishes, cups, bottles → moved to kitchen area or removed from bedroom/living surfaces
-• Toiletries and makeup → grouped neatly in one spot on the bathroom counter
-• Cables and chargers → coiled neatly or tucked away
-• Keep only purposeful items on surfaces: a lamp, a small plant, a book, a clock
+SURFACES (DESKS, TABLES, COUNTERS, NIGHTSTANDS):
+• Remove all clutter and non-essential items
+• Leave only intentional, neatly arranged items that logically belong (maximum 1–3 per surface)
+• No loose papers, cups, bottles, wrappers, or random objects
+• Surfaces should look wiped down and breathable — not sterile, but calm and curated
 
-BEDDING:
-• Unmade beds → fully made: sheets smooth, comforter/duvet pulled up evenly, pillows arranged neatly at the head
-• Tangled blankets → straightened, smoothed, or folded at the foot of the bed
+SHELVES & BOOKCASES:
+• Stand books upright and aligned neatly
+• Remove excess stacking or overcrowding
+• Group small items together intentionally
+• Remove random loose papers or objects
+• Shelves should look curated, not stuffed
 
-SOFT ITEMS:
-• Blankets and throws → folded neatly and draped over sofa arm or foot of bed
-• Pillows → fluffed and arranged symmetrically
-• Towels → folded and hung on a rack or removed from random surfaces
+BEDS:
+• Fully made with smooth sheets
+• Comforter pulled up evenly
+• Pillows fluffed and arranged symmetrically
+• No clothes or random items on the bed
 
-CLUTTER AND TRASH:
-• Remove all obvious trash: wrappers, used tissues, empty cans/bottles, crumpled papers, food containers, packaging
-• Remove excessive random items that create visual chaos
-• Consolidate scattered items of the same type into one organized spot
-• Items without a clear home → put away or removed from view
+SOFT FURNISHINGS:
+• Blankets folded neatly or draped intentionally
+• Pillows arranged cleanly and symmetrically
+• Towels folded or hung properly
 
-BOOKS & PAPERS:
-• Books scattered around → stood upright on shelves or stacked neatly on one surface
-• Magazines → stacked neatly or removed from random surfaces
+TRASH & VISUAL CHAOS:
+• Remove visible garbage entirely
+• Remove random packaging and broken items
+• Eliminate visual clutter that makes the space feel chaotic
 
-OVERALL TRANSFORMATION PRIORITIES:
-1. Clear the floors — this makes the biggest visual impact
-2. Clean and declutter all surfaces — counters, desks, tables, nightstands should look tidy
-3. Make beds and straighten soft furnishings
-4. Group remaining items logically and neatly
-5. The room should feel like it went from "lived-in chaos" to "professionally organized"
+IMPORTANT:
+• Every removed item must either be logically put away (closet, drawer, cabinet) or removed if trash
+• Do NOT add new furniture or decor
+• Do NOT change paint colors, flooring, or layout
+• Do NOT redesign — only declutter and professionally organize
 
-EDITING TECHNIQUE:
-• Maintain photographic realism — the result must look like a real photograph, not an AI render
-• Preserve the exact photographic quality, grain, color profile, and lighting of the original
-• When clearing surfaces or floors, show the clean surface beneath naturally
-• Ensure proper shadows and perspective for any repositioned items
+THE RESULT SHOULD FEEL LIKE:
+• A professional organizer and cleaning crew just finished
+• Calm, breathable, intentional
+• Realistic and warm — not staged for a catalog
+• Dramatically cleaner, but still lived-in and believable
 
-FINAL CHECKLIST:
-✓ Is this unmistakably the SAME room from the SAME angle? (walls, windows, doors, furniture identical)
-✓ Are floors significantly clearer than the original?
-✓ Are surfaces cleaner and less cluttered?
-✓ Is the bed made (if visible)?
-✓ Is trash removed?
-✓ Does the room look NOTICEABLY more organized than the original?
-✓ Would someone clearly see the difference between before and after?
-✓ Does it look like a real photograph?
+PHOTO QUALITY:
+• Must look like a real photograph, not a render
+• Match original grain and lighting
+• Preserve the exact perspective and proportions
 
-Return the edited version of THIS EXACT room, dramatically cleaned and organized.`,
+FINAL CHECK:
+Is this unmistakably the SAME room?
+Is the clutter clearly removed?
+Does the room feel dramatically calmer?
+Does it look like a real photo?
+
+If yes, output the transformed image.
+If no, revise and clean more aggressively.`,
 };
 
 export const DEFAULT_MODELS: ModelSettings = {
