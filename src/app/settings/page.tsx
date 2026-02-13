@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Save, RotateCcw, Check, Lock, Eye, EyeOff, Settings, Info, User, Image as ImageIcon, ThumbsUp, ThumbsDown, Mail, Download, RefreshCw, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Check, Lock, Eye, EyeOff, Settings, Info, User, Image as ImageIcon, ThumbsUp, ThumbsDown, Mail, Download, RefreshCw, MessageSquare, TestTube } from 'lucide-react';
 import Link from 'next/link';
+import TestingInterface from '@/components/TestingInterface';
 
 interface PromptSettings {
   roomDetection: string;
@@ -88,6 +89,9 @@ export default function SettingsPage() {
   // Transformations data
   const [transformations, setTransformations] = useState<TransformationRecord[]>([]);
   const [transformationsLoading, setTransformationsLoading] = useState(false);
+
+  // Testing interface state
+  const [testingPrompt, setTestingPrompt] = useState<string>('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,6 +181,13 @@ export default function SettingsPage() {
       fetchSettings(storedPassword);
     }
   }, []);
+
+  // Sync testing prompt with actual settings
+  useEffect(() => {
+    if (settings?.prompts?.imageTransformation) {
+      setTestingPrompt(settings.prompts.imageTransformation);
+    }
+  }, [settings?.prompts?.imageTransformation]);
 
   const savePrompt = async (key: keyof PromptSettings) => {
     if (!settings) return;
@@ -351,6 +362,23 @@ export default function SettingsPage() {
     setSettings({
       ...settings,
       models: { ...settings.models, [key]: value },
+    });
+  };
+
+  // Testing interface handlers
+  const handleTestingPromptChange = (prompt: string) => {
+    setTestingPrompt(prompt);
+  };
+
+  const handleTestingModelChange = (provider: string, model: string) => {
+    if (!settings) return;
+    setSettings({
+      ...settings,
+      models: {
+        ...settings.models,
+        imageProvider: provider as ImageProvider,
+        imageGeneration: model,
+      },
     });
   };
 
@@ -794,8 +822,43 @@ export default function SettingsPage() {
               </div>
             </motion.section>
 
+            {/* Testing Interface */}
+            <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+              <h2 className="text-lg text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
+                <TestTube className="w-4 h-4 text-[var(--color-accent)]" />
+                <span className="text-emphasis">Prompt Testing</span>
+              </h2>
+
+              <div className="card">
+                <div className="mb-4">
+                  <p className="text-sm text-[var(--color-text-secondary)] mb-2">
+                    Test your prompts and models with real images to ensure quality before deployment.
+                  </p>
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    Upload test images, tweak prompts, and see results in real-time. Perfect for validating changes before your VC demo.
+                  </p>
+                </div>
+                
+                {settings && (
+                  <TestingInterface
+                    settings={{
+                      prompts: {
+                        imageTransformation: testingPrompt,
+                      },
+                      models: {
+                        imageProvider: settings.models.imageProvider,
+                        imageGeneration: settings.models.imageGeneration,
+                      },
+                    }}
+                    onPromptChange={handleTestingPromptChange}
+                    onModelChange={handleTestingModelChange}
+                  />
+                )}
+              </div>
+            </motion.section>
+
             {/* Transformations & Feedback */}
-            <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg text-[var(--color-text-primary)] flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-[var(--color-accent)]" />
