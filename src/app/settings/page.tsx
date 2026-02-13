@@ -69,6 +69,18 @@ interface TransformationRecord {
   feedbackSubmittedAt?: string;
 }
 
+const COOKIE_NAME = 'loftie-settings-auth';
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year in seconds
+
+function setSettingsCookie(password: string) {
+  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(password)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Strict`;
+}
+
+function getSettingsCookie(): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 export default function SettingsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -109,8 +121,8 @@ export default function SettingsPage() {
 
       if (data.valid) {
         setIsAuthenticated(true);
-        // Store password for subsequent requests
-        sessionStorage.setItem('settings-password', password);
+        // Store password in cookie for 1 year
+        setSettingsCookie(password);
         fetchSettings(password);
       } else {
         setAuthError('Invalid password');
@@ -173,8 +185,8 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    // Check if already authenticated
-    const storedPassword = sessionStorage.getItem('settings-password');
+    // Check if already authenticated via cookie
+    const storedPassword = getSettingsCookie();
     if (storedPassword) {
       setPassword(storedPassword);
       setIsAuthenticated(true);
@@ -197,7 +209,7 @@ export default function SettingsPage() {
     setError(null);
 
     try {
-      const pwd = sessionStorage.getItem('settings-password') || password;
+      const pwd = getSettingsCookie() || password;
       const response = await fetch('/api/settings', {
         method: 'POST',
         headers: {
@@ -232,7 +244,7 @@ export default function SettingsPage() {
     setError(null);
 
     try {
-      const pwd = sessionStorage.getItem('settings-password') || password;
+      const pwd = getSettingsCookie() || password;
       const response = await fetch('/api/settings', {
         method: 'POST',
         headers: {
@@ -267,7 +279,7 @@ export default function SettingsPage() {
     setError(null);
 
     try {
-      const pwd = sessionStorage.getItem('settings-password') || password;
+      const pwd = getSettingsCookie() || password;
       const response = await fetch('/api/settings', {
         method: 'POST',
         headers: {
@@ -326,7 +338,7 @@ export default function SettingsPage() {
     setError(null);
 
     try {
-      const pwd = sessionStorage.getItem('settings-password') || password;
+      const pwd = getSettingsCookie() || password;
       const response = await fetch('/api/settings', {
         method: 'POST',
         headers: {

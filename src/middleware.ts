@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'loftie2024';
+const SETTINGS_PASSWORD = process.env.SETTINGS_PASSWORD || 'loftie2024';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Allow public endpoints:
   // - /api/transformations/mine (browser-based photo history)
   // - /api/transformations/[id] (individual result lookups for shared links)
@@ -13,10 +14,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for auth cookie
+  // Check for admin auth cookie
   const authCookie = request.cookies.get('loftie-admin-auth');
   if (authCookie?.value === ADMIN_PASSWORD) {
     return NextResponse.next();
+  }
+
+  // Check for settings auth cookie (allows access to /settings page)
+  if (pathname.startsWith('/settings')) {
+    const settingsCookie = request.cookies.get('loftie-settings-auth');
+    if (settingsCookie?.value === SETTINGS_PASSWORD) {
+      return NextResponse.next();
+    }
   }
 
   // Check for Authorization header (for API routes)
