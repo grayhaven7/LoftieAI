@@ -186,7 +186,7 @@ export function buildPlanPrompt(
 
   const userName = options?.firstName || '';
   if (userName) {
-    prompt = `The user's name is ${userName}. Address them by name warmly, e.g. "Hi ${userName}! Let's transform your space together."\n\n` + prompt;
+    prompt = `The user's name is ${userName}. Use their name in the greeting (e.g. "Hello ${userName}!" instead of just "Hello!"). Do NOT add a separate greeting — only modify the existing greeting in the plan to include their name.\n\n` + prompt;
   }
 
   const creativityLevel = options?.creativityLevel || 'strict';

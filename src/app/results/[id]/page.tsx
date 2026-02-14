@@ -487,19 +487,20 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
     return '';
   };
 
-  // Parse closing (text after last numbered step, typically includes "Quick Organization Tip" and encouragement)
+  // Parse closing (text after last numbered step)
   const parseClosing = (plan: string | undefined): string => {
     if (!plan) return '';
-    // Find text after the last numbered step (look for patterns like "Quick Organization Tip" or encouraging closing)
-    const closingMatch = plan.match(/(?:\n\s*(?:Quick Organization Tip|You did it|You've done|I'm so proud|Amazing work|Great job|You should feel)[^\n]*[\s\S]*)$/i);
-    if (closingMatch) {
-      // Get everything from "Quick Organization Tip" onward if present
-      const tipMatch = plan.match(/\n\s*(Quick Organization Tip[\s\S]*)$/i);
-      if (tipMatch) {
-        return tipMatch[1].trim();
-      }
-      return closingMatch[0].trim();
+    // Find the last numbered step and get everything after it
+    const lastStepMatch = plan.match(/\n\s*\d+\.\s+[^\n]+(?:\n(?!\s*\d+\.\s)[^\n]+)*/g);
+    if (lastStepMatch && lastStepMatch.length > 0) {
+      const lastStep = lastStepMatch[lastStepMatch.length - 1];
+      const lastStepEnd = plan.lastIndexOf(lastStep) + lastStep.length;
+      const afterLastStep = plan.substring(lastStepEnd).trim();
+      if (afterLastStep) return afterLastStep;
     }
+    // Fallback: look for known closing patterns
+    const closingMatch = plan.match(/(?:\n\s*(?:Quick Organization Tip|You did it|You've done|I'm so proud|Amazing work|Great job|You should feel|Nice work|Small progress|You're doing)[^\n]*[\s\S]*)$/i);
+    if (closingMatch) return closingMatch[0].trim();
     return '';
   };
 
@@ -902,16 +903,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             <button onClick={handleShare} className="btn-secondary">
               <Share2 className="w-3.5 h-3.5" /> Share
             </button>
-            {data.status === 'completed' && (
-              <button
-                onClick={handleRetry}
-                className="btn-secondary"
-                disabled={isRetrying}
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isRetrying ? 'animate-spin' : ''}`} />
-                {isRetrying ? 'Retrying...' : 'Retry'}
-              </button>
-            )}
+            {/* Retry button removed per Sejal's feedback */}
           </div>
         </motion.div>
 

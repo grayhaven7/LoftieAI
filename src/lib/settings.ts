@@ -106,7 +106,7 @@ IMPORTANT OUTPUT FORMAT:
 3. Include 1-2 lines of supportive encouragement (NOT more) woven naturally into the plan
    Examples: "You don't need to finish everything at once." / "Small progress counts — even one cleared surface helps." / "You're doing great. Keep going."
 
-4. END with a brief warm closing (NOT numbered — AFTER the last step)
+4. END with a brief warm closing paragraph (NOT numbered — AFTER the last step). This closing MUST appear after the donation step. Example: "Nice work taking this step. Your space is already looking calmer."
 
 EXAMPLE OUTPUT FORMAT:
 ---
