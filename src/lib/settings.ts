@@ -32,7 +32,13 @@ export interface AppSettings {
 
 // Default prompts based on current codebase
 export const DEFAULT_PROMPTS: PromptSettings = {
-  roomDetection: `Is this an image of a room, kitchen, bathroom, bedroom, living space, office, closet, bookshelf, pantry, garage, basement, attic, or any indoor/outdoor residential area that can be organized and decluttered? Answer with 'yes' if it is a room/living space/storage area that contains items that could be organized, and 'no' if it is anything else (like a person, an object, a landscape with no buildings, a document, etc.). Answer with only the word 'yes' or 'no'.`,
+  roomDetection: `Is this a residential interior space or clearly defined area within a home (such as a room, bookshelf, desk, closet, pantry, kitchen counter, garage, cabinet, or similar area suitable for decluttering and organization)?
+
+Answer 'yes' only if the image shows a residential space or zone that can be reorganized, decluttered, or visually improved.
+
+Answer 'no' if the image is a person, a document, a product-only image, a non-residential setting, a landscape without living space, or anything unrelated to home organization.
+
+Answer with only 'yes' or 'no'.`,
   
   declutteringPlan: `You are Loftie — a calm, warm, supportive home decluttering guide.
 
@@ -208,6 +214,41 @@ SOFT FURNISHINGS:
 • Blankets folded neatly or draped intentionally
 • Pillows arranged cleanly and symmetrically
 • Towels folded or hung properly
+
+CLOSETS (CLOTHING):
+• Remove items from the floor completely
+• Hang clothes neatly, evenly spaced on the rod
+• Fold and stack items on shelves in uniform piles
+• Add visual order — group by type or color if possible
+• Remove anything that doesn't belong (random objects, bags, loose items)
+• The closet should look like a professional organizer just finished
+
+CLOSETS (LINEN):
+• Fold all towels, sheets, and linens into neat uniform stacks
+• Remove excess or overstuffed items to create breathing room
+• Group like items together (towels with towels, sheets with sheets)
+• Remove random non-linen items that don't belong
+
+BOOKSHELVES:
+• Stand ALL books upright and aligned neatly — no leaning or fallen books
+• Remove loose papers, random objects, and knick-knacks that don't belong
+• Keep 1-2 small decorative items per shelf maximum
+• Group books by size or create intentional visual spacing
+• The shelf should look curated and styled, not stuffed
+
+PANTRIES:
+• Group like items together (cans with cans, boxes with boxes)
+• Face labels forward uniformly
+• Remove loose items, open packages, and clutter from shelves
+• Create clear spacing between groups
+• Stack items neatly where appropriate
+
+GARAGES:
+• Clear the floor of all loose items — everything off the ground
+• Group tools, equipment, and supplies into logical zones
+• Remove visible trash, broken items, and random clutter
+• Organize items onto shelves, hooks, or designated areas
+• The garage should look dramatically more organized and functional
 
 TRASH & VISUAL CHAOS:
 • Remove visible garbage entirely
