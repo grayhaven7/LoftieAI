@@ -576,7 +576,8 @@ export default function SettingsPage() {
                     <textarea
                       value={settings.prompts[key]}
                       onChange={(e) => updatePrompt(key, e.target.value)}
-                      className="w-full min-h-[500px] p-4 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono leading-relaxed"
+                      className="w-full p-4 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono leading-relaxed"
+                      style={{ minHeight: '500px' }}
                       placeholder="Enter prompt..."
                     />
 
