@@ -102,35 +102,42 @@ export default function TestingInterface({
       }
 
       const result = await response.json();
+      const blobUrlParam = result.blobUrl ? `?blobUrl=${encodeURIComponent(result.blobUrl)}` : '';
+      
+      // Trigger processing
+      fetch(`/api/process/${result.id}${blobUrlParam}`, { method: 'POST' }).catch(console.error);
       
       // Poll for completion
       let attempts = 0;
-      const maxAttempts = 30;
+      const maxAttempts = 40;
       
       while (attempts < maxAttempts) {
-        const statusResponse = await fetch(`/api/transformations/${result.id}`);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        const statusResponse = await fetch(`/api/transformations/${result.id}${blobUrlParam}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' },
+        });
         const statusData = await statusResponse.json();
         
-        if (statusData.transformation?.afterImageUrl) {
+        if (statusData.afterImageUrl && statusData.status === 'completed') {
           // Success
           setTestResults(prev => 
             prev.map(r => 
               r.id === testId 
                 ? {
                     ...r,
-                    transformedImage: statusData.transformation.afterImageUrl,
+                    transformedImage: statusData.afterImageUrl,
                     status: 'success' as const,
                   }
                 : r
             )
           );
           break;
-        } else if (statusData.transformation?.status === 'failed') {
+        } else if (statusData.status === 'failed') {
           throw new Error('Transformation failed');
         }
         
         attempts++;
-        await new Promise(resolve => setTimeout(resolve, 2000));
       }
       
       if (attempts >= maxAttempts) {
