@@ -171,11 +171,20 @@ Use only plain text. No HTML tags.`,
 
 This is a PHOTO EDITING task — not a new image generation task.
 
-You must show the SAME room from the SAME camera angle, SAME walls, SAME furniture placement, SAME lighting — but professionally decluttered, deeply cleaned, and beautifully organized.
+You must show the SAME space from the SAME camera angle, SAME walls, SAME furniture placement, SAME lighting — but professionally decluttered, deeply cleaned, and beautifully organized.
 
-The before and after must be clearly and immediately different at a glance.
+The before and after must be DRAMATICALLY different at a glance. If someone can't immediately tell which is the before and which is the after, you haven't cleaned enough.
 
 CORE RULE: ORGANIZE AND CLEAN — DO NOT REDESIGN.
+
+STEP 1 — SYSTEMATIC SCAN (do this mentally before generating):
+Before transforming, scan the ENTIRE image systematically:
+• Left to right, top to bottom — identify EVERY item that is clutter
+• Count the items. If you identified fewer than 10 items to remove/organize, look again — you're missing things
+• Check: floors, all surfaces, bed/couch, shelves, corners, behind furniture, windowsills, door areas
+• Items people commonly miss: small items on nightstands, items behind other items, things on windowsills, items hanging off furniture, stuff tucked in corners, items on top of dressers/shelves
+
+STEP 2 — TRANSFORM WITH AGGRESSIVE CLEANING:
 
 KEEP EXACTLY THE SAME:
 • Walls, ceiling, flooring, windows, doors
@@ -184,102 +193,102 @@ KEEP EXACTLY THE SAME:
 • Lighting direction, color tone, and shadows
 • Architectural features and built-ins
 
-REMOVE OR RELOCATE ALL CLUTTER:
+REMOVAL THRESHOLD: When in doubt, REMOVE IT. The goal is a dramatically cleaner space. Err on the side of removing too much rather than too little.
 
-FLOORS:
-• Remove ALL loose items from the floor (clothes, shoes, bags, papers, boxes, random objects)
-• Floors should appear fully clear and clean
-• Only rugs, furniture legs, or intentional floor decor may remain
+FLOORS — ZERO TOLERANCE:
+• Remove ABSOLUTELY EVERYTHING from the floor that isn't furniture or a rug
+• No clothes, no shoes, no bags, no papers, no boxes, no toys, no cables, no baskets of stuff
+• The floor must be COMPLETELY clear and visible
+• If you can see carpet/hardwood, it should be fully exposed between furniture
 
-SURFACES (DESKS, TABLES, COUNTERS, NIGHTSTANDS):
-• Remove all clutter and non-essential items
-• Leave only intentional, neatly arranged items that logically belong (maximum 1–3 per surface)
-• No loose papers, cups, bottles, wrappers, or random objects
-• Surfaces should look wiped down and breathable — not sterile, but calm and curated
-
-SHELVES & BOOKCASES:
-• Stand books upright and aligned neatly
-• Remove excess stacking or overcrowding
-• Group small items together intentionally
-• Remove random loose papers or objects
-• Shelves should look curated, not stuffed
+SURFACES — NEAR EMPTY:
+• Desks, tables, counters, nightstands: remove EVERYTHING except 1-2 intentional items maximum
+• A nightstand should have at most: a lamp and one small item
+• A desk should be nearly clear — just a monitor/laptop and maybe one item
+• Kitchen counters: clear everything except permanent appliances
+• NO loose papers, cups, bottles, remote controls, phones, chargers, or random objects
 
 BEDS:
-• Fully made with smooth sheets
-• Comforter pulled up evenly
-• Pillows fluffed and arranged symmetrically
-• No clothes or random items on the bed
+• Remove ALL items from the bed — clothes, books, devices, everything
+• Sheets pulled tight and smooth
+• Comforter/duvet pulled up evenly, no wrinkles
+• Pillows fluffed, symmetrically arranged, and NEATENED
+• NO items remaining on the bed surface at all
 
 SOFT FURNISHINGS:
-• Blankets folded neatly or draped intentionally
-• Pillows arranged cleanly and symmetrically
-• Towels folded or hung properly
+• Blankets folded into neat rectangles and draped over one arm of furniture OR folded at foot of bed
+• Throw pillows arranged symmetrically and fluffed — not squished or crooked
+• Couch cushions straightened
+
+SHELVES & BOOKCASES:
+• ALL books upright and aligned — spines flush with shelf edge
+• Remove 30-50% of items to create breathing room
+• Keep only 1-2 decorative items per shelf
+• No papers, no random objects stuffed between books
+• Result should look like a styled bookstore display
 
 CLOSETS (CLOTHING):
-• Remove items from the floor completely
-• Hang clothes neatly, evenly spaced on the rod
-• Fold and stack items on shelves in uniform piles
-• Add visual order — group by type or color if possible
-• Remove anything that doesn't belong (random objects, bags, loose items)
-• The closet should look like a professional organizer just finished
+• Floor completely clear — zero items on the closet floor
+• Clothes hung neatly with even spacing between hangers
+• Folded items in uniform stacks on shelves
+• Remove boxes, bags, loose items from the floor
+• Group by type or color for visual order
+• Shelf tops: neat and organized, nothing falling over
 
 CLOSETS (LINEN):
-• Fold all towels, sheets, and linens into neat uniform stacks
-• Remove excess or overstuffed items to create breathing room
-• Group like items together (towels with towels, sheets with sheets)
-• Remove random non-linen items that don't belong
-
-BOOKSHELVES:
-• Stand ALL books upright and aligned neatly — no leaning or fallen books
-• Remove loose papers, random objects, and knick-knacks that don't belong
-• Keep 1-2 small decorative items per shelf maximum
-• Group books by size or create intentional visual spacing
-• The shelf should look curated and styled, not stuffed
+• Every item folded into uniform rectangles
+• Stacked by category with visible spacing between stacks
+• Remove 20-30% of items to eliminate stuffed/overflowing look
+• No items sticking out or falling
 
 PANTRIES:
-• Group like items together (cans with cans, boxes with boxes)
-• Face labels forward uniformly
-• Remove loose items, open packages, and clutter from shelves
-• Create clear spacing between groups
-• Stack items neatly where appropriate
+• All items grouped by category, labels facing forward
+• Remove open/torn packages
+• Create clear spacing between groups on each shelf
+• Neat uniform rows — nothing sideways or falling over
 
 GARAGES:
-• Clear the floor of all loose items — everything off the ground
-• Group tools, equipment, and supplies into logical zones
-• Remove visible trash, broken items, and random clutter
-• Organize items onto shelves, hooks, or designated areas
-• The garage should look dramatically more organized and functional
+• Floor swept clean — ALL items off the floor onto shelves/hooks/pegboard
+• Tools organized on pegboard or in toolbox
+• Boxes stacked neatly and labeled
+• Sports equipment in designated zones
+• Clear walkway/path visible
 
 TRASH & VISUAL CHAOS:
-• Remove visible garbage entirely
-• Remove random packaging and broken items
-• Eliminate visual clutter that makes the space feel chaotic
+• Remove ALL visible garbage, wrappers, packaging
+• Remove broken or damaged items
+• Remove anything that looks like it doesn't belong in the space
 
 IMPORTANT:
-• Every removed item must either be logically put away (closet, drawer, cabinet) or removed if trash
-• Do NOT add new furniture or decor
+• Do NOT add new furniture, decor, or items that weren't there
 • Do NOT change paint colors, flooring, or layout
 • Do NOT redesign — only declutter and professionally organize
+• Do NOT leave clutter just because it's small or partially hidden
 
 THE RESULT SHOULD FEEL LIKE:
-• A professional organizer and cleaning crew just finished
+• A professional organizer spent 4 hours in this space
+• Every surface is clear, every item has a place
 • Calm, breathable, intentional
 • Realistic and warm — not staged for a catalog
-• Dramatically cleaner, but still lived-in and believable
+• DRAMATICALLY cleaner — the transformation should be striking
 
 PHOTO QUALITY:
 • Must look like a real photograph, not a render
-• Match original grain and lighting
+• Match original photo grain, lighting, and color temperature
 • Preserve the exact perspective and proportions
+• Same resolution and image quality as input
 
-FINAL CHECK:
-Is this unmistakably the SAME room?
-Is the clutter clearly removed?
-Does the room feel dramatically calmer?
-Does it look like a real photo?
+STEP 3 — FINAL VERIFICATION (do this mentally before outputting):
+Go through this checklist:
+- Is the floor COMPLETELY clear of all non-furniture items?
+- Are ALL surfaces cleared to 1-2 items maximum?
+- Is the bed fully made with zero items on it?
+- Are pillows and blankets neatened and symmetrical?
+- Are shelves organized with breathing room?
+- Is ALL visible trash/garbage removed?
+- Would someone say "WOW" when comparing before and after?
 
-If yes, output the transformed image.
-If no, revise and clean more aggressively.`,
+If ANY answer is no, revise and clean more aggressively before outputting.`,
 };
 
 export const DEFAULT_MODELS: ModelSettings = {

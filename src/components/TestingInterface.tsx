@@ -188,7 +188,7 @@ export default function TestingInterface({
           <textarea
             value={settings.prompts.imageTransformation}
             onChange={(e) => onPromptChange(e.target.value)}
-            className="w-full h-32 p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono text-xs"
+            className="w-full min-h-[400px] p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors font-mono text-xs"
             placeholder="Enter transformation prompt..."
           />
           <p className="text-xs text-[var(--color-text-muted)]">
