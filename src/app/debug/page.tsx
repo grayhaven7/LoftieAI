@@ -114,7 +114,7 @@ export default function DebugPage() {
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <select
           value={selectedModel}
-          onChange={e => setSelectedModel(e.target.value)}
+          onChange={e => setSelectedModel(e.target.value as typeof selectedModel)}
           style={{
             flex: 1, minWidth: '250px', padding: '0.75rem', borderRadius: '8px',
             background: 'var(--color-bg-secondary, #1a1a2e)', color: 'var(--color-text-primary)',
