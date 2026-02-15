@@ -4,6 +4,7 @@ import { saveImage, saveTransformation, getTransformation } from '@/lib/storage'
 import { RoomTransformation } from '@/lib/types';
 import { analyzeImageWithGemini, buildPlanPrompt, generateDeclutteringPlan } from '@/lib/gemini';
 import { getSettings, getSettingsAsync } from '@/lib/settings';
+import { resizeImageForAPI } from '@/lib/image-utils';
 
 export const maxDuration = 60; // Increase timeout for image upload and room check
 
@@ -23,14 +24,19 @@ export async function POST(request: NextRequest) {
     
     console.log(`Creating transformation ${id}`);
 
+    // Resize image for faster processing
+    console.log('Resizing image for API...');
+    const { base64: resizedBase64, mimeType: resizedMime } = await resizeImageForAPI(imageBase64);
+    const resizedDataUrl = `data:${resizedMime};base64,${resizedBase64}`;
+
     // Run room detection and image save in PARALLEL (they're independent)
     console.log('Starting room detection and image save in parallel...');
     const settings = getSettings();
     const roomCheckPrompt = settings.prompts.roomDetection;
 
     const [isRoom, beforeImageUrl] = await Promise.all([
-      analyzeImageWithGemini(imageBase64, roomCheckPrompt),
-      saveImage(imageBase64, `before-${id}-${timestamp}.jpg`),
+      analyzeImageWithGemini(resizedBase64, roomCheckPrompt),
+      saveImage(imageBase64, `before-${id}-${timestamp}.jpg`), // Save original quality
     ]);
 
     console.log(`Room detection result: ${isRoom}`);
@@ -56,8 +62,8 @@ export async function POST(request: NextRequest) {
       lastName: lastName || undefined,
       createdAt: new Date().toISOString(),
       status: 'processing',
-      // Store the original base64 so the process endpoint can use it
-      originalImageBase64: imageBase64,
+      // Store resized base64 for the process endpoint (faster than full original)
+      originalImageBase64: resizedBase64,
       // User controls
       creativityLevel: creativityLevel || 'strict',
       keepItems: keepItems || undefined,
@@ -79,9 +85,7 @@ export async function POST(request: NextRequest) {
           keepItems: keepItems || undefined,
         });
 
-        const imageUrl = imageBase64.startsWith('data:')
-          ? imageBase64
-          : `data:image/jpeg;base64,${imageBase64}`;
+        const imageUrl = resizedDataUrl;
 
         const declutteringPlan = await generateDeclutteringPlan(imageUrl, planPrompt);
 

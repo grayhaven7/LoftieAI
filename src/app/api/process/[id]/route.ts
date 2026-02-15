@@ -4,6 +4,7 @@ import { Resend } from 'resend';
 import { getTransformation, saveImage, saveTransformation, saveAudio } from '@/lib/storage';
 import { declutterImageWithGemini, buildPlanPrompt, generateDeclutteringPlan } from '@/lib/gemini';
 import { getSettingsAsync } from '@/lib/settings';
+import { resizeImageForAPI } from '@/lib/image-utils';
 
 // Increase timeout for Vercel serverless functions
 // This route makes multiple API calls which can take 30-60+ seconds
@@ -90,13 +91,11 @@ export async function POST(
       });
     }
 
-    const openai = getOpenAIClient();
     const timestamp = Date.now();
 
-    // Ensure proper base64 data URL format
-    const imageUrl = transformation.originalImageBase64.startsWith('data:') 
-      ? transformation.originalImageBase64 
-      : `data:image/jpeg;base64,${transformation.originalImageBase64}`;
+    // Resize image for faster API processing (1024px max)
+    const { base64: resizedBase64, mimeType: resizedMime } = await resizeImageForAPI(transformation.originalImageBase64);
+    const imageUrl = `data:${resizedMime};base64,${resizedBase64}`;
 
     // STEP 1: Get or generate the decluttering plan
     const userName = transformation.firstName || '';
@@ -137,33 +136,7 @@ export async function POST(
     await saveTransformation(transformation);
     console.log(`Saved plan for ${id}, proceeding to image generation...`);
 
-    // STEP 2: Generate image + TTS in PARALLEL (TTS only needs the plan, not the image)
-    console.log(`Starting image generation and TTS in parallel...`);
-
-    const ttsPromise = (async () => {
-      if (!declutteringPlan) return '';
-      try {
-        console.log(`Generating TTS audio...`);
-        const ttsInput = userName
-          ? `Hi ${userName}! Here's your personalized decluttering plan. ${declutteringPlan}`
-          : declutteringPlan;
-        const ttsResponse = await openai.audio.speech.create({
-          model: settings.models.ttsModel as 'tts-1' | 'tts-1-hd',
-          voice: settings.models.ttsVoice as 'nova' | 'alloy' | 'echo' | 'fable' | 'onyx' | 'shimmer',
-          input: ttsInput,
-          speed: 0.95,
-        });
-
-        const audioBuffer = await ttsResponse.arrayBuffer();
-        const url = await saveAudio(audioBuffer, `audio-${id}-${timestamp}.mp3`);
-        console.log(`Saved audio: ${url}`);
-        return url;
-      } catch (ttsError) {
-        console.error('TTS generation failed:', ttsError);
-        return '';
-      }
-    })();
-
+    // STEP 2: Generate transformed image (TTS disabled for speed — can re-enable later)
     console.log(`Calling Gemini to generate organized room based on plan...`);
     const declutteredImageBase64 = await declutterImageWithGemini(imageUrl, declutteringPlan, {
       creativityLevel,
@@ -172,14 +145,12 @@ export async function POST(
     });
     console.log(`Gemini returned organized room image`);
 
-    // Save image and wait for TTS to complete
-    const saveImagePromise = saveImage(
+    const afterImageUrl = await saveImage(
       declutteredImageBase64,
       `after-${id}-${timestamp}.png`
     );
-
-    const [afterImageUrl, audioUrl] = await Promise.all([saveImagePromise, ttsPromise]);
-    console.log(`Parallel operations completed. Image: ${afterImageUrl}, Audio: ${audioUrl || 'none'}`);
+    const audioUrl = ''; // TTS disabled for speed
+    console.log(`Image saved: ${afterImageUrl}`);
 
     if (!afterImageUrl) {
       throw new Error('Failed to save organized image');
