@@ -389,26 +389,24 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <span className="badge badge-accent mb-6">
-            Transform your space in seconds
-          </span>
+          {/* Removed "Transform your space in seconds" bubble per Sejal's request */}
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em] leading-[1.15]">
             <span className="text-emphasis">Overwhelmed</span> by clutter?<br />
             Let <span className="text-emphasis">Loftie</span> help.
           </h1>
           
-          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-3">
+          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-6">
             Upload a photo of your cluttered space. Watch Loftie transform your room in seconds.
           </p>
 
-          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-3">
+          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-5">
             Follow our step-by-step guidance to create your calm and beautiful space.
           </p>
 
-          <p className="text-xs sm:text-sm text-[#6b7c5d] max-w-md mx-auto italic">
+          <span className="badge badge-accent">
             Created by a professional home stager &amp; decluttering expert
-          </p>
+          </span>
         </motion.div>
         
         {configWarning && (
@@ -468,7 +466,7 @@ export default function Home() {
                   </div>
 
                   <p className="text-sm text-[var(--color-text-primary)] mb-3 font-medium">
-                    Add your room photo
+                    Upload a photo of your cluttered room here
                   </p>
 
                   {/* Camera and Upload buttons */}
