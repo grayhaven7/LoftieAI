@@ -394,16 +394,17 @@ export default function Home() {
           </span>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em] leading-[1.15]">
-            <span className="text-emphasis">Declutter</span> your home,<br />
-            <span className="text-emphasis">design</span> your life.
+            <span className="text-emphasis">Overwhelmed</span> by clutter?<br />
+            Let <span className="text-emphasis">Loftie</span> help.
           </h1>
           
           <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-3">
-            Upload a photo. Get a vision of your space, clutter-free.
+            Upload a photo of your cluttered space. Watch Loftie transform your room in seconds.<br />
+            Follow our step-by-step guidance to create your calm and beautiful space.
           </p>
 
           <p className="text-xs sm:text-sm text-[#6b7c5d] max-w-md mx-auto italic">
-            Created by a professional home stager & decluttering expert who understands how overwhelming clutter can feel and how to tackle it.
+            Created by a professional home stager &amp; decluttering expert
           </p>
         </motion.div>
         
