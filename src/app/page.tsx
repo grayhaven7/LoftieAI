@@ -399,7 +399,10 @@ export default function Home() {
           </h1>
           
           <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-3">
-            Upload a photo of your cluttered space. Watch Loftie transform your room in seconds.<br />
+            Upload a photo of your cluttered space. Watch Loftie transform your room in seconds.
+          </p>
+
+          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-3">
             Follow our step-by-step guidance to create your calm and beautiful space.
           </p>
 
