@@ -629,7 +629,10 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             <span className="hidden sm:inline">Back</span>
           </Link>
           
-          <span className="logo-text">Loftie</span>
+          <span className="flex items-center gap-2">
+            <img src="/loftie-logo.png" alt="Loftie" width={36} height={36} className="rounded-full" />
+            <span className="logo-text">Loftie</span>
+          </span>
           
           <div className="w-16 flex justify-end">
             {data.audioUrl && (

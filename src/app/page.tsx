@@ -363,7 +363,7 @@ export default function Home() {
             animate={{ opacity: 1 }}
             className="flex items-center gap-2"
           >
-            <NextImage src="/loftie-logo.png" alt="Loftie" width={36} height={36} className="rounded-full" />
+            <NextImage src="/loftie-logo.png" alt="Loftie" width={44} height={44} className="rounded-full" />
             <span className="logo-text">Loftie</span>
           </motion.div>
           
