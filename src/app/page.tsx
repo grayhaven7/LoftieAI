@@ -358,13 +358,14 @@ export default function Home() {
       {/* Header */}
       <header className="py-4 px-4 sm:px-6">
         <nav className="max-w-5xl mx-auto flex justify-between items-center">
-          <motion.span 
+          <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="logo-text"
+            className="flex items-center gap-2"
           >
-            Loftie
-          </motion.span>
+            <NextImage src="/loftie-logo.png" alt="Loftie" width={36} height={36} className="rounded-full" />
+            <span className="logo-text">Loftie</span>
+          </motion.div>
           
           <motion.div
             initial={{ opacity: 0 }}
@@ -389,24 +390,24 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          {/* Removed "Transform your space in seconds" bubble per Sejal's request */}
-
-          <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-4 tracking-[-0.03em] leading-[1.15]">
-            <span className="text-emphasis">Overwhelmed</span> by clutter?<br />
+          <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-3 tracking-[-0.03em] leading-[1.25]">
+            <span className="text-emphasis">Overwhelmed</span> by clutter?
+          </h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-5 tracking-[-0.03em] leading-[1.25]">
             Let <span className="text-emphasis">Loftie</span> help.
           </h1>
+
+          <span className="badge badge-accent mb-8">
+            Created by a professional home stager &amp; decluttering expert
+          </span>
           
-          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-6">
-            Upload a photo of your cluttered space. Watch Loftie transform your room in seconds.
+          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-4">
+            Upload a photo of your cluttered space and watch Loftie transform it in seconds.
           </p>
 
           <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-5">
-            Follow our step-by-step guidance to create your calm and beautiful space.
+            Follow our personalized guidance to bring your new space to life.
           </p>
-
-          <span className="badge badge-accent">
-            Created by a professional home stager &amp; decluttering expert
-          </span>
         </motion.div>
         
         {configWarning && (
@@ -466,7 +467,7 @@ export default function Home() {
                   </div>
 
                   <p className="text-sm text-[var(--color-text-primary)] mb-3 font-medium">
-                    Upload a photo of your cluttered room here
+                    Upload a photo of your room
                   </p>
 
                   {/* Camera and Upload buttons */}
@@ -788,7 +789,7 @@ export default function Home() {
 
       {/* CTA */}
       <section className="max-w-md mx-auto px-4 py-12 text-center">
-        <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] mb-2">
+        <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] mb-6">
           Ready to love your <span className="text-emphasis">space</span> again?
         </h2>
         <button

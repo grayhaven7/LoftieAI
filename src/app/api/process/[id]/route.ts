@@ -136,21 +136,48 @@ export async function POST(
     await saveTransformation(transformation);
     console.log(`Saved plan for ${id}, proceeding to image generation...`);
 
-    // STEP 2: Generate transformed image (TTS disabled for speed — can re-enable later)
-    console.log(`Calling Gemini to generate organized room based on plan...`);
-    const declutteredImageBase64 = await declutterImageWithGemini(imageUrl, declutteringPlan, {
-      creativityLevel,
-      keepItems: transformation.keepItems,
-      settings,
-    });
-    console.log(`Gemini returned organized room image`);
+    // STEP 2: Generate image + TTS in PARALLEL
+    console.log(`Starting image generation and TTS in parallel...`);
 
-    const afterImageUrl = await saveImage(
-      declutteredImageBase64,
-      `after-${id}-${timestamp}.png`
-    );
-    const audioUrl = ''; // TTS disabled for speed
-    console.log(`Image saved: ${afterImageUrl}`);
+    const ttsPromise = (async () => {
+      if (!declutteringPlan) return '';
+      try {
+        console.log(`Generating TTS audio...`);
+        const openai = getOpenAIClient();
+        const settings_data = await getSettingsAsync();
+        const ttsInput = userName
+          ? `Hi ${userName}! Here's your personalized decluttering plan. ${declutteringPlan}`
+          : declutteringPlan;
+        const ttsResponse = await openai.audio.speech.create({
+          model: (settings_data.models?.ttsModel as 'tts-1' | 'tts-1-hd') || 'tts-1',
+          voice: (settings_data.models?.ttsVoice as 'nova' | 'alloy' | 'echo' | 'fable' | 'onyx' | 'shimmer') || 'nova',
+          input: ttsInput.substring(0, 4096),
+          speed: 0.95,
+        });
+        const audioBuffer = await ttsResponse.arrayBuffer();
+        const url = await saveAudio(audioBuffer, `audio-${id}-${timestamp}.mp3`);
+        console.log(`TTS audio saved: ${url}`);
+        return url;
+      } catch (ttsError) {
+        console.error('TTS generation failed:', ttsError);
+        return '';
+      }
+    })();
+
+    const imagePromise = (async () => {
+      console.log(`Calling Gemini to generate organized room based on plan...`);
+      const declutteredImageBase64 = await declutterImageWithGemini(imageUrl, declutteringPlan, {
+        creativityLevel,
+        keepItems: transformation.keepItems,
+        settings,
+      });
+      console.log(`Gemini returned organized room image`);
+      const url = await saveImage(declutteredImageBase64, `after-${id}-${timestamp}.png`);
+      console.log(`Image saved: ${url}`);
+      return url;
+    })();
+
+    const [audioUrl, afterImageUrl] = await Promise.all([ttsPromise, imagePromise]);
 
     if (!afterImageUrl) {
       throw new Error('Failed to save organized image');
@@ -166,82 +193,8 @@ export async function POST(
     await saveTransformation(transformation);
     console.log(`Transformation ${id} completed successfully`);
 
-    // Send email if provided — call Resend directly instead of internal fetch
-    if (transformation.userEmail && process.env.RESEND_API_KEY) {
-      try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://www.loftie.ai');
-        
-        const fromAddress = process.env.EMAIL_FROM || 'Loftie AI <hello@loftie.ai>';
-        
-        const formattedPlan = declutteringPlan
-          ? declutteringPlan.split('\n').filter((line: string) => line.trim()).map((line: string) => `<p style="margin-bottom: 8px;">${line}</p>`).join('')
-          : '';
-
-        console.log(`Sending email directly via Resend to ${transformation.userEmail}`);
-        
-        const result = await resend.emails.send({
-          from: fromAddress,
-          to: transformation.userEmail,
-          subject: '✨ Your Room Transformation is Ready!',
-          html: `
-            <!DOCTYPE html>
-            <html>
-            <body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #FDF8F3;">
-              <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-                <div style="text-align: center; margin-bottom: 32px;">
-                  <h1 style="font-size: 28px; color: #3A3A3A; margin: 0; font-weight: 500;">Your Space, Transformed ✨</h1>
-                </div>
-                <div style="background: #FEFCFA; border-radius: 24px; padding: 32px; box-shadow: 0 4px 24px rgba(58, 58, 58, 0.06);">
-                  <p style="color: #8A8A8A; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
-                    Great news! Your room transformation is complete. Take a look at what your space could become.
-                  </p>
-                  <div style="margin-bottom: 32px;">
-                    <div style="margin-bottom: 20px;">
-                      <p style="color: #3A3A3A; font-weight: 600; margin-bottom: 12px; font-size: 14px;">BEFORE:</p>
-                      <img src="${transformation.beforeImageUrl}" alt="Before" style="width: 100%; border-radius: 16px;">
-                    </div>
-                    <div>
-                      <p style="color: #3A3A3A; font-weight: 600; margin-bottom: 12px; font-size: 14px;">AFTER:</p>
-                      <img src="${afterImageUrl}" alt="After" style="width: 100%; border-radius: 16px;">
-                    </div>
-                  </div>
-                  ${formattedPlan ? `
-                  <div style="background-color: #F9F9F9; border-radius: 16px; padding: 24px; margin-bottom: 32px; border-left: 4px solid #9CAF88;">
-                    <h2 style="font-size: 18px; color: #3A3A3A; margin-top: 0; margin-bottom: 16px;">Your Decluttering Plan:</h2>
-                    <div style="color: #555555; font-size: 15px; line-height: 1.6;">${formattedPlan}</div>
-                  </div>
-                  ` : ''}
-                  <div style="text-align: center;">
-                    <a href="${baseUrl}/results/${id}" style="display: inline-block; background: linear-gradient(135deg, #9CAF88 0%, #7A9166 100%); color: white; text-decoration: none; padding: 18px 36px; border-radius: 50px; font-weight: 600; font-size: 16px;">
-                      View Full Transformation →
-                    </a>
-                  </div>
-                </div>
-                <div style="text-align: center; margin-top: 32px; color: #8A8A8A; font-size: 14px;">
-                  <p>Made with 💚 by Loftie AI</p>
-                </div>
-              </div>
-              <!-- Tracking Pixel -->
-              <img src="${baseUrl}/api/track-email/${id}${transformation.blobUrl ? `?blobUrl=${encodeURIComponent(transformation.blobUrl)}` : ''}" width="1" height="1" alt="" style="display: block; width: 1px; height: 1px;" />
-            </body>
-            </html>
-          `,
-        });
-
-        if (result.error) {
-          console.error('Resend error:', result.error);
-        } else {
-          console.log(`Email sent successfully for transformation ${id}: ${result.data?.id}`);
-          // Update transformation with email sent timestamp
-          transformation.emailSentAt = new Date().toISOString();
-          await saveTransformation(transformation);
-        }
-      } catch (emailError) {
-        console.error('Failed to send email:', emailError);
-      }
-    }
+    // Email is sent only when user explicitly requests it from the results page
+    // (via /api/send-email) to avoid double-sending
 
     return NextResponse.json({
       id,
