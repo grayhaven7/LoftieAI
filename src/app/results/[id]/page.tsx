@@ -1199,7 +1199,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
         )}
 
         {/* Email CTA - More prominent call to action */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card print:hidden bg-[var(--color-accent)]/10 border-[var(--color-accent)]/20">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card print:hidden bg-[var(--color-accent)]/10 border-[var(--color-accent)]/20 mt-6">
           <div className="text-center">
             <div className="w-12 h-12 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center mx-auto mb-3">
               <Mail className="w-6 h-6 text-[var(--color-accent)]" />
@@ -1235,7 +1235,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
 
         {/* Feedback */}
         {data.status === 'completed' && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card print:hidden">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card print:hidden mt-6">
             <div className="flex items-center gap-2 mb-3">
               <MessageSquare className="w-4 h-4 text-[var(--color-accent)]" />
               <h3 className="text-sm text-[var(--color-text-primary)] font-medium">Did this help you declutter?</h3>
