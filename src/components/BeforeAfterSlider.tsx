@@ -1,92 +1,100 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { motion } from 'framer-motion';
 
-interface BeforeAfterSliderProps {
-  beforeImage: string;
-  afterImage: string;
-  alt?: string;
-}
+export default function BeforeAfterSlider() {
+  const [sliderPos, setSliderPos] = useState(50);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
 
-export default function BeforeAfterSlider({ 
-  beforeImage, 
-  afterImage, 
-  alt = "Before and after transformation" 
-}: BeforeAfterSliderProps) {
-  const [sliderPosition, setSliderPosition] = useState(50);
+  const updatePosition = useCallback((clientX: number) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
+    setSliderPos(pct);
+  }, []);
 
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSliderPosition(Number(e.target.value));
+  const handleMouseDown = () => { isDragging.current = true; };
+  const handleMouseUp = () => { isDragging.current = false; };
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging.current) updatePosition(e.clientX);
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = (x / rect.width) * 100;
-    setSliderPosition(Math.max(0, Math.min(100, percentage)));
+  const handleTouchMove = (e: React.TouchEvent) => {
+    updatePosition(e.touches[0].clientX);
   };
 
   return (
-    <div className="relative overflow-hidden rounded-lg border border-[var(--glass-border)]">
-      <div 
-        className="relative aspect-[4/3] cursor-col-resize"
-        onMouseMove={handleMouseMove}
-        onTouchMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const x = e.touches[0].clientX - rect.left;
-          const percentage = (x / rect.width) * 100;
-          setSliderPosition(Math.max(0, Math.min(100, percentage)));
-        }}
-      >
-        {/* After image (always visible) */}
-        <img
-          src={afterImage}
-          alt={`${alt} - after`}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        
-        {/* Before image (clipped by slider) */}
-        <div 
-          className="absolute inset-0 overflow-hidden"
-          style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="mb-12"
+    >
+      <div className="max-w-lg mx-auto">
+        <h3 className="text-center text-base text-[var(--color-text-primary)] font-medium mb-4">
+          See the transformation
+        </h3>
+        <div
+          ref={containerRef}
+          className="relative overflow-hidden rounded-xl border border-[var(--glass-border)] aspect-[4/3] cursor-col-resize select-none"
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          onTouchMove={handleTouchMove}
+          onClick={(e) => updatePosition(e.clientX)}
         >
+          {/* After image (full width, behind) */}
           <img
-            src={beforeImage}
-            alt={`${alt} - before`}
-            className="w-full h-full object-cover"
+            src="/demo-after.png"
+            alt="After: organized room"
+            className="absolute inset-0 w-full h-full object-cover"
+            draggable={false}
           />
-        </div>
-        
-        {/* Slider line */}
-        <div 
-          className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg z-10 pointer-events-none"
-          style={{ left: `${sliderPosition}%` }}
-        >
-          {/* Slider handle */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-lg border-2 border-[var(--color-accent)] flex items-center justify-center">
-            <div className="w-1 h-4 bg-[var(--color-accent)] rounded"></div>
+
+          {/* Before image (clipped) */}
+          <div
+            className="absolute inset-0 overflow-hidden"
+            style={{ width: `${sliderPos}%` }}
+          >
+            <img
+              src="/demo-before.png"
+              alt="Before: cluttered room"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '100%', maxWidth: 'none' }}
+              draggable={false}
+            />
+          </div>
+
+          {/* Slider line */}
+          <div
+            className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg z-10"
+            style={{ left: `${sliderPos}%`, transform: 'translateX(-50%)' }}
+          >
+            {/* Handle */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round">
+                <path d="M8 4l-6 8 6 8" />
+                <path d="M16 4l6 8-6 8" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Labels */}
+          <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full z-10">
+            Before
+          </div>
+          <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full z-10">
+            After
           </div>
         </div>
-        
-        {/* Labels */}
-        <div className="absolute top-4 left-4 bg-black/70 text-white px-2 py-1 rounded text-xs">
-          Before
-        </div>
-        <div className="absolute top-4 right-4 bg-black/70 text-white px-2 py-1 rounded text-xs">
-          After
-        </div>
+        <p className="text-xs text-center text-[var(--color-text-muted)] mt-3">
+          Drag the slider to see the difference
+        </p>
       </div>
-      
-      {/* Hidden range input for accessibility */}
-      <input
-        type="range"
-        min="0"
-        max="100"
-        value={sliderPosition}
-        onChange={handleSliderChange}
-        className="sr-only"
-        aria-label="Slider to compare before and after images"
-      />
-    </div>
+    </motion.div>
   );
 }

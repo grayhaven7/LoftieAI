@@ -6,6 +6,7 @@ import { ArrowRight, X, ArrowUpRight, Settings, ExternalLink, Camera, Upload } f
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
+import BeforeAfterSlider from '@/components/BeforeAfterSlider';
 
 interface BioData {
   content: string;
@@ -363,7 +364,7 @@ export default function Home() {
             animate={{ opacity: 1 }}
             className="flex items-center gap-2"
           >
-            <NextImage src="/loftie-logo.png" alt="Loftie" width={44} height={44} className="rounded-full" />
+            <NextImage src="/loftie-logo.png" alt="Loftie" width={56} height={56} className="rounded-full" />
             <span className="logo-text">Loftie</span>
           </motion.div>
           
@@ -724,34 +725,7 @@ export default function Home() {
         </motion.div>
 
         {/* Before/After Demo Slider */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-12"
-        >
-          <div className="max-w-lg mx-auto">
-            <h3 className="text-center text-base text-[var(--color-text-primary)] font-medium mb-4">
-              See the transformation
-            </h3>
-            <div className="relative overflow-hidden rounded-lg border border-[var(--glass-border)]">
-              {/* Placeholder for before/after slider - needs actual images from Sejal */}
-              <div className="relative aspect-[4/3] bg-[var(--color-bg-secondary)] flex items-center justify-center">
-                <div className="text-center">
-                  <p className="text-sm text-[var(--color-text-muted)] mb-2">
-                    Interactive Before/After Demo
-                  </p>
-                  <p className="text-xs text-[var(--color-accent)]">
-                    Coming Soon: Sejal's red suitcase room transformation
-                  </p>
-                </div>
-              </div>
-            </div>
-            <p className="text-xs text-center text-[var(--color-text-muted)] mt-3">
-              Drag the slider to see the difference
-            </p>
-          </div>
-        </motion.div>
+        <BeforeAfterSlider />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {features.map((feature, i) => (
