@@ -61,7 +61,7 @@ export default function BeforeAfterSlider() {
             style={{ width: `${sliderPos}%` }}
           >
             <img
-              src="/demo-before.png"
+              src="/demo-before.jpg"
               alt="Before: cluttered room"
               className="absolute inset-0 w-full h-full object-cover"
               style={{ width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '100%', maxWidth: 'none' }}
