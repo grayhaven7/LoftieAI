@@ -139,28 +139,33 @@ export async function POST(
     // STEP 2: Generate image + TTS in PARALLEL
     console.log(`Starting image generation and TTS in parallel...`);
 
-    const ttsPromise = (async () => {
-      if (!declutteringPlan) return '';
+    const ttsPromise = (async (): Promise<{ url: string; error?: string }> => {
+      if (!declutteringPlan) return { url: '', error: 'No decluttering plan available for TTS' };
       try {
-        console.log(`Generating TTS audio...`);
         const openai = getOpenAIClient();
         const settings_data = await getSettingsAsync();
+        const ttsModel = (settings_data.models?.ttsModel as string) || 'tts-1';
+        const ttsVoice = (settings_data.models?.ttsVoice as string) || 'nova';
+        console.log(`Generating TTS audio (model: ${ttsModel}, voice: ${ttsVoice}, input: ${declutteringPlan.length} chars)...`);
         const ttsInput = userName
           ? `Hi ${userName}! Here's your personalized decluttering plan. ${declutteringPlan}`
           : declutteringPlan;
         const ttsResponse = await openai.audio.speech.create({
-          model: (settings_data.models?.ttsModel as 'tts-1' | 'tts-1-hd') || 'tts-1',
-          voice: (settings_data.models?.ttsVoice as 'nova' | 'alloy' | 'echo' | 'fable' | 'onyx' | 'shimmer') || 'nova',
+          model: ttsModel as 'tts-1' | 'tts-1-hd',
+          voice: ttsVoice as 'nova' | 'alloy' | 'echo' | 'fable' | 'onyx' | 'shimmer',
           input: ttsInput.substring(0, 4096),
           speed: 0.95,
         });
         const audioBuffer = await ttsResponse.arrayBuffer();
+        console.log(`TTS audio generated: ${audioBuffer.byteLength} bytes`);
         const url = await saveAudio(audioBuffer, `audio-${id}-${timestamp}.mp3`);
         console.log(`TTS audio saved: ${url}`);
-        return url;
+        return { url };
       } catch (ttsError) {
-        console.error('TTS generation failed:', ttsError);
-        return '';
+        const errorMsg = ttsError instanceof Error ? ttsError.message : String(ttsError);
+        console.error(`TTS generation failed for ${id}: ${errorMsg}`);
+        console.error('TTS error details:', ttsError);
+        return { url: '', error: errorMsg };
       }
     })();
 
@@ -177,7 +182,9 @@ export async function POST(
       return url;
     })();
 
-    const [audioUrl, afterImageUrl] = await Promise.all([ttsPromise, imagePromise]);
+    const [ttsResult, afterImageUrl] = await Promise.all([ttsPromise, imagePromise]);
+    const audioUrl = ttsResult.url;
+    console.log(`Parallel ops done. Image: ${afterImageUrl}, Audio: ${audioUrl || 'none'}${ttsResult.error ? `, TTS error: ${ttsResult.error}` : ''}`);
 
     if (!afterImageUrl) {
       throw new Error('Failed to save organized image');
@@ -187,6 +194,9 @@ export async function POST(
     transformation.afterImageUrl = afterImageUrl;
     transformation.declutteringPlan = declutteringPlan;
     transformation.audioUrl = audioUrl;
+    if (ttsResult.error) {
+      transformation.ttsError = ttsResult.error;
+    }
     transformation.status = 'completed';
     // Clear the original base64 to save space
     delete transformation.originalImageBase64;
@@ -201,6 +211,8 @@ export async function POST(
       status: 'completed',
       afterImageUrl,
       declutteringPlan,
+      audioUrl: audioUrl || undefined,
+      ttsError: ttsResult.error || undefined,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

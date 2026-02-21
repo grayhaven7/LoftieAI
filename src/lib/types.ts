@@ -5,6 +5,7 @@ export interface RoomTransformation {
   combinedImageUrl?: string; // Side-by-side before/after for social sharing
   declutteringPlan: string;
   audioUrl?: string;
+  ttsError?: string; // Error message if TTS generation failed
   userEmail?: string;
   firstName?: string;
   lastName?: string;
