@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, RefreshCw, ExternalLink, Image as ImageIcon, Settings, Mail } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ExternalLink, Image as ImageIcon, Settings, ThumbsUp, ThumbsDown, Users } from 'lucide-react';
 import Link from 'next/link';
 
 interface TransformationRecord {
@@ -10,56 +10,75 @@ interface TransformationRecord {
   beforeImageUrl: string;
   afterImageUrl: string;
   userEmail?: string;
+  firstName?: string;
+  lastName?: string;
+  userId?: string;
   createdAt: string;
   status: 'processing' | 'completed' | 'failed';
   emailSentAt?: string;
   emailOpenedAt?: string;
   emailOpenCount?: number;
+  feedbackHelpful?: boolean | null;
+  feedbackComment?: string;
+  feedbackSubmittedAt?: string;
+}
+
+interface UserRecord {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 export default function AdminPage() {
   const [transformations, setTransformations] = useState<TransformationRecord[]>([]);
+  const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTransformations = async () => {
+  const getAuthToken = () => {
+    const authCookie = document.cookie.split('; ').find(c => c.startsWith('loftie-admin-auth='));
+    return authCookie?.split('=')[1] || '';
+  };
+
+  const fetchData = async () => {
     try {
       setError(null);
-      // Get auth from cookie for API requests
-      const authCookie = document.cookie.split('; ').find(c => c.startsWith('loftie-admin-auth='));
-      const token = authCookie?.split('=')[1] || '';
-      
-      const response = await fetch('/api/transformations', {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const token = getAuthToken();
+      const headers = {
+        'Cache-Control': 'no-cache',
+        'Authorization': `Bearer ${token}`,
+      };
 
-      let body: any = null;
-      try {
-        body = await response.json();
-      } catch {
-        // ignore
-      }
+      const [transRes, usersRes] = await Promise.all([
+        fetch('/api/transformations', { cache: 'no-store', headers }),
+        fetch('/api/users', { cache: 'no-store', headers }),
+      ]);
 
-      if (!response.ok) {
-        const msg =
-          body?.error ||
-          `Failed to load transformations (HTTP ${response.status})`;
+      // Handle transformations
+      let transBody: any = null;
+      try { transBody = await transRes.json(); } catch { /* ignore */ }
+
+      if (!transRes.ok) {
+        const msg = transBody?.error || `Failed to load transformations (HTTP ${transRes.status})`;
         setError(msg);
         setTransformations([]);
         return;
       }
 
-      // Handle paginated response format
-      const data = body?.transformations ?? (Array.isArray(body) ? body : []);
+      const data = transBody?.transformations ?? (Array.isArray(transBody) ? transBody : []);
       setTransformations(data);
+
+      // Handle users
+      let usersBody: any = null;
+      try { usersBody = await usersRes.json(); } catch { /* ignore */ }
+      if (usersRes.ok && usersBody?.users) {
+        setUsers(usersBody.users);
+      }
     } catch (err) {
       console.error('Failed to fetch:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch transformations');
+      setError(err instanceof Error ? err.message : 'Failed to fetch data');
       setTransformations([]);
     } finally {
       setLoading(false);
@@ -67,11 +86,11 @@ export default function AdminPage() {
     }
   };
 
-  useEffect(() => { fetchTransformations(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchTransformations();
+    fetchData();
   };
 
   const formatDate = (dateString: string) => {
@@ -86,18 +105,40 @@ export default function AdminPage() {
   const getEmailStatus = (t: TransformationRecord) => {
     if (!t.userEmail) return null;
     if (!t.emailSentAt) return { label: 'Not Sent', color: 'text-gray-400', bg: 'bg-gray-400/10' };
-    if (t.emailOpenedAt) return { 
-      label: `Opened ${t.emailOpenCount && t.emailOpenCount > 1 ? `(${t.emailOpenCount}x)` : ''}`, 
-      color: 'text-green-400', 
-      bg: 'bg-green-400/10' 
+    if (t.emailOpenedAt) return {
+      label: `Opened ${t.emailOpenCount && t.emailOpenCount > 1 ? `(${t.emailOpenCount}x)` : ''}`,
+      color: 'text-green-400',
+      bg: 'bg-green-400/10'
     };
     return { label: 'Sent', color: 'text-blue-400', bg: 'bg-blue-400/10' };
   };
 
+  // Build a map of userId -> user for quick lookup
+  const userMap = new Map(users.map(u => [u.id, u]));
+
+  const getUserName = (t: TransformationRecord): string => {
+    // Try to get name from linked user record first
+    if (t.userId && userMap.has(t.userId)) {
+      const user = userMap.get(t.userId)!;
+      return `${user.firstName} ${user.lastName}`;
+    }
+    // Fall back to name stored on the transformation
+    const parts = [t.firstName, t.lastName].filter(Boolean);
+    return parts.length > 0 ? parts.join(' ') : '—';
+  };
+
+  const getUserEmail = (t: TransformationRecord): string => {
+    if (t.userId && userMap.has(t.userId)) {
+      return userMap.get(t.userId)!.email;
+    }
+    return t.userEmail || '—';
+  };
+
   // Only show completed transformations in the main list
   const completedTransformations = transformations.filter(t => t.status === 'completed');
-  
+
   const stats = [
+    { value: users.length, label: 'Users', icon: Users },
     { value: completedTransformations.length, label: 'Completed' },
     { value: transformations.filter(t => t.status === 'processing').length, label: 'Processing' },
     {
@@ -113,14 +154,14 @@ export default function AdminPage() {
     <div className="gradient-bg min-h-screen">
       {/* Header */}
       <header className="py-4 px-4 sm:px-6 border-b border-[rgba(255,255,255,0.04)]">
-        <nav className="max-w-5xl mx-auto flex justify-between items-center">
+        <nav className="max-w-6xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Back</span>
           </Link>
-          
+
           <span className="logo-text">Loftie</span>
-          
+
           <button onClick={handleRefresh} disabled={refreshing} className="btn-icon">
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
@@ -128,7 +169,7 @@ export default function AdminPage() {
       </header>
 
       {/* Main */}
-      <main className="max-w-5xl mx-auto px-4 py-8 sm:py-10">
+      <main className="max-w-6xl mx-auto px-4 py-8 sm:py-10">
         {/* Title */}
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <h1 className="text-2xl text-[var(--color-text-primary)] tracking-tight mb-1">
@@ -138,7 +179,7 @@ export default function AdminPage() {
         </motion.div>
 
         {/* Stats */}
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-3 gap-3 mb-8">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-4 gap-3 mb-8">
           {stats.map((stat, i) => (
             <div key={i} className="stat-card">
               <div className="stat-value text-[var(--color-accent)]">{stat.value}</div>
@@ -180,10 +221,11 @@ export default function AdminPage() {
                   <thead>
                     <tr>
                       <th className="w-16">Preview</th>
-                      <th>ID</th>
+                      <th>Name</th>
                       <th>Email</th>
                       <th>Status</th>
                       <th>Date</th>
+                      <th>Feedback</th>
                       <th className="w-12"></th>
                     </tr>
                   </thead>
@@ -196,11 +238,11 @@ export default function AdminPage() {
                             <img src={t.afterImageUrl} alt="" className="w-12 h-8 object-cover rounded" />
                           </td>
                           <td>
-                            <code className="text-xs text-[var(--color-text-muted)]">{t.id.slice(0, 10)}...</code>
+                            <span className="text-sm text-[var(--color-text-secondary)]">{getUserName(t)}</span>
                           </td>
                           <td>
                             <div className="flex flex-col gap-1">
-                              <span className="text-sm text-[var(--color-text-secondary)]">{t.userEmail || '—'}</span>
+                              <span className="text-sm text-[var(--color-text-secondary)]">{getUserEmail(t)}</span>
                               {emailStatus && (
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full ${emailStatus.bg} ${emailStatus.color} w-fit`}>
                                   {emailStatus.label}
@@ -218,6 +260,29 @@ export default function AdminPage() {
                             </span>
                           </td>
                           <td className="text-sm text-[var(--color-text-muted)]">{formatDate(t.createdAt)}</td>
+                          <td>
+                            {t.feedbackSubmittedAt ? (
+                              <div className="flex items-center gap-2 text-xs">
+                                {t.feedbackHelpful === true && (
+                                  <span className="flex items-center gap-1 text-[var(--color-success)]">
+                                    <ThumbsUp className="w-3 h-3" /> Y
+                                  </span>
+                                )}
+                                {t.feedbackHelpful === false && (
+                                  <span className="flex items-center gap-1 text-red-400">
+                                    <ThumbsDown className="w-3 h-3" /> N
+                                  </span>
+                                )}
+                                {t.feedbackComment && (
+                                  <span className="text-[var(--color-text-muted)] truncate max-w-[100px]" title={t.feedbackComment}>
+                                    &ldquo;{t.feedbackComment}&rdquo;
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-[var(--color-text-muted)]">&mdash;</span>
+                            )}
+                          </td>
                           <td>
                             <Link href={`/results/${t.id}`} className="btn-icon w-8 h-8">
                               <ExternalLink className="w-3.5 h-3.5" />
@@ -242,19 +307,33 @@ export default function AdminPage() {
                       transition={{ delay: i * 0.03 }}
                       className="card p-3"
                     >
-                      <div className="flex gap-3 items-center">
+                      <div className="flex gap-3 items-start">
                         <img src={t.afterImageUrl} alt="" className="w-14 h-10 object-cover rounded flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <code className="text-xs text-[var(--color-text-muted)] block truncate">{t.id.slice(0, 14)}...</code>
-                          {t.userEmail && <p className="text-xs text-[var(--color-text-secondary)] truncate">{t.userEmail}</p>}
+                          <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{getUserName(t)}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] truncate">{getUserEmail(t)}</p>
                           {emailStatus && (
                             <span className={`text-[10px] px-2 py-0.5 rounded-full ${emailStatus.bg} ${emailStatus.color} inline-block mt-1`}>
                               {emailStatus.label}
                             </span>
                           )}
                           <p className="text-xs text-[var(--color-text-muted)] mt-1">{formatDate(t.createdAt)}</p>
+                          {t.feedbackSubmittedAt && (
+                            <div className="flex items-center gap-2 text-xs mt-1">
+                              {t.feedbackHelpful === true && (
+                                <span className="flex items-center gap-1 text-[var(--color-success)]">
+                                  <ThumbsUp className="w-3 h-3" /> Helpful
+                                </span>
+                              )}
+                              {t.feedbackHelpful === false && (
+                                <span className="flex items-center gap-1 text-red-400">
+                                  <ThumbsDown className="w-3 h-3" /> Not helpful
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <Link href={`/results/${t.id}`} className="btn-icon">
+                        <Link href={`/results/${t.id}`} className="btn-icon flex-shrink-0">
                           <ExternalLink className="w-3.5 h-3.5" />
                         </Link>
                       </div>
@@ -269,9 +348,9 @@ export default function AdminPage() {
 
       <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[rgba(255,255,255,0.04)]">
         <div className="flex items-center justify-center gap-4">
-          <p>© 2026 Loftie</p>
-          <Link 
-            href="/settings" 
+          <p>&copy; 2026 Loftie</p>
+          <Link
+            href="/settings"
             className="opacity-50 hover:opacity-100 transition-opacity"
             title="AI Settings"
           >

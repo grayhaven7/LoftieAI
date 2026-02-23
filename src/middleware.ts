@@ -1,11 +1,23 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getSessionFromRequest } from '@/lib/auth';
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'loftie2024';
 const SETTINGS_PASSWORD = process.env.SETTINGS_PASSWORD || 'loftie2024';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // ---- User auth: /api/transform requires a logged-in user ----
+  if (pathname === '/api/transform') {
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+    return NextResponse.next();
+  }
+
+  // ---- Admin auth (existing) ----
 
   // Allow public endpoints:
   // - /api/transformations/mine (browser-based photo history)
@@ -46,5 +58,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/settings/:path*', '/api/transformations/:path*', '/api/debug/:path*'],
+  matcher: ['/admin/:path*', '/settings/:path*', '/api/transformations/:path*', '/api/debug/:path*', '/api/transform', '/api/users/:path*'],
 };

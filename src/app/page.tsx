@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, X, ArrowUpRight, Settings, ExternalLink, Camera, Upload } from 'lucide-react';
+import { ArrowRight, X, ArrowUpRight, Settings, ExternalLink, Camera, Upload, LogOut, Mail } from 'lucide-react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -13,9 +13,14 @@ interface BioData {
   headshotUrl: string;
 }
 
+interface AuthUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 // Compress and resize image to max dimensions while maintaining quality
-// Optimized for speed: 1440px max dimension balances quality and processing time
-// Targets 1-1.5MB max for faster API calls
 async function compressImage(file: File, maxDimension: number = 1440, quality: number = 0.75): Promise<string> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
@@ -25,7 +30,6 @@ async function compressImage(file: File, maxDimension: number = 1440, quality: n
     img.onload = () => {
       let { width, height } = img;
 
-      // Calculate new dimensions while maintaining aspect ratio
       if (width > maxDimension || height > maxDimension) {
         if (width > height) {
           height = Math.round((height * maxDimension) / width);
@@ -39,21 +43,16 @@ async function compressImage(file: File, maxDimension: number = 1440, quality: n
       canvas.width = width;
       canvas.height = height;
 
-      // Use high-quality image smoothing
       if (ctx) {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
       }
 
-      // Always use JPEG for room photos — PNG transparency is not needed and adds size
       const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-
-      // Check resulting size and compress more aggressively if needed
-      const sizeInMB = (compressedDataUrl.length * 3) / 4 / (1024 * 1024); // Rough base64 to bytes conversion
+      const sizeInMB = (compressedDataUrl.length * 3) / 4 / (1024 * 1024);
 
       if (sizeInMB > 1.5 && quality > 0.5) {
-        // Re-compress with lower quality if still too large
         const newQuality = Math.max(0.5, quality - 0.15);
         const recompressed = canvas.toDataURL('image/jpeg', newQuality);
         resolve(recompressed);
@@ -64,7 +63,6 @@ async function compressImage(file: File, maxDimension: number = 1440, quality: n
 
     img.onerror = () => reject(new Error('Failed to load image for compression'));
 
-    // Read file and set as image source
     const reader = new FileReader();
     reader.onload = (e) => {
       img.src = e.target?.result as string;
@@ -78,9 +76,6 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +101,39 @@ export default function Home() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const router = useRouter();
 
+  // Auth state
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authFormFirstName, setAuthFormFirstName] = useState('');
+  const [authFormLastName, setAuthFormLastName] = useState('');
+  const [authFormEmail, setAuthFormEmail] = useState('');
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+
   useEffect(() => {
+    // Check for auth errors from redirect
+    const url = new URL(window.location.href);
+    const authErrorParam = url.searchParams.get('auth_error');
+    if (authErrorParam) {
+      setAuthError(authErrorParam);
+      url.searchParams.delete('auth_error');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, []);
+
+  useEffect(() => {
+    // Check if user is logged in
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setAuthUser(data.user);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setAuthLoading(false));
+
     // Generate or retrieve browser ID
     let id = localStorage.getItem('loftie-browser-id');
     if (!id) {
@@ -146,20 +173,61 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
+  // Auth form submit
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authFormEmail || !authFormFirstName || !authFormLastName) return;
+
+    setAuthSubmitting(true);
+    setAuthError(null);
+
+    try {
+      const res = await fetch('/api/auth/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: authFormFirstName,
+          lastName: authFormLastName,
+          email: authFormEmail,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to send magic link');
+      }
+
+      setMagicLinkSent(true);
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
+
+  const handleLogout = () => {
+    document.cookie = 'loftie-session=; path=/; max-age=0';
+    setAuthUser(null);
+    setMagicLinkSent(false);
+    setAuthFormFirstName('');
+    setAuthFormLastName('');
+    setAuthFormEmail('');
+  };
+
   // Camera functions
   const startCamera = async () => {
     setCameraError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: 'environment', // Prefer rear camera on mobile
+          facingMode: 'environment',
           width: { ideal: 1920 },
           height: { ideal: 1080 },
         },
       });
       setCameraStream(stream);
       setShowCamera(true);
-      // Wait for React to render the video element, then attach stream
       const attachStream = () => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -167,7 +235,6 @@ export default function Home() {
             videoRef.current?.play().catch(() => {});
           };
         } else {
-          // Video element not mounted yet, retry
           requestAnimationFrame(attachStream);
         }
       };
@@ -205,24 +272,18 @@ export default function Home() {
 
     if (!ctx) return;
 
-    // Set canvas size to video dimensions
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-
-    // Draw video frame to canvas
     ctx.drawImage(video, 0, 0);
 
-    // Convert to blob and create a file
     canvas.toBlob(async (blob) => {
       if (!blob) return;
-
       const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
       stopCamera();
       await handleFileSelect(file);
     }, 'image/jpeg', 0.9);
   };
 
-  // Handle mobile camera input (fallback for devices without getUserMedia)
   const handleCameraInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -255,17 +316,13 @@ export default function Home() {
     setIsCompressing(true);
 
     try {
-      // Automatically compress and resize large images (especially from mobile)
-      // Targets ~0.8-1MB max with 1440px max dimension for faster upload and AI processing
       const compressedImage = await compressImage(file, 1440, 0.75);
       setSelectedImage(compressedImage);
 
-      // Log compression stats for debugging
       const originalSizeMB = file.size / (1024 * 1024);
       const compressedSizeMB = (compressedImage.length * 3) / 4 / (1024 * 1024);
       console.log(`Image compressed: ${originalSizeMB.toFixed(2)}MB → ${compressedSizeMB.toFixed(2)}MB`);
     } catch (err) {
-      // Fallback to original if compression fails
       console.warn('Image compression failed, using original:', err);
       setError('Image compression failed. Please try a smaller image or different format.');
       const reader = new FileReader();
@@ -298,7 +355,7 @@ export default function Home() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedImage) return;
+    if (!selectedImage || !authUser) return;
 
     setIsProcessing(true);
     setError(null);
@@ -309,9 +366,9 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageBase64: selectedImage,
-          userEmail: email || undefined,
-          firstName: firstName.trim() || undefined,
-          lastName: lastName.trim() || undefined,
+          userEmail: authUser.email,
+          firstName: authUser.firstName,
+          lastName: authUser.lastName,
           creativityLevel,
           keepItems: keepItems.trim() || undefined,
           browserId: browserId || undefined,
@@ -324,8 +381,6 @@ export default function Home() {
         throw new Error(data.error || 'Failed to create transformation');
       }
 
-      // Navigate immediately to the results page - processing happens there
-      // Pass blobUrl as query param for faster initial fetch (avoids Vercel Blob list() consistency issues)
       const url = data.blobUrl
         ? `/results/${data.id}?blobUrl=${encodeURIComponent(data.blobUrl)}`
         : `/results/${data.id}`;
@@ -359,7 +414,7 @@ export default function Home() {
       {/* Header */}
       <header className="py-4 px-4 sm:px-6">
         <nav className="max-w-5xl mx-auto flex justify-between items-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex items-center gap-2"
@@ -367,7 +422,7 @@ export default function Home() {
             <NextImage src="/loftie-logo.png" alt="Loftie" width={72} height={72} className="rounded-full" />
             <span className="logo-text">Loftie</span>
           </motion.div>
-          
+
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -379,6 +434,16 @@ export default function Home() {
             <a href="/dashboard" className="nav-item">
               Dashboard
             </a>
+            {authUser && (
+              <button
+                onClick={handleLogout}
+                className="nav-item flex items-center gap-1"
+                title="Sign out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </button>
+            )}
           </motion.div>
         </nav>
       </header>
@@ -401,7 +466,7 @@ export default function Home() {
           <span className="badge badge-accent mb-8">
             Created by a professional home stager &amp; decluttering expert
           </span>
-          
+
           <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-4">
             Upload a photo of your cluttered space and watch Loftie transform it in seconds.
           </p>
@@ -410,9 +475,9 @@ export default function Home() {
             Follow our personalized guidance to bring your new space to life.
           </p>
         </motion.div>
-        
+
         {configWarning && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="max-w-md mx-auto mb-6 bg-amber-500/10 border border-amber-500/20 text-amber-500 px-4 py-3 rounded-xl text-xs text-center flex items-center justify-center gap-2"
@@ -423,7 +488,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* Upload */}
+      {/* Upload / Auth Section */}
       <section id="upload" className="max-w-md mx-auto px-4 pb-16">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -431,230 +496,312 @@ export default function Home() {
           viewport={{ once: true }}
           className="card"
         >
-          <AnimatePresence mode="wait">
-            {!selectedImage && !showCamera ? (
-              <motion.div
-                key="upload"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <div
-                  className={`upload-zone p-6 sm:p-8 ${isDragging ? 'drag-over' : ''}`}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleInputChange}
-                  />
-                  {/* Hidden camera input for mobile fallback */}
-                  <input
-                    ref={cameraInputRef}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={handleCameraInput}
-                  />
-
-                  <div className="mb-4 w-12 h-12 rounded-full border border-dashed border-[var(--color-text-muted)] flex items-center justify-center">
-                    <ArrowUpRight className="w-5 h-5 text-[var(--color-text-muted)]" />
+          {authLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-5 h-5 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : !authUser ? (
+            /* ---- Sign up / Login Form ---- */
+            <motion.div
+              key="auth-form"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {!magicLinkSent ? (
+                <form onSubmit={handleAuthSubmit} className="space-y-4">
+                  <div className="text-center mb-4">
+                    <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-1">
+                      Get started with Loftie
+                    </h3>
+                    <p className="text-xs text-[var(--color-text-muted)]">
+                      Enter your info and we&apos;ll send you a sign-in link
+                    </p>
                   </div>
 
-                  <p className="text-sm text-[var(--color-text-primary)] mb-3 font-medium">
-                    Upload a photo of your room
-                  </p>
-
-                  {/* Camera and Upload buttons */}
-                  <div className="flex gap-2 mb-3">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Try native camera API first, fall back to input capture
-                        if (typeof navigator !== 'undefined' && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
-                          startCamera();
-                        } else {
-                          cameraInputRef.current?.click();
-                        }
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg text-xs font-medium hover:bg-[var(--color-accent-hover)] transition-colors"
-                    >
-                      <Camera className="w-4 h-4" />
-                      Take Photo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        fileInputRef.current?.click();
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)] rounded-lg text-xs font-medium hover:bg-[var(--glass-border-hover)] transition-colors"
-                    >
-                      <Upload className="w-4 h-4" />
-                      Upload
-                    </button>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={authFormFirstName}
+                      onChange={(e) => setAuthFormFirstName(e.target.value)}
+                      placeholder="First name"
+                      required
+                      disabled={authSubmitting}
+                      className="flex-1"
+                    />
+                    <input
+                      type="text"
+                      value={authFormLastName}
+                      onChange={(e) => setAuthFormLastName(e.target.value)}
+                      placeholder="Last name"
+                      required
+                      disabled={authSubmitting}
+                      className="flex-1"
+                    />
                   </div>
 
-                  <p className="text-xs text-[var(--color-text-muted)] opacity-75">
-                    Well-lit, straight-on photos work best
-                  </p>
+                  <input
+                    type="email"
+                    value={authFormEmail}
+                    onChange={(e) => setAuthFormEmail(e.target.value)}
+                    placeholder="Email address"
+                    required
+                    disabled={authSubmitting}
+                  />
 
-                  {cameraError && (
-                    <div className="mt-3 bg-[var(--color-error)]/10 border border-[var(--color-error)]/20 text-[var(--color-error)] px-3 py-2 rounded-lg text-xs text-center">
-                      {cameraError}
+                  {authError && (
+                    <div className="bg-[var(--color-error)]/10 border border-[var(--color-error)]/20 text-[var(--color-error)] px-3 py-2 rounded-lg text-xs text-center">
+                      {authError}
                     </div>
                   )}
 
-                  {isCompressing && (
-                    <div className="mt-3 flex items-center justify-center gap-2">
-                      <div className="w-3 h-3 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
-                      <p className="text-xs text-[var(--color-text-muted)]">Optimizing image...</p>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            ) : showCamera && !selectedImage ? (
-              <motion.div
-                key="camera"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-4"
-              >
-                <div className="relative rounded-lg overflow-hidden bg-black aspect-[4/3]">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover"
-                  />
-                  <canvas ref={canvasRef} className="hidden" />
-
-                  {/* Camera controls overlay */}
-                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
-                    <button
-                      onClick={stopCamera}
-                      className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
-                    >
-                      <X className="w-5 h-5 text-white" />
-                    </button>
-                    <button
-                      onClick={capturePhoto}
-                      className="w-14 h-14 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-colors border-4 border-white/50"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]" />
-                    </button>
-                    <div className="w-10 h-10" /> {/* Spacer for balance */}
-                  </div>
-                </div>
-                <p className="text-xs text-[var(--color-text-muted)] text-center">
-                  Position your room in the frame and tap to capture
-                </p>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="preview"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-4"
-              >
-                <div className="relative">
-                  <img
-                    src={selectedImage!}
-                    alt="Selected room"
-                    className="w-full rounded-lg object-cover max-h-56"
-                  />
-                  {!isProcessing && (
-                    <button
-                      onClick={clearImage}
-                      className="absolute top-2 right-2 btn-icon w-8 h-8"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                  <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-xs text-white truncate max-w-[60%]">
-                    {selectedFile?.name}
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="First name"
-                    disabled={isProcessing}
-                    className="flex-1"
-                  />
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Last name"
-                    disabled={isProcessing}
-                    className="flex-1"
-                  />
-                </div>
-
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email (optional — we'll send your plan)"
-                  disabled={isProcessing}
-                />
-
-                {isProcessing && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex items-center justify-center gap-2 py-2"
+                  <button
+                    type="submit"
+                    disabled={authSubmitting || !authFormEmail || !authFormFirstName || !authFormLastName}
+                    className="btn-primary w-full"
                   >
-                    <div className="w-4 h-4 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
-                    <p className="text-[var(--color-text-muted)] text-xs">Uploading...</p>
-                  </motion.div>
-                )}
+                    {authSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Sending...
+                      </span>
+                    ) : (
+                      <>Get Started <ArrowRight className="w-3.5 h-3.5" /></>
+                    )}
+                  </button>
 
-                {error && (
-                  <div className="bg-[var(--color-error)]/10 border border-[var(--color-error)]/20 text-[var(--color-error)] px-3 py-2 rounded-lg text-xs text-center">
-                    {error}
-                  </div>
-                )}
-
-                <button
-                  onClick={handleSubmit}
-                  disabled={isProcessing}
-                  className="btn-primary w-full"
-                >
-                  {isProcessing ? 'Transforming...' : (
-                    <>Transform <ArrowRight className="w-3.5 h-3.5" /></>
-                  )}
-                </button>
-                <p className="text-[10px] text-[var(--color-text-muted)] text-center mt-2 opacity-70">
-                  AI image results may vary
-                </p>
-
-                {/* Privacy Notice */}
-                <div className="mt-3 pt-3 border-t border-[var(--glass-border)]">
-                  <p className="text-[10px] text-[var(--color-text-muted)] text-center flex items-center justify-center gap-1.5">
-                    <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    Your photos are processed securely and not stored after your session
+                  <p className="text-[10px] text-[var(--color-text-muted)] text-center opacity-70">
+                    We&apos;ll email you a magic link — no password needed
                   </p>
+                </form>
+              ) : (
+                /* Magic link sent confirmation */
+                <div className="text-center py-4 space-y-3">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center">
+                    <Mail className="w-6 h-6 text-[var(--color-accent)]" />
+                  </div>
+                  <h3 className="text-sm font-medium text-[var(--color-text-primary)]">
+                    Check your email
+                  </h3>
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    We sent a sign-in link to <strong>{authFormEmail}</strong>
+                  </p>
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    Click the link in the email to get started. It expires in 15 minutes.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setMagicLinkSent(false);
+                      setAuthError(null);
+                    }}
+                    className="text-xs text-[var(--color-accent)] hover:underline mt-2"
+                  >
+                    Use a different email
+                  </button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </motion.div>
+          ) : (
+            /* ---- Upload UI (authenticated) ---- */
+            <AnimatePresence mode="wait">
+              {!selectedImage && !showCamera ? (
+                <motion.div
+                  key="upload"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div className="text-center mb-3">
+                    <p className="text-xs text-[var(--color-text-muted)]">
+                      Welcome back, <strong className="text-[var(--color-text-primary)]">{authUser.firstName}</strong>
+                    </p>
+                  </div>
+                  <div
+                    className={`upload-zone p-6 sm:p-8 ${isDragging ? 'drag-over' : ''}`}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleInputChange}
+                    />
+                    <input
+                      ref={cameraInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={handleCameraInput}
+                    />
+
+                    <div className="mb-4 w-12 h-12 rounded-full border border-dashed border-[var(--color-text-muted)] flex items-center justify-center">
+                      <ArrowUpRight className="w-5 h-5 text-[var(--color-text-muted)]" />
+                    </div>
+
+                    <p className="text-sm text-[var(--color-text-primary)] mb-3 font-medium">
+                      Upload a photo of your room
+                    </p>
+
+                    <div className="flex gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (typeof navigator !== 'undefined' && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+                            startCamera();
+                          } else {
+                            cameraInputRef.current?.click();
+                          }
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg text-xs font-medium hover:bg-[var(--color-accent-hover)] transition-colors"
+                      >
+                        <Camera className="w-4 h-4" />
+                        Take Photo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)] rounded-lg text-xs font-medium hover:bg-[var(--glass-border-hover)] transition-colors"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Upload
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-[var(--color-text-muted)] opacity-75">
+                      Well-lit, straight-on photos work best
+                    </p>
+
+                    {cameraError && (
+                      <div className="mt-3 bg-[var(--color-error)]/10 border border-[var(--color-error)]/20 text-[var(--color-error)] px-3 py-2 rounded-lg text-xs text-center">
+                        {cameraError}
+                      </div>
+                    )}
+
+                    {isCompressing && (
+                      <div className="mt-3 flex items-center justify-center gap-2">
+                        <div className="w-3 h-3 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
+                        <p className="text-xs text-[var(--color-text-muted)]">Optimizing image...</p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ) : showCamera && !selectedImage ? (
+                <motion.div
+                  key="camera"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="relative rounded-lg overflow-hidden bg-black aspect-[4/3]">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                    <canvas ref={canvasRef} className="hidden" />
+
+                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
+                      <button
+                        onClick={stopCamera}
+                        className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+                      >
+                        <X className="w-5 h-5 text-white" />
+                      </button>
+                      <button
+                        onClick={capturePhoto}
+                        className="w-14 h-14 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-colors border-4 border-white/50"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-[var(--color-accent)]" />
+                      </button>
+                      <div className="w-10 h-10" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-[var(--color-text-muted)] text-center">
+                    Position your room in the frame and tap to capture
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="preview"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="relative">
+                    <img
+                      src={selectedImage!}
+                      alt="Selected room"
+                      className="w-full rounded-lg object-cover max-h-56"
+                    />
+                    {!isProcessing && (
+                      <button
+                        onClick={clearImage}
+                        className="absolute top-2 right-2 btn-icon w-8 h-8"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-xs text-white truncate max-w-[60%]">
+                      {selectedFile?.name}
+                    </div>
+                  </div>
+
+                  {isProcessing && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex items-center justify-center gap-2 py-2"
+                    >
+                      <div className="w-4 h-4 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
+                      <p className="text-[var(--color-text-muted)] text-xs">Uploading...</p>
+                    </motion.div>
+                  )}
+
+                  {error && (
+                    <div className="bg-[var(--color-error)]/10 border border-[var(--color-error)]/20 text-[var(--color-error)] px-3 py-2 rounded-lg text-xs text-center">
+                      {error}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isProcessing}
+                    className="btn-primary w-full"
+                  >
+                    {isProcessing ? 'Transforming...' : (
+                      <>Transform <ArrowRight className="w-3.5 h-3.5" /></>
+                    )}
+                  </button>
+                  <p className="text-[10px] text-[var(--color-text-muted)] text-center mt-2 opacity-70">
+                    AI image results may vary
+                  </p>
+
+                  {/* Privacy Notice */}
+                  <div className="mt-3 pt-3 border-t border-[var(--glass-border)]">
+                    <p className="text-[10px] text-[var(--color-text-muted)] text-center flex items-center justify-center gap-1.5">
+                      <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      Your photos are processed securely and not stored after your session
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </motion.div>
       </section>
 
@@ -838,8 +985,8 @@ export default function Home() {
             <span>Photos processed securely • Not stored or used for AI training</span>
           </div>
           <div className="flex items-center justify-center gap-4">
-            <p>© 2026 Loftie</p>
-            <span className="text-[var(--color-text-muted)]">•</span>
+            <p>&copy; 2026 Loftie</p>
+            <span className="text-[var(--color-text-muted)]">&bull;</span>
             <a
               href="https://innovaedesigns.com"
               target="_blank"

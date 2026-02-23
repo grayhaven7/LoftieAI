@@ -5,6 +5,7 @@ import { RoomTransformation } from '@/lib/types';
 import { analyzeImageWithGemini, buildPlanPrompt, generateDeclutteringPlan } from '@/lib/gemini';
 import { getSettings, getSettingsAsync } from '@/lib/settings';
 import { resizeImageForAPI } from '@/lib/image-utils';
+import { getSessionFromCookies } from '@/lib/auth';
 
 export const maxDuration = 60; // Increase timeout for image upload and room check
 
@@ -18,6 +19,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Get userId from session (middleware ensures auth, but handle gracefully)
+    const session = await getSessionFromCookies();
+    const userId = session?.userId;
 
     const id = uuidv4();
     const timestamp = Date.now();
@@ -60,6 +65,7 @@ export async function POST(request: NextRequest) {
       userEmail,
       firstName: firstName || undefined,
       lastName: lastName || undefined,
+      userId,
       createdAt: new Date().toISOString(),
       status: 'processing',
       // Store resized base64 for the process endpoint (faster than full original)

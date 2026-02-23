@@ -1,3 +1,20 @@
+export interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  createdAt: string;
+  lastLoginAt: string;
+}
+
+export interface MagicLinkToken {
+  token: string;
+  email: string;
+  createdAt: string;
+  expiresAt: string;
+  used: boolean;
+}
+
 export interface RoomTransformation {
   id: string;
   beforeImageUrl: string;
@@ -9,6 +26,7 @@ export interface RoomTransformation {
   userEmail?: string;
   firstName?: string;
   lastName?: string;
+  userId?: string; // Links to User record
   createdAt: string;
   accessedAt?: string; // Last time user accessed the results
   status: 'processing' | 'completed' | 'failed';

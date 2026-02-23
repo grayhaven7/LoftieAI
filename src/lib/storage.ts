@@ -1,9 +1,11 @@
 import { put, list, del } from '@vercel/blob';
-import { RoomTransformation } from './types';
+import { RoomTransformation, User, MagicLinkToken } from './types';
 import * as fs from 'fs';
 import * as path from 'path';
 
 const LOCAL_DATA_PATH = path.join(process.cwd(), 'data', 'transformations.json');
+const LOCAL_USERS_PATH = path.join(process.cwd(), 'data', 'users.json');
+const LOCAL_TOKENS_PATH = path.join(process.cwd(), 'data', 'magic-tokens.json');
 const LOCAL_UPLOADS_PATH = path.join(process.cwd(), 'public', 'uploads');
 
 // Check if we should use local storage
@@ -450,6 +452,269 @@ export async function saveAudio(audioBuffer: ArrayBuffer, filename: string): Pro
     if (error instanceof Error) {
       console.error('[Storage] Error details:', error.message, error.stack);
     }
+    throw error;
+  }
+}
+
+// ==================== User Storage ====================
+
+export async function getUser(id: string): Promise<User | null> {
+  if (useLocalStorage()) {
+    try {
+      ensureLocalDirs();
+      if (fs.existsSync(LOCAL_USERS_PATH)) {
+        const data = fs.readFileSync(LOCAL_USERS_PATH, 'utf-8');
+        const users = JSON.parse(data) as User[];
+        return users.find(u => u.id === id) || null;
+      }
+      return null;
+    } catch (error) {
+      console.error('[Storage] Error reading local user:', error);
+      return null;
+    }
+  }
+
+  const token = getBlobToken();
+  if (!token) return null;
+
+  try {
+    const { blobs } = await list({ prefix: `users/${id}.json`, limit: 1, token });
+    if (blobs.length > 0) {
+      const response = await fetch(blobs[0].url, { cache: 'no-store' });
+      if (response.ok) return await response.json() as User;
+    }
+    return null;
+  } catch (error) {
+    console.error(`[Storage] Error fetching user ${id}:`, error);
+    return null;
+  }
+}
+
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const normalizedEmail = email.toLowerCase().trim();
+
+  if (useLocalStorage()) {
+    try {
+      ensureLocalDirs();
+      if (fs.existsSync(LOCAL_USERS_PATH)) {
+        const data = fs.readFileSync(LOCAL_USERS_PATH, 'utf-8');
+        const users = JSON.parse(data) as User[];
+        return users.find(u => u.email === normalizedEmail) || null;
+      }
+      return null;
+    } catch (error) {
+      console.error('[Storage] Error reading local users:', error);
+      return null;
+    }
+  }
+
+  const token = getBlobToken();
+  if (!token) return null;
+
+  try {
+    const { blobs } = await list({ prefix: 'users/', token });
+    for (const blob of blobs) {
+      try {
+        const response = await fetch(blob.url, { cache: 'no-store' });
+        if (response.ok) {
+          const user = await response.json() as User;
+          if (user.email === normalizedEmail) return user;
+        }
+      } catch {
+        continue;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error('[Storage] Error searching users by email:', error);
+    return null;
+  }
+}
+
+export async function saveUser(user: User): Promise<void> {
+  if (useLocalStorage()) {
+    try {
+      ensureLocalDirs();
+      let users: User[] = [];
+      if (fs.existsSync(LOCAL_USERS_PATH)) {
+        const data = fs.readFileSync(LOCAL_USERS_PATH, 'utf-8');
+        users = JSON.parse(data) as User[];
+      }
+      const existingIndex = users.findIndex(u => u.id === user.id);
+      if (existingIndex >= 0) {
+        users[existingIndex] = user;
+      } else {
+        users.push(user);
+      }
+      fs.writeFileSync(LOCAL_USERS_PATH, JSON.stringify(users, null, 2));
+      return;
+    } catch (error) {
+      console.error('[Storage] Error saving local user:', error);
+      throw error;
+    }
+  }
+
+  const token = getBlobToken();
+  if (!token) throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
+
+  try {
+    await put(`users/${user.id}.json`, JSON.stringify(user, null, 2), {
+      access: 'public',
+      contentType: 'application/json',
+      addRandomSuffix: false,
+      token,
+      cacheControlMaxAge: 0,
+    });
+  } catch (error) {
+    console.error('[Storage] Error saving user to blob:', error);
+    throw error;
+  }
+}
+
+export async function getAllUsers(): Promise<User[]> {
+  if (useLocalStorage()) {
+    try {
+      ensureLocalDirs();
+      if (fs.existsSync(LOCAL_USERS_PATH)) {
+        const data = fs.readFileSync(LOCAL_USERS_PATH, 'utf-8');
+        return JSON.parse(data) as User[];
+      }
+      return [];
+    } catch (error) {
+      console.error('[Storage] Error reading local users:', error);
+      return [];
+    }
+  }
+
+  const token = getBlobToken();
+  if (!token) return [];
+
+  try {
+    const { blobs } = await list({ prefix: 'users/', token });
+    const users = await Promise.all(
+      blobs.map(async (blob) => {
+        try {
+          const response = await fetch(blob.url, { cache: 'no-store' });
+          if (response.ok) return await response.json() as User;
+          return null;
+        } catch {
+          return null;
+        }
+      })
+    );
+    return users.filter((u): u is User => u !== null);
+  } catch (error) {
+    console.error('[Storage] Error fetching all users:', error);
+    return [];
+  }
+}
+
+// ==================== Magic Link Token Storage ====================
+
+export async function saveMagicLinkToken(tokenData: MagicLinkToken): Promise<void> {
+  if (useLocalStorage()) {
+    try {
+      ensureLocalDirs();
+      let tokens: MagicLinkToken[] = [];
+      if (fs.existsSync(LOCAL_TOKENS_PATH)) {
+        const data = fs.readFileSync(LOCAL_TOKENS_PATH, 'utf-8');
+        tokens = JSON.parse(data) as MagicLinkToken[];
+      }
+      tokens.push(tokenData);
+      fs.writeFileSync(LOCAL_TOKENS_PATH, JSON.stringify(tokens, null, 2));
+      return;
+    } catch (error) {
+      console.error('[Storage] Error saving local magic link token:', error);
+      throw error;
+    }
+  }
+
+  const token = getBlobToken();
+  if (!token) throw new Error('BLOB_READ_WRITE_TOKEN is not configured');
+
+  try {
+    await put(`magic-tokens/${tokenData.token}.json`, JSON.stringify(tokenData, null, 2), {
+      access: 'public',
+      contentType: 'application/json',
+      addRandomSuffix: false,
+      token,
+      cacheControlMaxAge: 0,
+    });
+  } catch (error) {
+    console.error('[Storage] Error saving magic link token to blob:', error);
+    throw error;
+  }
+}
+
+export async function getMagicLinkToken(tokenId: string): Promise<MagicLinkToken | null> {
+  if (useLocalStorage()) {
+    try {
+      ensureLocalDirs();
+      if (fs.existsSync(LOCAL_TOKENS_PATH)) {
+        const data = fs.readFileSync(LOCAL_TOKENS_PATH, 'utf-8');
+        const tokens = JSON.parse(data) as MagicLinkToken[];
+        return tokens.find(t => t.token === tokenId) || null;
+      }
+      return null;
+    } catch (error) {
+      console.error('[Storage] Error reading local magic link token:', error);
+      return null;
+    }
+  }
+
+  const token = getBlobToken();
+  if (!token) return null;
+
+  try {
+    const { blobs } = await list({ prefix: `magic-tokens/${tokenId}.json`, limit: 1, token });
+    if (blobs.length > 0) {
+      const response = await fetch(blobs[0].url, { cache: 'no-store' });
+      if (response.ok) return await response.json() as MagicLinkToken;
+    }
+    return null;
+  } catch (error) {
+    console.error(`[Storage] Error fetching magic link token ${tokenId}:`, error);
+    return null;
+  }
+}
+
+export async function markMagicLinkTokenUsed(tokenId: string): Promise<void> {
+  if (useLocalStorage()) {
+    try {
+      ensureLocalDirs();
+      if (fs.existsSync(LOCAL_TOKENS_PATH)) {
+        const data = fs.readFileSync(LOCAL_TOKENS_PATH, 'utf-8');
+        const tokens = JSON.parse(data) as MagicLinkToken[];
+        const idx = tokens.findIndex(t => t.token === tokenId);
+        if (idx >= 0) {
+          tokens[idx].used = true;
+          fs.writeFileSync(LOCAL_TOKENS_PATH, JSON.stringify(tokens, null, 2));
+        }
+      }
+      return;
+    } catch (error) {
+      console.error('[Storage] Error marking local token as used:', error);
+      throw error;
+    }
+  }
+
+  const tokenData = await getMagicLinkToken(tokenId);
+  if (!tokenData) return;
+
+  tokenData.used = true;
+  const blobToken = getBlobToken();
+  if (!blobToken) return;
+
+  try {
+    await put(`magic-tokens/${tokenId}.json`, JSON.stringify(tokenData, null, 2), {
+      access: 'public',
+      contentType: 'application/json',
+      addRandomSuffix: false,
+      token: blobToken,
+      cacheControlMaxAge: 0,
+    });
+  } catch (error) {
+    console.error('[Storage] Error marking token as used in blob:', error);
     throw error;
   }
 }
