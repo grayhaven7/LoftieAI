@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, RefreshCw, Image as ImageIcon, ThumbsUp, ThumbsDown, ExternalLink } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Image as ImageIcon, Download, ThumbsUp, ThumbsDown } from 'lucide-react';
 import Link from 'next/link';
 
 interface TransformationRecord {
@@ -77,7 +77,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)]">
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -118,133 +118,126 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Table */}
+        {/* Grid */}
         {!loading && transformations.length > 0 && (
-          <>
-            {/* Desktop table */}
-            <div className="hidden md:block">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th className="w-16">Photo</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Date</th>
-                    <th>Feedback</th>
-                    <th className="w-12"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transformations.map((t) => {
-                    const name = getUserName(t);
-                    return (
-                      <tr key={t.id}>
-                        <td>
-                          <img
-                            src={t.afterImageUrl || t.beforeImageUrl}
-                            alt=""
-                            className="w-12 h-8 object-cover rounded"
-                          />
-                        </td>
-                        <td>
-                          <span className="text-sm text-[var(--color-text-secondary)]">{name || '—'}</span>
-                        </td>
-                        <td>
-                          <span className="text-sm text-[var(--color-text-secondary)]">{t.userEmail || '—'}</span>
-                        </td>
-                        <td className="text-sm text-[var(--color-text-muted)]">
-                          {formatDate(t.createdAt)}
-                        </td>
-                        <td>
-                          {t.feedbackSubmittedAt ? (
-                            <div className="flex items-center gap-2 text-xs">
-                              {t.feedbackHelpful === true && (
-                                <span className="flex items-center gap-1 text-[var(--color-success)]">
-                                  <ThumbsUp className="w-3 h-3" /> Y
-                                </span>
-                              )}
-                              {t.feedbackHelpful === false && (
-                                <span className="flex items-center gap-1 text-red-400">
-                                  <ThumbsDown className="w-3 h-3" /> N
-                                </span>
-                              )}
-                              {t.feedbackComment && (
-                                <span className="text-[var(--color-text-muted)] truncate max-w-[120px]" title={t.feedbackComment}>
-                                  &ldquo;{t.feedbackComment}&rdquo;
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-[var(--color-text-muted)]">—</span>
-                          )}
-                        </td>
-                        <td>
-                          <Link href={`/results/${t.id}`} className="btn-icon w-8 h-8">
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile cards */}
-            <div className="md:hidden space-y-3">
-              {transformations.map((t, i) => {
-                const name = getUserName(t);
-                return (
-                  <motion.div
-                    key={t.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="card p-3"
-                  >
-                    <div className="flex gap-3 items-start">
-                      <img
-                        src={t.afterImageUrl || t.beforeImageUrl}
-                        alt=""
-                        className="w-14 h-10 object-cover rounded flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        {name && (
-                          <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{name}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {transformations.map((t, i) => {
+              const name = getUserName(t);
+              return (
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <div className="bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg overflow-hidden hover:border-[var(--color-accent)]/30 transition-all">
+                    {/* Images */}
+                    <Link href={`/results/${t.id}`} className="block group">
+                      <div className="grid grid-cols-2 gap-0.5 bg-[var(--color-bg-secondary)]">
+                        {t.beforeImageUrl && (
+                          <div className="aspect-[4/3] relative">
+                            <img src={t.beforeImageUrl} alt="Before" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <span className="absolute top-2 left-2 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">Before</span>
+                          </div>
                         )}
-                        {t.userEmail && (
-                          <p className="text-xs text-[var(--color-text-secondary)] truncate">{t.userEmail}</p>
-                        )}
-                        <p className="text-xs text-[var(--color-text-muted)] mt-1">{formatDate(t.createdAt)}</p>
-                        {t.feedbackSubmittedAt && (
-                          <div className="flex items-center gap-2 text-xs mt-1">
-                            {t.feedbackHelpful === true && (
-                              <span className="flex items-center gap-1 text-[var(--color-success)]">
-                                <ThumbsUp className="w-3 h-3" /> Helpful
-                              </span>
-                            )}
-                            {t.feedbackHelpful === false && (
-                              <span className="flex items-center gap-1 text-red-400">
-                                <ThumbsDown className="w-3 h-3" /> Not helpful
-                              </span>
-                            )}
-                            {t.feedbackComment && (
-                              <span className="text-[var(--color-text-muted)] truncate max-w-[120px]" title={t.feedbackComment}>
-                                &ldquo;{t.feedbackComment}&rdquo;
-                              </span>
-                            )}
+                        {t.afterImageUrl && (
+                          <div className="aspect-[4/3] relative">
+                            <img src={t.afterImageUrl} alt="After" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <span className="absolute top-2 left-2 text-[10px] bg-[var(--color-accent)]/80 text-white px-1.5 py-0.5 rounded">After</span>
                           </div>
                         )}
                       </div>
-                      <Link href={`/results/${t.id}`} className="btn-icon flex-shrink-0">
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </Link>
+                    </Link>
+
+                    {/* Info section */}
+                    <div className="p-3 space-y-2">
+                      {/* User info row */}
+                      <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
+                        {name && (
+                          <span className="flex items-center gap-1">
+                            {name}
+                          </span>
+                        )}
+                        {t.userEmail && (
+                          <span className="flex items-center gap-1 truncate max-w-[150px]">
+                            {t.userEmail}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Date and status row */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-[var(--color-text-muted)]">
+                          {formatDate(t.createdAt)}
+                        </span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                          t.status === 'completed' ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' :
+                          t.status === 'processing' ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]' :
+                          'bg-red-500/10 text-red-400'
+                        }`}>
+                          {t.status}
+                        </span>
+                      </div>
+
+                      {/* Feedback row */}
+                      {t.feedbackSubmittedAt && (
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-[var(--color-text-muted)]">Feedback:</span>
+                          {t.feedbackHelpful === true && (
+                            <span className="flex items-center gap-1 text-[var(--color-success)]">
+                              <ThumbsUp className="w-3 h-3" /> Helpful
+                            </span>
+                          )}
+                          {t.feedbackHelpful === false && (
+                            <span className="flex items-center gap-1 text-red-400">
+                              <ThumbsDown className="w-3 h-3" /> Not helpful
+                            </span>
+                          )}
+                          {t.feedbackComment && (
+                            <span className="text-[var(--color-text-muted)] truncate max-w-[150px]" title={t.feedbackComment}>
+                              &ldquo;{t.feedbackComment}&rdquo;
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Download buttons */}
+                      {t.status === 'completed' && (
+                        <div className="flex items-center gap-2 pt-2 border-t border-[var(--glass-border)]">
+                          {t.beforeImageUrl && (
+                            <a
+                              href={t.beforeImageUrl}
+                              download={`loftie-before-${t.id}.jpg`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+                            >
+                              <Download className="w-3 h-3" /> Before
+                            </a>
+                          )}
+                          {t.afterImageUrl && (
+                            <a
+                              href={t.afterImageUrl}
+                              download={`loftie-after-${t.id}.png`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+                            >
+                              <Download className="w-3 h-3" /> After
+                            </a>
+                          )}
+                          <Link
+                            href={`/results/${t.id}`}
+                            className="ml-auto text-[10px] text-[var(--color-accent)] hover:underline"
+                          >
+                            View Details →
+                          </Link>
+                        </div>
+                      )}
                     </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
