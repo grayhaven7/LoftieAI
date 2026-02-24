@@ -7,6 +7,7 @@ import {
   DEFAULT_PROMPTS,
   DEFAULT_MODELS,
   DEFAULT_BIO,
+  DEFAULT_HEADLINES,
   AVAILABLE_MODELS,
   PROMPT_VARIABLES,
 } from '@/lib/settings';
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
         prompts: DEFAULT_PROMPTS,
         models: DEFAULT_MODELS,
         bio: DEFAULT_BIO,
+        headlines: DEFAULT_HEADLINES,
       },
       availableModels: AVAILABLE_MODELS,
       promptVariables: PROMPT_VARIABLES,
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { action, prompts, models, bio } = body;
+    const { action, prompts, models, bio, headlines } = body;
 
     if (action === 'reset') {
       const settings = await resetToDefaults();
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update settings
-    const settings = await saveSettings({ prompts, models, bio });
+    const settings = await saveSettings({ prompts, models, bio, headlines });
     
     return NextResponse.json({
       success: true,

@@ -27,10 +27,18 @@ interface BioSettings {
   headshotUrl: string;
 }
 
+interface HeadlineSettings {
+  mainHeadline: string;
+  subHeadline: string;
+  subtitle1: string;
+  subtitle2: string;
+}
+
 interface AppSettings {
   prompts: PromptSettings;
   models: ModelSettings;
   bio: BioSettings;
+  headlines: HeadlineSettings;
   updatedAt: string;
 }
 
@@ -304,6 +312,49 @@ export default function SettingsPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const saveHeadlines = async () => {
+    if (!settings) return;
+
+    setSaving(true);
+    setSaved(null);
+    setError(null);
+
+    try {
+      const pwd = getSettingsCookie() || password;
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-settings-password': pwd,
+        },
+        body: JSON.stringify({
+          headlines: settings.headlines,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save');
+      }
+
+      setSaved('headlines');
+      setTimeout(() => setSaved(null), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateHeadline = (key: keyof HeadlineSettings, value: string) => {
+    if (!settings) return;
+    setSettings({
+      ...settings,
+      headlines: { ...settings.headlines, [key]: value },
+    });
   };
 
   const updateBio = (key: keyof BioSettings, value: string) => {
@@ -740,6 +791,96 @@ export default function SettingsPage() {
                       <>
                         <Save className="w-3.5 h-3.5" />
                         Save Models
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.section>
+
+            {/* Headlines Settings */}
+            <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+              <h2 className="text-lg text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
+                <span className="text-emphasis">Headlines</span>
+              </h2>
+
+              <div className="card">
+                <div className="mb-4">
+                  <h3 className="text-sm text-[var(--color-text-primary)] font-medium mb-1">
+                    Landing Page Headlines
+                  </h3>
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    Edit the main headlines and subtitle text shown on the homepage.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                      Main Headline
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.headlines?.mainHeadline || ''}
+                      onChange={(e) => updateHeadline('mainHeadline', e.target.value)}
+                      placeholder="Overwhelmed by clutter?"
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                      Sub-headline
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.headlines?.subHeadline || ''}
+                      onChange={(e) => updateHeadline('subHeadline', e.target.value)}
+                      placeholder="Let Loftie help."
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                      Subtitle Line 1
+                    </label>
+                    <textarea
+                      value={settings.headlines?.subtitle1 || ''}
+                      onChange={(e) => updateHeadline('subtitle1', e.target.value)}
+                      placeholder="Upload a photo of your cluttered space and watch Loftie transform it in seconds."
+                      className="w-full min-h-[60px] p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                      Subtitle Line 2
+                    </label>
+                    <textarea
+                      value={settings.headlines?.subtitle2 || ''}
+                      onChange={(e) => updateHeadline('subtitle2', e.target.value)}
+                      placeholder="Follow our personalized guidance to bring your new space to life."
+                      className="w-full min-h-[60px] p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-xl text-sm text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-[var(--color-accent)] transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-6 pt-4 border-t border-[var(--glass-border)]">
+                  <button
+                    onClick={saveHeadlines}
+                    disabled={saving}
+                    className="btn-secondary"
+                  >
+                    {saved === 'headlines' ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-[var(--color-success)]" />
+                        Saved
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-3.5 h-3.5" />
+                        Save Headlines
                       </>
                     )}
                   </button>

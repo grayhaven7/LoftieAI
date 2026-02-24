@@ -23,10 +23,18 @@ export interface BioSettings {
   headshotUrl: string;
 }
 
+export interface HeadlineSettings {
+  mainHeadline: string;
+  subHeadline: string;
+  subtitle1: string;
+  subtitle2: string;
+}
+
 export interface AppSettings {
   prompts: PromptSettings;
   models: ModelSettings;
   bio: BioSettings;
+  headlines: HeadlineSettings;
   updatedAt: string;
 }
 
@@ -299,6 +307,13 @@ export const DEFAULT_MODELS: ModelSettings = {
   ttsVoice: 'nova',
 };
 
+export const DEFAULT_HEADLINES: HeadlineSettings = {
+  mainHeadline: 'Overwhelmed by clutter?',
+  subHeadline: 'Let Loftie help.',
+  subtitle1: 'Upload a photo of your cluttered space and watch Loftie transform it in seconds.',
+  subtitle2: 'Follow our personalized guidance to bring your new space to life.',
+};
+
 export const DEFAULT_BIO: BioSettings = {
   content: `Loftie AI was created by Sejal Parekh, a professional home stager, home organizing expert, and Realtor® and founder of Innovae Designs, a boutique home staging and design company based in the San Francisco Bay Area. She and her team have styled and transformed hundreds of homes. In her work, Sejal has seen firsthand how overwhelming clutter can feel and the mental paralysis it can often cause. It was her mission to create a tool to help guide users step by step in decluttering and styling their space. And so - Loftie AI was born!
 
@@ -404,6 +419,7 @@ function getDefaultSettings(): AppSettings {
     prompts: DEFAULT_PROMPTS,
     models: DEFAULT_MODELS,
     bio: DEFAULT_BIO,
+    headlines: DEFAULT_HEADLINES,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -426,6 +442,7 @@ export function getSettings(): AppSettings {
           prompts: { ...DEFAULT_PROMPTS, ...settings.prompts },
           models: { ...DEFAULT_MODELS, ...settings.models },
           bio: { ...DEFAULT_BIO, ...settings.bio },
+          headlines: { ...DEFAULT_HEADLINES, ...settings.headlines },
           updatedAt: settings.updatedAt || new Date().toISOString(),
         };
         cacheTimestamp = Date.now();
@@ -456,6 +473,7 @@ export async function getSettingsAsync(forceRefresh: boolean = false): Promise<A
           prompts: { ...DEFAULT_PROMPTS, ...settings.prompts },
           models: { ...DEFAULT_MODELS, ...settings.models },
           bio: { ...DEFAULT_BIO, ...settings.bio },
+          headlines: { ...DEFAULT_HEADLINES, ...settings.headlines },
           updatedAt: settings.updatedAt || new Date().toISOString(),
         };
         cacheTimestamp = Date.now();
@@ -480,6 +498,7 @@ export async function getSettingsAsync(forceRefresh: boolean = false): Promise<A
               prompts: { ...DEFAULT_PROMPTS, ...settings.prompts },
               models: { ...DEFAULT_MODELS, ...settings.models },
               bio: { ...DEFAULT_BIO, ...settings.bio },
+          headlines: { ...DEFAULT_HEADLINES, ...settings.headlines },
               updatedAt: settings.updatedAt || new Date().toISOString(),
             };
             cacheTimestamp = Date.now();
@@ -501,6 +520,7 @@ export async function saveSettings(settings: Partial<AppSettings>): Promise<AppS
     prompts: { ...currentSettings.prompts, ...settings.prompts },
     models: { ...currentSettings.models, ...settings.models },
     bio: { ...currentSettings.bio, ...settings.bio },
+    headlines: { ...currentSettings.headlines, ...settings.headlines },
     updatedAt: new Date().toISOString(),
   };
   
@@ -559,6 +579,7 @@ export async function resetToDefaults(): Promise<AppSettings> {
     prompts: DEFAULT_PROMPTS,
     models: DEFAULT_MODELS,
     bio: DEFAULT_BIO,
+    headlines: DEFAULT_HEADLINES,
     updatedAt: new Date().toISOString(),
   };
   

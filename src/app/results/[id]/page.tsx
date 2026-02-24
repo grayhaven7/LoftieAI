@@ -718,7 +718,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                 </div>
               ) : (
                 <span className="py-2.5 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                  Drag to compare
+                  Move the slider to transform this room
                 </span>
               )}
               <button
@@ -1020,18 +1020,12 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                     </motion.div>
                   )}
 
-                  {data.audioUrl ? (
+                  {data.audioUrl && (
                     <div className="mt-4 pt-4 border-t border-[var(--glass-border)] print:hidden">
                       <button onClick={toggleAudio} className="btn-secondary w-full">
                         {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                         {isPlaying ? 'Pause Audio' : 'Play Audio Guide'}
                       </button>
-                    </div>
-                  ) : data.ttsError && (
-                    <div className="mt-4 pt-4 border-t border-[var(--glass-border)] print:hidden">
-                      <p className="text-xs text-[var(--color-text-muted)] text-center">
-                        Audio guide unavailable: {data.ttsError}
-                      </p>
                     </div>
                   )}
                 </motion.div>

@@ -391,11 +391,27 @@ export default function Home() {
     }
   };
 
+  const [headlines, setHeadlines] = useState({
+    mainHeadline: 'Overwhelmed by clutter?',
+    subHeadline: 'Let Loftie help.',
+    subtitle1: 'Upload a photo of your cluttered space and watch Loftie transform it in seconds.',
+    subtitle2: 'Follow our personalized guidance to bring your new space to life.',
+  });
+
+  useEffect(() => {
+    fetch('/api/headlines')
+      .then(res => res.json())
+      .then(data => {
+        if (data.headlines) setHeadlines(data.headlines);
+      })
+      .catch(() => {});
+  }, []);
+
   const features = [
     {
-      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80',
-      title: 'Visualize',
-      desc: 'See an AI-generated preview of your space — calm, tidy, and clutter-free',
+      image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80',
+      title: 'Listen',
+      desc: 'Play the audio guide and let your personal organizer walk you through it',
     },
     {
       image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80',
@@ -403,9 +419,9 @@ export default function Home() {
       desc: 'Get a personalized, step-by-step decluttering plan with donation & selling tips',
     },
     {
-      image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80',
-      title: 'Listen',
-      desc: 'Play the audio guide and let your personal organizer walk you through it',
+      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80',
+      title: 'Visualize',
+      desc: 'See an AI-generated preview of your space — calm, tidy, and clutter-free',
     },
   ];
 
@@ -457,22 +473,26 @@ export default function Home() {
           className="text-center mb-10"
         >
           <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-3 tracking-[-0.03em] leading-[1.25]">
-            <span className="text-emphasis">Overwhelmed</span> by clutter?
+            {headlines.mainHeadline.includes('Overwhelmed') ? (
+              <><span className="text-emphasis">Overwhelmed</span> by clutter?</>
+            ) : headlines.mainHeadline}
           </h1>
           <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-5 tracking-[-0.03em] leading-[1.25]">
-            Let <span className="text-emphasis">Loftie</span> help.
+            {headlines.subHeadline.includes('Loftie') ? (
+              <>Let <span className="text-emphasis">Loftie</span> help.</>
+            ) : headlines.subHeadline}
           </h1>
 
-          <span className="badge badge-accent mb-8">
+          <span className="badge badge-accent mb-12">
             Created by a professional home stager &amp; decluttering expert
           </span>
 
-          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-4">
-            Upload a photo of your cluttered space and watch Loftie transform it in seconds.
+          <p className="text-base sm:text-lg text-[var(--color-text-primary)] opacity-80 max-w-md mx-auto mb-4">
+            {headlines.subtitle1}
           </p>
 
-          <p className="text-sm sm:text-base text-[var(--color-text-secondary)] max-w-md mx-auto mb-5">
-            Follow our personalized guidance to bring your new space to life.
+          <p className="text-base sm:text-lg text-[var(--color-text-primary)] opacity-80 max-w-md mx-auto mb-5">
+            {headlines.subtitle2}
           </p>
         </motion.div>
 
@@ -487,6 +507,61 @@ export default function Home() {
           </motion.div>
         )}
       </main>
+
+      {/* Features / How It Works */}
+      <section id="features" className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center mb-8"
+        >
+          <h2 className="text-xl sm:text-2xl text-[var(--color-text-primary)] tracking-tight mb-2">
+            How it <span className="text-emphasis">works</span>
+          </h2>
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            Three simple steps to your dream space
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {features.map((feature, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="feature-card"
+            >
+              <NextImage
+                src={feature.image}
+                alt={feature.title}
+                width={600}
+                height={400}
+                loading="lazy"
+                className="feature-card-image"
+              />
+              <div className="feature-card-content">
+                <span className="text-[0.6rem] text-[var(--color-accent)] font-semibold uppercase tracking-wider">
+                  Step {i + 1}
+                </span>
+                <h3 className="text-sm text-[var(--color-text-primary)] font-medium mt-1 mb-1">
+                  {feature.title}
+                </h3>
+                <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                  {feature.desc}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Before/After Demo Slider */}
+        <div className="mt-12">
+          <BeforeAfterSlider />
+        </div>
+      </section>
 
       {/* Upload / Auth Section */}
       <section id="upload" className="max-w-md mx-auto px-4 pb-16">
@@ -854,59 +929,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      {/* Features */}
-      <section id="features" className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-center mb-8"
-        >
-          <h2 className="text-xl sm:text-2xl text-[var(--color-text-primary)] tracking-tight mb-2">
-            How it <span className="text-emphasis">works</span>
-          </h2>
-          <p className="text-sm text-[var(--color-text-secondary)]">
-            Three simple steps to your dream space
-          </p>
-        </motion.div>
-
-        {/* Before/After Demo Slider */}
-        <BeforeAfterSlider />
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {features.map((feature, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="feature-card"
-            >
-              <NextImage
-                src={feature.image}
-                alt={feature.title}
-                width={600}
-                height={400}
-                loading="lazy"
-                className="feature-card-image"
-              />
-              <div className="feature-card-content">
-                <span className="text-[0.6rem] text-[var(--color-accent)] font-semibold uppercase tracking-wider">
-                  Step {i + 1}
-                </span>
-                <h3 className="text-sm text-[var(--color-text-primary)] font-medium mt-1 mb-1">
-                  {feature.title}
-                </h3>
-                <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
-                  {feature.desc}
-                </p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
 
       {/* CTA */}
       <section className="max-w-md mx-auto px-4 py-12 text-center">

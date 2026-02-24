@@ -102,7 +102,7 @@ export default function BeforeAfterSlider() {
           </div>
         </div>
         <p className="text-xs text-center text-[var(--color-text-muted)] mt-3">
-          Drag the slider to see the difference
+          Move the slider to transform this room
         </p>
       </div>
     </motion.div>

@@ -17,6 +17,14 @@ export const metadata: Metadata = {
     title: "Loftie AI - Transform Your Space",
     description: "AI-powered decluttering and home styling",
     type: "website",
+    images: [
+      {
+        url: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80",
+        width: 1200,
+        height: 630,
+        alt: "Loftie AI - Transform Your Space",
+      },
+    ],
   },
 };
 
