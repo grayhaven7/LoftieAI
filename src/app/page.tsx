@@ -409,12 +409,12 @@ export default function Home() {
 
   const features = [
     {
-      image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80',
       title: 'Take a photo',
       desc: 'Upload a photo of your cluttered space and hit "Transform"',
     },
     {
-      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80',
       title: 'Visualize',
       desc: 'See an AI generated preview of your new space \u2014 calm, tidy, and clutter-free',
     },
