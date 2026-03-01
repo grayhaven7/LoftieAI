@@ -410,18 +410,18 @@ export default function Home() {
   const features = [
     {
       image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80',
-      title: 'Listen',
-      desc: 'Play the audio guide and let your personal organizer walk you through it',
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80',
-      title: 'Plan',
-      desc: 'Get a personalized, step-by-step decluttering plan with donation & selling tips',
+      title: 'Take a photo',
+      desc: 'Upload a photo of your cluttered space and hit "Transform"',
     },
     {
       image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80',
       title: 'Visualize',
-      desc: 'See an AI-generated preview of your space — calm, tidy, and clutter-free',
+      desc: 'See an AI generated preview of your new space \u2014 calm, tidy, and clutter-free',
+    },
+    {
+      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80',
+      title: 'Make it real',
+      desc: 'Follow Loftie\u2019s personalized plan as it walks you through sorting, reducing, and donating. Helpful organizing tips included.',
     },
   ];
 
@@ -591,6 +591,9 @@ export default function Home() {
                     </h3>
                     <p className="text-xs text-[var(--color-text-muted)]">
                       Enter your info and we&apos;ll send you a sign-in link
+                    </p>
+                    <p className="text-[0.65rem] text-[var(--color-text-muted)]/60 mt-1">
+                      Your photos are processed and stored securely. They are only visible to the Loftie AI team.
                     </p>
                   </div>
 
