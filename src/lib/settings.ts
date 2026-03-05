@@ -30,11 +30,23 @@ export interface HeadlineSettings {
   subtitle2: string;
 }
 
+export type SectionId = 'hero' | 'howItWorks' | 'upload' | 'recentTransformations' | 'cta' | 'about';
+
+export const DEFAULT_SECTION_ORDER: SectionId[] = [
+  'hero',
+  'howItWorks',
+  'upload',
+  'recentTransformations',
+  'cta',
+  'about',
+];
+
 export interface AppSettings {
   prompts: PromptSettings;
   models: ModelSettings;
   bio: BioSettings;
   headlines: HeadlineSettings;
+  sectionOrder: SectionId[];
   updatedAt: string;
 }
 
@@ -420,6 +432,7 @@ function getDefaultSettings(): AppSettings {
     models: DEFAULT_MODELS,
     bio: DEFAULT_BIO,
     headlines: DEFAULT_HEADLINES,
+    sectionOrder: DEFAULT_SECTION_ORDER,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -443,6 +456,7 @@ export function getSettings(): AppSettings {
           models: { ...DEFAULT_MODELS, ...settings.models },
           bio: { ...DEFAULT_BIO, ...settings.bio },
           headlines: { ...DEFAULT_HEADLINES, ...settings.headlines },
+          sectionOrder: settings.sectionOrder || DEFAULT_SECTION_ORDER,
           updatedAt: settings.updatedAt || new Date().toISOString(),
         };
         cacheTimestamp = Date.now();
@@ -474,6 +488,7 @@ export async function getSettingsAsync(forceRefresh: boolean = false): Promise<A
           models: { ...DEFAULT_MODELS, ...settings.models },
           bio: { ...DEFAULT_BIO, ...settings.bio },
           headlines: { ...DEFAULT_HEADLINES, ...settings.headlines },
+          sectionOrder: settings.sectionOrder || DEFAULT_SECTION_ORDER,
           updatedAt: settings.updatedAt || new Date().toISOString(),
         };
         cacheTimestamp = Date.now();
@@ -499,6 +514,7 @@ export async function getSettingsAsync(forceRefresh: boolean = false): Promise<A
               models: { ...DEFAULT_MODELS, ...settings.models },
               bio: { ...DEFAULT_BIO, ...settings.bio },
           headlines: { ...DEFAULT_HEADLINES, ...settings.headlines },
+          sectionOrder: settings.sectionOrder || DEFAULT_SECTION_ORDER,
               updatedAt: settings.updatedAt || new Date().toISOString(),
             };
             cacheTimestamp = Date.now();
@@ -521,6 +537,7 @@ export async function saveSettings(settings: Partial<AppSettings>): Promise<AppS
     models: { ...currentSettings.models, ...settings.models },
     bio: { ...currentSettings.bio, ...settings.bio },
     headlines: { ...currentSettings.headlines, ...settings.headlines },
+    sectionOrder: settings.sectionOrder || currentSettings.sectionOrder || DEFAULT_SECTION_ORDER,
     updatedAt: new Date().toISOString(),
   };
   
@@ -580,6 +597,7 @@ export async function resetToDefaults(): Promise<AppSettings> {
     models: DEFAULT_MODELS,
     bio: DEFAULT_BIO,
     headlines: DEFAULT_HEADLINES,
+    sectionOrder: DEFAULT_SECTION_ORDER,
     updatedAt: new Date().toISOString(),
   };
   

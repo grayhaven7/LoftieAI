@@ -406,6 +406,18 @@ export default function Home() {
       })
       .catch(() => {});
   }, []);
+  const [sectionOrder, setSectionOrder] = useState<string[]>([
+    'hero', 'howItWorks', 'upload', 'recentTransformations', 'cta', 'about'
+  ]);
+
+  useEffect(() => {
+    fetch('/api/section-order')
+      .then(res => res.json())
+      .then(data => {
+        if (data.sectionOrder) setSectionOrder(data.sectionOrder);
+      })
+      .catch(() => {});
+  }, []);
 
   const features = [
     {
@@ -425,45 +437,12 @@ export default function Home() {
     },
   ];
 
-  return (
-    <div className="hero-bg">
-      {/* Header */}
-      <header className="py-4 px-4 sm:px-6">
-        <nav className="max-w-5xl mx-auto flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center gap-2"
-          >
-            <NextImage src="/loftie-logo.png" alt="Loftie" width={72} height={72} className="rounded-full w-10 h-10 sm:w-[72px] sm:h-[72px]" />
-            <span className="logo-text">Loftie</span>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center"
-          >
-            <a href="#features" className="nav-item hidden sm:block">
-              How it Works
-            </a>
-            <a href="/dashboard" className="nav-item">
-              Dashboard
-            </a>
-            {authUser && (
-              <button
-                onClick={handleLogout}
-                className="nav-item flex items-center gap-1"
-                title="Sign out"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </button>
-            )}
-          </motion.div>
-        </nav>
-      </header>
-
+  const renderSection = (sectionId: string) => {
+    switch (sectionId) {
+      case 'hero':
+        return (
+          <div key="hero">
       {/* Hero */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-12">
         <motion.div
@@ -508,6 +487,11 @@ export default function Home() {
         )}
       </main>
 
+          </div>
+        );
+      case 'howItWorks':
+        return (
+          <div key="howItWorks">
       {/* Features / How It Works */}
       <section id="features" className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
         <motion.div
@@ -563,6 +547,11 @@ export default function Home() {
         </div>
       </section>
 
+          </div>
+        );
+      case 'upload':
+        return (
+          <div key="upload">
       {/* Upload / Auth Section */}
       <section id="upload" className="max-w-md mx-auto px-4 pb-16">
         <motion.div
@@ -883,6 +872,11 @@ export default function Home() {
         </motion.div>
       </section>
 
+          </div>
+        );
+      case 'recentTransformations':
+        return (
+          <div key="recentTransformations">
       {/* Recent Transformations */}
       {recentTransformations.length > 0 && (
         <section className="max-w-4xl mx-auto px-4 py-8">
@@ -933,6 +927,11 @@ export default function Home() {
         </section>
       )}
 
+          </div>
+        );
+      case 'cta':
+        return (
+          <div key="cta">
       {/* CTA */}
       <section className="max-w-md mx-auto px-4 py-12 text-center">
         <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] mb-6">
@@ -946,6 +945,11 @@ export default function Home() {
         </button>
       </section>
 
+          </div>
+        );
+      case 'about':
+        return (
+          <div key="about">
       {/* About */}
       {bio && bio.content && (
         <section id="about" className="max-w-3xl mx-auto px-4 py-16 sm:py-20">
@@ -998,6 +1002,54 @@ export default function Home() {
           </motion.div>
         </section>
       )}
+
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="hero-bg">
+      {/* Header */}
+      <header className="py-4 px-4 sm:px-6">
+        <nav className="max-w-5xl mx-auto flex justify-between items-center">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center gap-2"
+          >
+            <NextImage src="/loftie-logo.png" alt="Loftie" width={72} height={72} className="rounded-full w-10 h-10 sm:w-[72px] sm:h-[72px]" />
+            <span className="logo-text">Loftie</span>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center"
+          >
+            <a href="#features" className="nav-item hidden sm:block">
+              How it Works
+            </a>
+            <a href="/dashboard" className="nav-item">
+              Dashboard
+            </a>
+            {authUser && (
+              <button
+                onClick={handleLogout}
+                className="nav-item flex items-center gap-1"
+                title="Sign out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </button>
+            )}
+          </motion.div>
+        </nav>
+      </header>
+
+      {sectionOrder.map(sectionId => renderSection(sectionId))}
 
       {/* Footer */}
       <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[var(--glass-border)]">

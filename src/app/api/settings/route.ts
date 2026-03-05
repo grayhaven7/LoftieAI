@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { action, prompts, models, bio, headlines } = body;
+    const { action, prompts, models, bio, headlines, sectionOrder } = body;
 
     if (action === 'reset') {
       const settings = await resetToDefaults();
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update settings
-    const settings = await saveSettings({ prompts, models, bio, headlines });
+    const settings = await saveSettings({ prompts, models, bio, headlines, sectionOrder });
     
     return NextResponse.json({
       success: true,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Save, RotateCcw, Check, Lock, Eye, EyeOff, Settings, Info, User, Image as ImageIcon, ThumbsUp, ThumbsDown, Mail, Download, RefreshCw, MessageSquare, TestTube } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowDown, Save, RotateCcw, Check, Lock, Eye, EyeOff, Settings, Info, User, Image as ImageIcon, ThumbsUp, ThumbsDown, Mail, Download, RefreshCw, MessageSquare, TestTube, GripVertical } from 'lucide-react';
 import Link from 'next/link';
 import TestingInterface from '@/components/TestingInterface';
 
@@ -34,11 +34,25 @@ interface HeadlineSettings {
   subtitle2: string;
 }
 
+type SectionId = 'hero' | 'howItWorks' | 'upload' | 'recentTransformations' | 'cta' | 'about';
+
+const DEFAULT_SECTION_ORDER: SectionId[] = ['hero', 'howItWorks', 'upload', 'recentTransformations', 'cta', 'about'];
+
+const SECTION_LABELS: Record<SectionId, string> = {
+  hero: 'Hero / Headlines',
+  howItWorks: 'How It Works',
+  upload: 'Upload / Sign In',
+  recentTransformations: 'Recent Transformations',
+  cta: 'Call to Action',
+  about: 'About / Bio',
+};
+
 interface AppSettings {
   prompts: PromptSettings;
   models: ModelSettings;
   bio: BioSettings;
   headlines: HeadlineSettings;
+  sectionOrder: SectionId[];
   updatedAt: string;
 }
 
@@ -105,6 +119,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sectionOrder, setSectionOrder] = useState<SectionId[]>(DEFAULT_SECTION_ORDER);
 
   // Transformations data
   const [transformations, setTransformations] = useState<TransformationRecord[]>([]);
@@ -157,6 +172,7 @@ export default function SettingsPage() {
 
       const data = await response.json();
       setSettings(data.settings);
+      if (data.settings.sectionOrder) setSectionOrder(data.settings.sectionOrder);
       setDefaults(data.defaults);
       setAvailableModels(data.availableModels);
       setPromptVariables(data.promptVariables);
@@ -306,6 +322,45 @@ export default function SettingsPage() {
       }
 
       setSaved('bio');
+      setTimeout(() => setSaved(null), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const moveSectionUp = (index: number) => {
+    if (index <= 0) return;
+    const newOrder = [...sectionOrder];
+    [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+    setSectionOrder(newOrder);
+  };
+
+  const moveSectionDown = (index: number) => {
+    if (index >= sectionOrder.length - 1) return;
+    const newOrder = [...sectionOrder];
+    [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+    setSectionOrder(newOrder);
+  };
+
+  const saveSectionOrder = async () => {
+    setSaving(true);
+    setSaved(null);
+    setError(null);
+    try {
+      const pwd = getSettingsCookie() || password;
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-settings-password': pwd,
+        },
+        body: JSON.stringify({ sectionOrder }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to save');
+      setSaved('sectionOrder');
       setTimeout(() => setSaved(null), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save');
@@ -799,6 +854,72 @@ export default function SettingsPage() {
             </motion.section>
 
             {/* Headlines Settings */}
+            {/* Section Order */}
+            <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
+              <h2 className="text-lg text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
+                <GripVertical className="w-4 h-4 text-[var(--color-accent)]" />
+                <span className="text-emphasis">Page Section Order</span>
+              </h2>
+
+              <div className="card">
+                <div className="mb-4">
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    Reorder the sections on your homepage. Use the arrows to move sections up or down.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  {sectionOrder.map((sectionId, index) => (
+                    <div
+                      key={sectionId}
+                      className="flex items-center gap-3 p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg"
+                    >
+                      <span className="text-xs text-[var(--color-text-muted)] w-5 text-center">{index + 1}</span>
+                      <span className="flex-1 text-sm text-[var(--color-text-primary)]">
+                        {SECTION_LABELS[sectionId]}
+                      </span>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => moveSectionUp(index)}
+                          disabled={index === 0}
+                          className="p-1 rounded hover:bg-[var(--glass-border)] disabled:opacity-20 transition-colors"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
+                        </button>
+                        <button
+                          onClick={() => moveSectionDown(index)}
+                          disabled={index === sectionOrder.length - 1}
+                          className="p-1 rounded hover:bg-[var(--glass-border)] disabled:opacity-20 transition-colors"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end mt-6 pt-4 border-t border-[var(--glass-border)]">
+                  <button
+                    onClick={saveSectionOrder}
+                    disabled={saving}
+                    className="btn-secondary"
+                  >
+                    {saved === 'sectionOrder' ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-[var(--color-success)]" />
+                        Saved
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-3.5 h-3.5" />
+                        Save Order
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.section>
+
             <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
               <h2 className="text-lg text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
                 <span className="text-emphasis">Headlines</span>
