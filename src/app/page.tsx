@@ -936,7 +936,7 @@ export default function Home() {
       {/* CTA */}
       <section className="max-w-md mx-auto px-4 py-12 text-center">
         <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] mb-6">
-          Ready to love your <span className="text-emphasis">space</span> again?
+          Ready to transform your <span className="text-emphasis">room</span>?
         </h2>
         <button
           onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}

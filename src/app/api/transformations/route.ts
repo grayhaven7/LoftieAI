@@ -10,7 +10,7 @@ const PROCESSING_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const limit = parseInt(searchParams.get('limit') || '500', 10);
     const cursor = searchParams.get('cursor') || undefined;
 
     const { transformations, nextCursor, hasMore } = await getTransformations(limit, cursor);
