@@ -98,7 +98,7 @@ export async function getTransformations(limit = 50, cursor?: string): Promise<P
     const transformations = await Promise.all(
       blobs.map(async (blob) => {
         try {
-          const response = await fetch(blob.url);
+          const response = await fetch(blob.url, { cache: 'no-store' });
           if (!response.ok) {
             console.error(`[Storage] Failed to fetch blob ${blob.pathname}: ${response.status} ${response.statusText}`);
             return null;
