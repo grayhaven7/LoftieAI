@@ -274,7 +274,7 @@ export default function AdminPage() {
                                   </span>
                                 )}
                                 {t.feedbackComment && (
-                                  <span className="text-[var(--color-text-muted)] truncate max-w-[100px]" title={t.feedbackComment}>
+                                  <span className="text-[var(--color-text-muted)] max-w-full break-words" title={t.feedbackComment}>
                                     &ldquo;{t.feedbackComment}&rdquo;
                                   </span>
                                 )}

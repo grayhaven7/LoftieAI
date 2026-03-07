@@ -34,9 +34,9 @@ interface HeadlineSettings {
   subtitle2: string;
 }
 
-type SectionId = 'hero' | 'howItWorks' | 'upload' | 'recentTransformations' | 'cta' | 'about';
+type SectionId = 'hero' | 'howItWorks' | 'upload' | 'recentTransformations' | 'cta' | 'testimonials' | 'about';
 
-const DEFAULT_SECTION_ORDER: SectionId[] = ['hero', 'howItWorks', 'upload', 'recentTransformations', 'cta', 'about'];
+const DEFAULT_SECTION_ORDER: SectionId[] = ['hero', 'howItWorks', 'upload', 'recentTransformations', 'cta', 'testimonials', 'about'];
 
 const SECTION_LABELS: Record<SectionId, string> = {
   hero: 'Hero / Headlines',
@@ -44,6 +44,7 @@ const SECTION_LABELS: Record<SectionId, string> = {
   upload: 'Upload / Sign In',
   recentTransformations: 'Recent Transformations',
   cta: 'Call to Action',
+  testimonials: 'Testimonials',
   about: 'About / Bio',
 };
 

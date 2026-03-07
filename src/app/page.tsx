@@ -407,7 +407,7 @@ export default function Home() {
       .catch(() => {});
   }, []);
   const [sectionOrder, setSectionOrder] = useState<string[]>([
-    'hero', 'howItWorks', 'upload', 'recentTransformations', 'cta', 'about'
+    'hero', 'howItWorks', 'upload', 'recentTransformations', 'cta', 'testimonials', 'about'
   ]);
 
   useEffect(() => {
@@ -945,6 +945,33 @@ export default function Home() {
         </button>
       </section>
 
+          </div>
+        );
+      case 'testimonials':
+        return (
+          <div key="testimonials">
+      {/* Testimonials */}
+      <section className="max-w-3xl mx-auto px-4 py-16 sm:py-20">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] text-center mb-10">
+            What our <span className="text-emphasis">users</span> are saying
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="card p-6 sm:p-8">
+              <p className="text-sm sm:text-base text-[var(--color-text-secondary)] italic leading-relaxed mb-4">
+                &ldquo;It was so fun, and the advice was on point! I finally got rid of an old remote at the app&rsquo;s suggestion! It even told me to put my guinea pig away! But to be fair, she is the messiest thing in the house. Best part: it got me walking through my house discarding clutter.&rdquo;
+              </p>
+              <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                &mdash; Erin, Loftie AI beta user
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </section>
           </div>
         );
       case 'about':

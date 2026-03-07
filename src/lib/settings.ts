@@ -30,7 +30,7 @@ export interface HeadlineSettings {
   subtitle2: string;
 }
 
-export type SectionId = 'hero' | 'howItWorks' | 'upload' | 'recentTransformations' | 'cta' | 'about';
+export type SectionId = 'hero' | 'howItWorks' | 'upload' | 'recentTransformations' | 'cta' | 'testimonials' | 'about';
 
 export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'hero',
@@ -38,6 +38,7 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'upload',
   'recentTransformations',
   'cta',
+  'testimonials',
   'about',
 ];
 
@@ -506,7 +507,7 @@ export async function getSettingsAsync(forceRefresh: boolean = false): Promise<A
         const settingsBlob = blobs.find(b => b.pathname === BLOB_SETTINGS_KEY);
 
         if (settingsBlob) {
-          const response = await fetch(settingsBlob.url);
+          const response = await fetch(settingsBlob.url, { cache: 'no-store' });
           if (response.ok) {
             const settings = await response.json() as AppSettings;
             settingsCache = {
