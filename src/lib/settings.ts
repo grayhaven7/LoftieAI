@@ -41,6 +41,24 @@ export const DEFAULT_SECTION_ORDER: SectionId[] = [
   'testimonials',
   'about',
 ];
+// Ensure saved section orders include any new sections added after initial save
+function migrateSectionOrder(saved: SectionId[]): SectionId[] {
+  const missing = DEFAULT_SECTION_ORDER.filter(s => !saved.includes(s));
+  if (missing.length === 0) return saved;
+  // Insert missing sections before 'about' (last), or at end
+  const result = [...saved];
+  for (const s of missing) {
+    const defaultIdx = DEFAULT_SECTION_ORDER.indexOf(s);
+    // Find the best insertion point
+    const aboutIdx = result.indexOf('about');
+    if (aboutIdx >= 0) {
+      result.splice(aboutIdx, 0, s);
+    } else {
+      result.push(s);
+    }
+  }
+  return result;
+}
 
 export interface AppSettings {
   prompts: PromptSettings;
@@ -457,7 +475,7 @@ export function getSettings(): AppSettings {
           models: { ...DEFAULT_MODELS, ...settings.models },
           bio: { ...DEFAULT_BIO, ...settings.bio },
           headlines: { ...DEFAULT_HEADLINES, ...settings.headlines },
-          sectionOrder: settings.sectionOrder || DEFAULT_SECTION_ORDER,
+          sectionOrder: settings.sectionOrder ? migrateSectionOrder(settings.sectionOrder) : DEFAULT_SECTION_ORDER,
           updatedAt: settings.updatedAt || new Date().toISOString(),
         };
         cacheTimestamp = Date.now();
@@ -489,7 +507,7 @@ export async function getSettingsAsync(forceRefresh: boolean = false): Promise<A
           models: { ...DEFAULT_MODELS, ...settings.models },
           bio: { ...DEFAULT_BIO, ...settings.bio },
           headlines: { ...DEFAULT_HEADLINES, ...settings.headlines },
-          sectionOrder: settings.sectionOrder || DEFAULT_SECTION_ORDER,
+          sectionOrder: settings.sectionOrder ? migrateSectionOrder(settings.sectionOrder) : DEFAULT_SECTION_ORDER,
           updatedAt: settings.updatedAt || new Date().toISOString(),
         };
         cacheTimestamp = Date.now();
@@ -515,7 +533,7 @@ export async function getSettingsAsync(forceRefresh: boolean = false): Promise<A
               models: { ...DEFAULT_MODELS, ...settings.models },
               bio: { ...DEFAULT_BIO, ...settings.bio },
           headlines: { ...DEFAULT_HEADLINES, ...settings.headlines },
-          sectionOrder: settings.sectionOrder || DEFAULT_SECTION_ORDER,
+          sectionOrder: settings.sectionOrder ? migrateSectionOrder(settings.sectionOrder) : DEFAULT_SECTION_ORDER,
               updatedAt: settings.updatedAt || new Date().toISOString(),
             };
             cacheTimestamp = Date.now();

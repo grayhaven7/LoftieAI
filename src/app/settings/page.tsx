@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowUp, ArrowDown, Save, RotateCcw, Check, Lock, Eye, EyeOff, Settings, Info, User, Image as ImageIcon, ThumbsUp, ThumbsDown, Mail, Download, RefreshCw, MessageSquare, TestTube, GripVertical } from 'lucide-react';
+import { ArrowLeft, ArrowUp, ArrowDown, Save, RotateCcw, Check, Lock, Eye, EyeOff, Settings, Info, User, Image as ImageIcon, ThumbsUp, ThumbsDown, Mail, Download, RefreshCw, MessageSquare,  GripVertical } from 'lucide-react';
 import Link from 'next/link';
-import TestingInterface from '@/components/TestingInterface';
 
 interface PromptSettings {
   roomDetection: string;
@@ -1095,41 +1094,6 @@ export default function SettingsPage() {
                     )}
                   </button>
                 </div>
-              </div>
-            </motion.section>
-
-            {/* Testing Interface */}
-            <motion.section initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-              <h2 className="text-lg text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-                <TestTube className="w-4 h-4 text-[var(--color-accent)]" />
-                <span className="text-emphasis">Prompt Testing</span>
-              </h2>
-
-              <div className="card">
-                <div className="mb-4">
-                  <p className="text-sm text-[var(--color-text-secondary)] mb-2">
-                    Test your prompts and models with real images to ensure quality before deployment.
-                  </p>
-                  <p className="text-xs text-[var(--color-text-muted)]">
-                    Upload test images, tweak prompts, and see results in real-time. Perfect for validating changes before your VC demo.
-                  </p>
-                </div>
-                
-                {settings && (
-                  <TestingInterface
-                    settings={{
-                      prompts: {
-                        imageTransformation: testingPrompt,
-                      },
-                      models: {
-                        imageProvider: settings.models.imageProvider,
-                        imageGeneration: settings.models.imageGeneration,
-                      },
-                    }}
-                    onPromptChange={handleTestingPromptChange}
-                    onModelChange={handleTestingModelChange}
-                  />
-                )}
               </div>
             </motion.section>
 
