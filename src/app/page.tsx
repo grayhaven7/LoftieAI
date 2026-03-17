@@ -391,6 +391,7 @@ export default function Home() {
     }
   };
 
+  const [headlinesLoaded, setHeadlinesLoaded] = useState(false);
   const [headlines, setHeadlines] = useState({
     mainHeadline: 'Overwhelmed by clutter?',
     subHeadline: 'Let Loftie help.',
@@ -404,8 +405,10 @@ export default function Home() {
       .then(data => {
         if (data.headlines) setHeadlines(data.headlines);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setHeadlinesLoaded(true));
   }, []);
+  const [sectionOrderLoaded, setSectionOrderLoaded] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<string[]>([
     'hero', 'howItWorks', 'upload', 'recentTransformations', 'cta', 'testimonials', 'about'
   ]);
@@ -416,7 +419,8 @@ export default function Home() {
       .then(data => {
         if (data.sectionOrder) setSectionOrder(data.sectionOrder);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setSectionOrderLoaded(true));
   }, []);
 
   const features = [
@@ -451,28 +455,30 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-3 tracking-[-0.03em] leading-[1.25]">
-            {headlines.mainHeadline.includes('Overwhelmed') ? (
-              <><span className="text-emphasis">Overwhelmed</span> by clutter?</>
-            ) : headlines.mainHeadline}
-          </h1>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-5 tracking-[-0.03em] leading-[1.25]">
-            {headlines.subHeadline.includes('Loftie') ? (
-              <>Let <span className="text-emphasis">Loftie</span> help.</>
-            ) : headlines.subHeadline}
-          </h1>
+          <div style={{ opacity: headlinesLoaded ? 1 : 0, transition: 'opacity 0.3s ease' }}>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-3 tracking-[-0.03em] leading-[1.25]">
+              {headlines.mainHeadline.includes('Overwhelmed') ? (
+                <><span className="text-emphasis">Overwhelmed</span> by clutter?</>
+              ) : headlines.mainHeadline}
+            </h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-5 tracking-[-0.03em] leading-[1.25]">
+              {headlines.subHeadline.includes('Loftie') ? (
+                <>Let <span className="text-emphasis">Loftie</span> help.</>
+              ) : headlines.subHeadline}
+            </h1>
 
-          <span className="badge badge-accent mb-12">
-            Created by a professional home stager &amp; decluttering expert
-          </span>
+            <span className="badge badge-accent mb-12">
+              Created by a professional home stager &amp; decluttering expert
+            </span>
 
-          <p className="text-base sm:text-lg text-[var(--color-text-primary)] opacity-80 max-w-md mx-auto mb-4">
-            {headlines.subtitle1}
-          </p>
+            <p className="text-base sm:text-lg text-[var(--color-text-primary)] opacity-80 max-w-md mx-auto mb-4">
+              {headlines.subtitle1}
+            </p>
 
-          <p className="text-base sm:text-lg text-[var(--color-text-primary)] opacity-80 max-w-md mx-auto mb-5">
-            {headlines.subtitle2}
-          </p>
+            <p className="text-base sm:text-lg text-[var(--color-text-primary)] opacity-80 max-w-md mx-auto mb-5">
+              {headlines.subtitle2}
+            </p>
+          </div>
         </motion.div>
 
         {configWarning && (
