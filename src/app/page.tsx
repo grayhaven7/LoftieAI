@@ -2,6 +2,9 @@ import { Metadata } from 'next';
 import { getSettingsAsync, DEFAULT_HEADLINES } from '@/lib/settings';
 import HomeClient from './HomeClient';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function generateMetadata(): Promise<Metadata> {
   let headlines = DEFAULT_HEADLINES;
   try {
