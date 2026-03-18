@@ -159,7 +159,7 @@ export default function DashboardPage() {
                           </span>
                         )}
                         {t.userEmail && (
-                          <span className="flex items-center gap-1 truncate max-w-[150px]">
+                          <span className="flex items-center gap-1 truncate min-w-0">
                             {t.userEmail}
                           </span>
                         )}
