@@ -27,10 +27,10 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: 'en_US',
       images: [
         {
-          url: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80',
+          url: 'https://www.loftie.ai/demo-after.png',
           width: 1200,
           height: 630,
-          alt: 'Loftie AI - Transform Your Space',
+          alt: 'Loftie AI - AI room transformation before and after',
         },
       ],
     },
@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title,
       description,
-      images: ['https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80'],
+      images: ['https://www.loftie.ai/demo-after.png'],
     },
   };
 }
