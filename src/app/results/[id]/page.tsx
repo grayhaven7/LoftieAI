@@ -740,8 +740,8 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                   </button>
                 </div>
               ) : (
-                <span className="py-2.5 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                  Move the slider to transform this room
+                <span className="flex-1 py-2.5 text-xs font-semibold uppercase tracking-wider text-[var(--color-accent)] text-center">
+                  Move the slider to transform your room
                 </span>
               )}
               <button
@@ -912,7 +912,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2 mt-4">
+          <div className="flex flex-wrap justify-center gap-2 mt-4">
             <button
               onClick={handleDownload}
               className="btn-secondary"
