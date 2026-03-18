@@ -10,35 +10,9 @@ const robotoCondensed = Roboto_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "Loftie AI - Transform Your Cluttered Space with AI",
-  description: "Upload a photo of your cluttered room and Loftie AI instantly generates a clean, organized version with step-by-step decluttering guidance. Created by a professional home stager.",
-  keywords: ["decluttering", "home staging", "AI room transformation", "interior design", "home organization", "declutter app", "room makeover AI"],
+  // Base metadata — title/description/OG are overridden per-page via generateMetadata
   metadataBase: new URL("https://www.loftie.ai"),
-  alternates: {
-    canonical: "https://www.loftie.ai",
-  },
-  openGraph: {
-    title: "Loftie AI - Transform Your Cluttered Space with AI",
-    description: "Upload a photo of your cluttered room and see it transformed in seconds. Step-by-step guidance to make it real.",
-    url: "https://www.loftie.ai",
-    siteName: "Loftie AI",
-    type: "website",
-    locale: "en_US",
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80",
-        width: 1200,
-        height: 630,
-        alt: "Loftie AI - Transform Your Space",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Loftie AI - Transform Your Cluttered Space with AI",
-    description: "Upload a photo of your cluttered room and see it transformed in seconds.",
-    images: ["https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200&q=80"],
-  },
+  keywords: ["decluttering", "home staging", "AI room transformation", "interior design", "home organization", "declutter app", "room makeover AI"],
   robots: {
     index: true,
     follow: true,
