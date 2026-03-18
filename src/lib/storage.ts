@@ -79,24 +79,32 @@ export async function getTransformations(limit = 50, cursor?: string): Promise<P
   }
 
   try {
-    console.log(`[Storage] Fetching transformations from Vercel Blob (limit: ${limit}, cursor: ${cursor || 'none'})...`);
-    // List transformation blobs with pagination
-    const { blobs, cursor: nextCursor } = await list({
-      prefix: 'transformations/',
-      limit,
-      cursor,
-      token,
-    });
-    console.log(`[Storage] Found ${blobs.length} transformation blobs`);
+    // Fetch ALL transformation blobs across all pages (Vercel Blob lists lexicographically,
+    // not by date — so paginating by cursor would miss recent transforms if UUIDs sort early)
+    console.log(`[Storage] Fetching ALL transformation blobs from Vercel Blob...`);
+    const allBlobs = [];
+    let blobCursor: string | undefined = undefined;
+    do {
+      const result = await list({
+        prefix: 'transformations/',
+        limit: 1000,
+        cursor: blobCursor,
+        token,
+      });
+      allBlobs.push(...result.blobs);
+      blobCursor = result.cursor;
+    } while (blobCursor);
 
-    if (blobs.length === 0) {
+    console.log(`[Storage] Found ${allBlobs.length} total transformation blobs`);
+
+    if (allBlobs.length === 0) {
       console.log('[Storage] No transformations found in blob storage');
       return { transformations: [], hasMore: false };
     }
 
     // Fetch each transformation in parallel
     const transformations = await Promise.all(
-      blobs.map(async (blob) => {
+      allBlobs.map(async (blob) => {
         try {
           const response = await fetch(blob.url, { cache: 'no-store' });
           if (!response.ok) {
@@ -112,13 +120,13 @@ export async function getTransformations(limit = 50, cursor?: string): Promise<P
       })
     );
 
-    // Filter out nulls
+    // Filter out nulls — all valid transforms returned, caller sorts by date
     const valid = transformations.filter((t): t is RoomTransformation => t !== null);
     console.log(`[Storage] Loaded ${valid.length} valid transformations`);
     return {
       transformations: valid,
-      nextCursor: nextCursor || undefined,
-      hasMore: !!nextCursor,
+      nextCursor: undefined,
+      hasMore: false,
     };
   } catch (error) {
     console.error('[Storage] Error fetching transformations from blob:', error);
