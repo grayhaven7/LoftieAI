@@ -82,10 +82,10 @@ export async function getTransformations(limit = 50, cursor?: string): Promise<P
     // Fetch ALL transformation blobs across all pages (Vercel Blob lists lexicographically,
     // not by date — so paginating by cursor would miss recent transforms if UUIDs sort early)
     console.log(`[Storage] Fetching ALL transformation blobs from Vercel Blob...`);
-    const allBlobs = [];
+    const allBlobs: Awaited<ReturnType<typeof list>>['blobs'] = [];
     let blobCursor: string | undefined = undefined;
     do {
-      const result = await list({
+      const result: Awaited<ReturnType<typeof list>> = await list({
         prefix: 'transformations/',
         limit: 1000,
         cursor: blobCursor,
