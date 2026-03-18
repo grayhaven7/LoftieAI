@@ -62,6 +62,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
   const [feedbackComment, setFeedbackComment] = useState('');
   const [feedbackHelpful, setFeedbackHelpful] = useState<boolean | null>(null);
   const [feedbackSending, setFeedbackSending] = useState(false);
+  const [feedbackLikeSaved, setFeedbackLikeSaved] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [loadingSlideIndex, setLoadingSlideIndex] = useState(0);
@@ -404,6 +405,28 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
       setError('Failed to retry. Please try uploading a new image.');
     } finally {
       setIsRetrying(false);
+    }
+  };
+
+  const handleFeedbackLike = async (helpful: boolean) => {
+    setFeedbackHelpful(helpful);
+    // Auto-save the like immediately, even without a comment
+    if (!feedbackLikeSaved) {
+      setFeedbackLikeSaved(true);
+      try {
+        await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transformationId: id,
+            helpful,
+            comment: '',
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to auto-save like:', err);
+        setFeedbackLikeSaved(false);
+      }
     }
   };
 
@@ -1251,7 +1274,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                 {/* Helpful buttons */}
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setFeedbackHelpful(true)}
+                    onClick={() => handleFeedbackLike(true)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                       feedbackHelpful === true
                         ? 'bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/30'
@@ -1263,7 +1286,7 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                     Yes, helpful
                   </button>
                   <button
-                    onClick={() => setFeedbackHelpful(false)}
+                    onClick={() => handleFeedbackLike(false)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                       feedbackHelpful === false
                         ? 'bg-[var(--color-error)]/20 text-[var(--color-error)] border border-[var(--color-error)]/30'
