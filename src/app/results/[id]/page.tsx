@@ -986,42 +986,60 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             <AnimatePresence>
               {planExpanded && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
-                  <div className="space-y-2">
-                    {steps.map((step, i) => (
-                      <div
-                        key={i}
-                        className={`step-card transition-all ${
-                          completedSteps.has(i)
-                            ? 'opacity-60 border-l-[var(--color-success)]'
-                            : ''
-                        }`}
-                        onClick={() => toggleStepComplete(i)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="flex gap-3 items-start">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleStepComplete(i);
-                            }}
-                            className={`flex-shrink-0 w-5 h-5 rounded border transition-colors print:border-gray-400 ${
-                              completedSteps.has(i)
-                                ? 'bg-[var(--color-success)] border-[var(--color-success)] text-white'
-                                : 'border-[var(--color-text-muted)] hover:border-[var(--color-accent)]'
-                            }`}
-                          >
-                            {completedSteps.has(i) && <Check className="w-3 h-3 m-auto" />}
-                          </button>
-                          <p className={`text-xs leading-relaxed flex-1 ${
-                            completedSteps.has(i)
-                              ? 'line-through text-[var(--color-text-muted)]'
-                              : 'text-[var(--color-text-secondary)]'
-                          } print:text-gray-700`}>
-                            {formatStepWithEmoji(step.trim())}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 gap-3">
+                    {steps.map((step, i) => {
+                      const isCompleted = completedSteps.has(i);
+                      const stepEmoji = getEmojiForContext(step);
+                      return (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          onClick={() => toggleStepComplete(i)}
+                          className={`relative rounded-xl border p-4 cursor-pointer transition-all duration-200 ${
+                            isCompleted
+                              ? 'bg-[var(--color-success)]/5 border-[var(--color-success)]/30'
+                              : 'bg-[var(--color-bg-secondary)] border-[var(--glass-border)] hover:border-[var(--color-accent)]/40 hover:shadow-sm'
+                          }`}
+                        >
+                          <div className="flex gap-3 items-start">
+                            <div className="flex flex-col items-center gap-1 flex-shrink-0 pt-0.5">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleStepComplete(i);
+                                }}
+                                className={`w-6 h-6 rounded-full border-2 transition-all duration-200 flex items-center justify-center print:border-gray-400 ${
+                                  isCompleted
+                                    ? 'bg-[var(--color-success)] border-[var(--color-success)] text-white scale-110'
+                                    : 'border-[var(--color-text-muted)]/40 hover:border-[var(--color-accent)]'
+                                }`}
+                              >
+                                {isCompleted && <Check className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-base">{stepEmoji}</span>
+                                <span className={`text-[10px] font-semibold uppercase tracking-wider ${
+                                  isCompleted ? 'text-[var(--color-success)]' : 'text-[var(--color-accent)]'
+                                }`}>
+                                  Step {i + 1}
+                                </span>
+                              </div>
+                              <p className={`text-sm leading-relaxed ${
+                                isCompleted
+                                  ? 'line-through text-[var(--color-text-muted)]'
+                                  : 'text-[var(--color-text-secondary)]'
+                              } print:text-gray-700`}>
+                                {formatStepWithEmoji(step.trim())}
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
 
                   {/* Closing - displayed after steps */}
