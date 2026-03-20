@@ -107,6 +107,7 @@ export default function HomeClient() {
   const [authFormFirstName, setAuthFormFirstName] = useState('');
   const [authFormLastName, setAuthFormLastName] = useState('');
   const [authFormEmail, setAuthFormEmail] = useState('');
+  const [authFormReferral, setAuthFormReferral] = useState('');
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
@@ -189,6 +190,7 @@ export default function HomeClient() {
           firstName: authFormFirstName,
           lastName: authFormLastName,
           email: authFormEmail,
+          referralSource: authFormReferral || undefined,
         }),
       });
 
@@ -622,6 +624,22 @@ export default function HomeClient() {
                     disabled={authSubmitting}
                   />
 
+                  <select
+                    value={authFormReferral}
+                    onChange={(e) => setAuthFormReferral(e.target.value)}
+                    disabled={authSubmitting}
+                    className="w-full text-sm"
+                    style={{ color: authFormReferral ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}
+                  >
+                    <option value="">How did you find Loftie? (optional)</option>
+                    <option value="friend_family">Friend or family</option>
+                    <option value="social_media">Social media</option>
+                    <option value="google_search">Google search</option>
+                    <option value="blog_article">Blog or article</option>
+                    <option value="word_of_mouth">Word of mouth</option>
+                    <option value="other">Other</option>
+                  </select>
+
                   {authError && (
                     <div className="bg-[var(--color-error)]/10 border border-[var(--color-error)]/20 text-[var(--color-error)] px-3 py-2 rounded-lg text-xs text-center">
                       {authError}
@@ -966,8 +984,8 @@ export default function HomeClient() {
           <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] text-center mb-10">
             What our <span className="text-emphasis">users</span> are saying
           </h2>
-          <div className="flex justify-center">
-            <div className="max-w-md w-full rounded-2xl border border-[var(--glass-border)] bg-[var(--color-bg-card)] p-8 sm:p-10 text-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-stretch">
+            <div className="max-w-md w-full rounded-2xl border border-[var(--glass-border)] bg-[var(--color-bg-card)] p-8 sm:p-10 text-center flex flex-col justify-between">
               <p className="text-sm sm:text-base text-[var(--color-text-secondary)] italic leading-relaxed font-serif">
                 &ldquo;It was so fun, and the advice was on point! I finally got rid of an old remote at the app&rsquo;s suggestion! Best part: it got me walking through my house discarding clutter.&rdquo;
               </p>
@@ -976,7 +994,20 @@ export default function HomeClient() {
                   Erin
                 </p>
                 <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                  Loftie AI beta user
+                  Loftie AI user
+                </p>
+              </div>
+            </div>
+            <div className="max-w-md w-full rounded-2xl border border-[var(--glass-border)] bg-[var(--color-bg-card)] p-8 sm:p-10 text-center flex flex-col justify-between">
+              <p className="text-sm sm:text-base text-[var(--color-text-secondary)] italic leading-relaxed font-serif">
+                &ldquo;I found myself overwhelmed by my bedroom/closet and did not know where to start &mdash; luckily Loftie was right there to help me get started and motivate me by the finished product visual. I love using Loftie!&rdquo;
+              </p>
+              <div className="mt-6">
+                <p className="text-sm font-medium text-[var(--color-text-primary)] italic">
+                  Cassandra
+                </p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                  Loftie AI user
                 </p>
               </div>
             </div>

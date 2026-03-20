@@ -28,6 +28,8 @@ interface UserRecord {
   firstName: string;
   lastName: string;
   email: string;
+  referralSource?: string;
+  socialMediaConsent?: boolean;
 }
 
 export default function AdminPage() {
@@ -150,6 +152,26 @@ export default function AdminPage() {
     },
   ];
 
+  // Referral source breakdown
+  const referralLabels: Record<string, string> = {
+    friend_family: 'Friend/Family',
+    social_media: 'Social Media',
+    google_search: 'Google Search',
+    blog_article: 'Blog/Article',
+    word_of_mouth: 'Word of Mouth',
+    other: 'Other',
+  };
+
+  const referralCounts = users.reduce((acc, u) => {
+    const source = u.referralSource || 'unknown';
+    acc[source] = (acc[source] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Social media consent stats
+  const consentYes = users.filter(u => u.socialMediaConsent === true).length;
+  const consentNo = users.filter(u => u.socialMediaConsent === false).length;
+
   return (
     <div className="gradient-bg min-h-screen">
       {/* Header */}
@@ -160,11 +182,16 @@ export default function AdminPage() {
             <span className="hidden sm:inline">Back</span>
           </Link>
 
-          <span className="logo-text">Loftie</span>
+          <span className="logo-text">Loftie Admin</span>
 
-          <button onClick={handleRefresh} disabled={refreshing} className="btn-icon">
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
+          <div className="flex items-center gap-2">
+            <Link href="/settings" className="btn-icon" title="Settings">
+              <Settings className="w-4 h-4" />
+            </Link>
+            <button onClick={handleRefresh} disabled={refreshing} className="btn-icon">
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </nav>
       </header>
 
@@ -187,6 +214,52 @@ export default function AdminPage() {
             </div>
           ))}
         </motion.div>
+
+        {/* Referral Sources & Social Consent */}
+        {users.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div className="card">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">How Users Found Loftie</h3>
+              <div className="space-y-2">
+                {Object.entries(referralCounts)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([source, count]) => (
+                    <div key={source} className="flex items-center justify-between text-xs">
+                      <span className="text-[var(--color-text-secondary)]">
+                        {referralLabels[source] || (source === 'unknown' ? 'Not specified' : source)}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 h-1.5 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-[var(--color-accent)] rounded-full"
+                            style={{ width: `${(count / users.length) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-[var(--color-text-muted)] w-8 text-right">{count}</span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+            <div className="card">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Social Media Consent</h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--color-success)]">Yes, feature my transformation</span>
+                  <span className="text-[var(--color-text-muted)]">{consentYes}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-red-400">No thanks</span>
+                  <span className="text-[var(--color-text-muted)]">{consentNo}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--color-text-muted)]">Not asked yet</span>
+                  <span className="text-[var(--color-text-muted)]">{users.length - consentYes - consentNo}</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Content */}
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
@@ -226,6 +299,7 @@ export default function AdminPage() {
                       <th>Status</th>
                       <th>Date</th>
                       <th>Feedback</th>
+                      <th>Social</th>
                       <th className="w-12"></th>
                     </tr>
                   </thead>
@@ -284,9 +358,18 @@ export default function AdminPage() {
                             )}
                           </td>
                           <td>
-                            <Link href={`/results/${t.id}`} className="btn-icon w-8 h-8">
+                            {(() => {
+                              const user = t.userId ? userMap.get(t.userId) : undefined;
+                              if (!user) return <span className="text-xs text-[var(--color-text-muted)]">&mdash;</span>;
+                              if (user.socialMediaConsent === true) return <span className="text-xs text-[var(--color-success)]">✓ Yes</span>;
+                              if (user.socialMediaConsent === false) return <span className="text-xs text-red-400">✗ No</span>;
+                              return <span className="text-xs text-[var(--color-text-muted)]">—</span>;
+                            })()}
+                          </td>
+                          <td>
+                            <a href={`/results/${t.id}`} target="_blank" rel="noopener noreferrer" className="btn-icon w-8 h-8 inline-flex items-center justify-center">
                               <ExternalLink className="w-3.5 h-3.5" />
-                            </Link>
+                            </a>
                           </td>
                         </tr>
                       );
@@ -333,9 +416,9 @@ export default function AdminPage() {
                             </div>
                           )}
                         </div>
-                        <Link href={`/results/${t.id}`} className="btn-icon flex-shrink-0">
+                        <a href={`/results/${t.id}`} target="_blank" rel="noopener noreferrer" className="btn-icon flex-shrink-0 inline-flex items-center justify-center">
                           <ExternalLink className="w-3.5 h-3.5" />
-                        </Link>
+                        </a>
                       </div>
                     </motion.div>
                   );

@@ -6,7 +6,7 @@ import { MagicLinkToken } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const { firstName, lastName, email } = await request.json();
+    const { firstName, lastName, email, referralSource } = await request.json();
 
     if (!email || !firstName || !lastName) {
       return NextResponse.json(
@@ -29,12 +29,17 @@ export async function POST(request: NextRequest) {
         email: normalizedEmail,
         createdAt: now,
         lastLoginAt: now,
+        referralSource: referralSource || undefined,
       };
       await saveUser(user);
     } else {
       // Update name if provided (user might update it)
       user.firstName = firstName.trim();
       user.lastName = lastName.trim();
+      // Only set referralSource if not already set (don't overwrite on re-login)
+      if (referralSource && !user.referralSource) {
+        user.referralSource = referralSource;
+      }
       await saveUser(user);
     }
 

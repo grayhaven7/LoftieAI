@@ -5,6 +5,8 @@ export interface User {
   email: string;
   createdAt: string;
   lastLoginAt: string;
+  referralSource?: string; // "How did you find Loftie?"
+  socialMediaConsent?: boolean; // Can we feature your transformation on social media?
 }
 
 export interface MagicLinkToken {

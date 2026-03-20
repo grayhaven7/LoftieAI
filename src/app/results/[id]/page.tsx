@@ -63,6 +63,8 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
   const [feedbackHelpful, setFeedbackHelpful] = useState<boolean | null>(null);
   const [feedbackSending, setFeedbackSending] = useState(false);
   const [feedbackLikeSaved, setFeedbackLikeSaved] = useState(false);
+  const [socialConsentAsked, setSocialConsentAsked] = useState(false);
+  const [socialConsentAnswer, setSocialConsentAnswer] = useState<boolean | null>(null);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [loadingSlideIndex, setLoadingSlideIndex] = useState(0);
@@ -1320,6 +1322,73 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
             )}
           </motion.div>
         )}
+        {/* Social Media Consent */}
+        {data.status === 'completed' && data.userEmail && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card print:hidden mt-6">
+            {socialConsentAsked ? (
+              <div className="flex items-center gap-2 text-sm">
+                {socialConsentAnswer ? (
+                  <span className="text-[var(--color-success)] flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5" /> Thanks! We may feature your transformation on our social media.
+                  </span>
+                ) : (
+                  <span className="text-[var(--color-text-muted)] flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5" /> No problem, your transformation stays private.
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Share2 className="w-4 h-4 text-[var(--color-accent)]" />
+                  <h3 className="text-sm text-[var(--color-text-primary)] font-medium">Share your transformation?</h3>
+                </div>
+                <p className="text-xs text-[var(--color-text-secondary)]">
+                  Can we feature your Loftie transformation on our social media? Your before/after would help inspire others to declutter!
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={async () => {
+                      setSocialConsentAnswer(true);
+                      setSocialConsentAsked(true);
+                      try {
+                        await fetch('/api/social-consent', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ email: data.userEmail, consent: true }),
+                        });
+                      } catch (err) {
+                        console.error('Failed to save social consent:', err);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg text-xs font-medium hover:bg-[var(--color-accent-hover)] transition-colors"
+                  >
+                    Yes, feature me!
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setSocialConsentAnswer(false);
+                      setSocialConsentAsked(true);
+                      try {
+                        await fetch('/api/social-consent', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ email: data.userEmail, consent: false }),
+                        });
+                      } catch (err) {
+                        console.error('Failed to save social consent:', err);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)] rounded-lg text-xs font-medium hover:bg-[var(--glass-border-hover)] transition-colors"
+                  >
+                    No thanks
+                  </button>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+
       </main>
 
       <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[var(--glass-border)] print:hidden">
