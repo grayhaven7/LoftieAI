@@ -35,8 +35,9 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://api.fontshare.com" />
         <link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,500,400i,500i,600i,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet" />
-        <link rel="icon" href="/loftie-logo.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/loftie-logo.png" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className="antialiased">
         <script
