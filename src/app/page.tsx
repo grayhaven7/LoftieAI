@@ -14,21 +14,16 @@ export async function generateMetadata(): Promise<Metadata> {
     // fall back to defaults
   }
 
-  // Page title/description from admin headlines
-  const pageTitle = `Loftie AI - ${headlines.mainHeadline}`;
-  const pageDescription = `${headlines.subtitle1} ${headlines.subtitle2}`.trim() ||
+  const title = `Loftie AI - ${headlines.mainHeadline}`;
+  const description = `${headlines.subtitle1} ${headlines.subtitle2}`.trim() ||
     'AI-powered decluttering and home staging. Upload a photo and get a photorealistic transformation with step-by-step guidance.';
 
-  // OG metadata is separate — optimized for link previews, not tied to page headlines
-  const ogTitle = 'Loftie AI';
-  const ogDescription = 'See your room decluttered before you start. Snap a photo, get a personalized plan.';
-
   return {
-    title: pageTitle,
-    description: pageDescription,
+    title,
+    description,
     openGraph: {
-      title: ogTitle,
-      description: ogDescription,
+      title,
+      description,
       url: 'https://www.loftie.ai',
       siteName: 'Loftie AI',
       type: 'website',
@@ -38,14 +33,14 @@ export async function generateMetadata(): Promise<Metadata> {
           url: 'https://www.loftie.ai/og-image.png',
           width: 1200,
           height: 630,
-          alt: 'A beautifully organized living room styled by Loftie AI',
+          alt: 'Loftie AI - AI room transformation before and after',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: ogTitle,
-      description: ogDescription,
+      title,
+      description,
       images: ['https://www.loftie.ai/og-image.png'],
     },
   };
