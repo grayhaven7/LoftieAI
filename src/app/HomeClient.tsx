@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { ArrowRight, X, ArrowUpRight, Settings, ExternalLink, Camera, Upload, LogOut, Mail } from 'lucide-react';
 import Link from 'next/link';
 import NextImage from 'next/image';
@@ -466,13 +466,10 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
           <div key="hero">
       {/* Hero */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+        <div
           className="text-center mb-10"
         >
-          <div style={{ opacity: headlinesLoaded ? 1 : 0, transition: 'opacity 0.3s ease' }}>
+          <div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--color-text-primary)] mb-3 tracking-[-0.03em] leading-[1.25]">
               {headlines.mainHeadline.includes('Overwhelmed') ? (
                 <><span className="text-emphasis">Overwhelmed</span> by clutter?</>
@@ -496,17 +493,15 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
               {headlines.subtitle2}
             </p>
           </div>
-        </motion.div>
+        </div>
 
         {configWarning && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             className="max-w-md mx-auto mb-6 bg-amber-500/10 border border-amber-500/20 text-amber-500 px-4 py-3 rounded-xl text-xs text-center flex items-center justify-center gap-2"
           >
             <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
             {configWarning}
-          </motion.div>
+          </div>
         )}
       </main>
 
@@ -517,10 +512,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
           <div key="howItWorks">
       {/* Features / How It Works */}
       <section id="features" className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
+        <div
           className="text-center mb-8"
         >
           <h2 className="text-xl sm:text-2xl text-[var(--color-text-primary)] tracking-tight mb-2">
@@ -529,16 +521,12 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
           <p className="text-sm text-[var(--color-text-secondary)]">
             Three simple steps to your dream space
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {features.map((feature, i) => (
-            <motion.div
+            <div
               key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
               className="feature-card"
             >
               <NextImage
@@ -560,7 +548,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
                   {feature.desc}
                 </p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
@@ -577,10 +565,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
           <div key="upload">
       {/* Upload / Auth Section */}
       <section id="upload" className="max-w-md mx-auto px-4 pb-16">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+        <div
           className="card"
         >
           {authLoading ? (
@@ -589,11 +574,8 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
             </div>
           ) : !authUser ? (
             /* ---- Sign up / Login Form ---- */
-            <motion.div
+            <div
               key="auth-form"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
             >
               {!magicLinkSent ? (
                 <form onSubmit={handleAuthSubmit} className="space-y-4">
@@ -706,16 +688,13 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
                   </button>
                 </div>
               )}
-            </motion.div>
+            </div>
           ) : (
             /* ---- Upload UI (authenticated) ---- */
             <AnimatePresence mode="wait">
               {!selectedImage && !showCamera ? (
-                <motion.div
+                <div
                   key="upload"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
                 >
                   <div className="text-center mb-3">
                     <p className="text-xs text-[var(--color-text-muted)]">
@@ -799,13 +778,10 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
                       </div>
                     )}
                   </div>
-                </motion.div>
+                </div>
               ) : showCamera && !selectedImage ? (
-                <motion.div
+                <div
                   key="camera"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
                   className="space-y-4"
                 >
                   <div className="relative rounded-lg overflow-hidden bg-black aspect-[4/3]">
@@ -837,13 +813,10 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
                   <p className="text-xs text-[var(--color-text-muted)] text-center">
                     Position your room in the frame and tap to capture
                   </p>
-                </motion.div>
+                </div>
               ) : (
-                <motion.div
+                <div
                   key="preview"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
                   className="space-y-4"
                 >
                   <div className="relative">
@@ -866,14 +839,12 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
                   </div>
 
                   {isProcessing && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
+                    <div
                       className="flex items-center justify-center gap-2 py-2"
                     >
                       <div className="w-4 h-4 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
                       <p className="text-[var(--color-text-muted)] text-xs">Uploading...</p>
-                    </motion.div>
+                    </div>
                   )}
 
                   {error && (
@@ -904,11 +875,11 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
                       Your photos are processed securely and not stored after your session
                     </p>
                   </div>
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
           )}
-        </motion.div>
+        </div>
       </section>
 
           </div>
@@ -919,10 +890,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
       {/* Recent Transformations */}
       {recentTransformations.length > 0 && (
         <section className="max-w-4xl mx-auto px-4 py-8">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
+          <div
             className="text-center mb-6"
           >
             <h2 className="text-xl sm:text-2xl text-[var(--color-text-primary)] tracking-tight mb-2">
@@ -931,17 +899,13 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
             <p className="text-sm text-[var(--color-text-secondary)]">
               Pick up where you left off
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {recentTransformations.slice(0, 8).map((t, i) => (
-              <motion.a
+              <a
                 key={t.id}
                 href={`/results/${t.id}`}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
                 className="group relative aspect-square rounded-xl overflow-hidden border border-[var(--glass-border)] hover:border-[var(--color-accent)] transition-colors"
               >
                 <NextImage
@@ -960,7 +924,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
                     {t.status}
                   </span>
                 </div>
-              </motion.a>
+              </a>
             ))}
           </div>
         </section>
@@ -991,10 +955,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
           <div key="testimonials">
       {/* Testimonials */}
       <section className="max-w-3xl mx-auto px-4 py-16 sm:py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+        <div
         >
           <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] text-center mb-10">
             What our <span className="text-emphasis">users</span> are saying
@@ -1027,7 +988,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
           </div>
         );
@@ -1037,10 +998,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
       {/* About */}
       {bio && bio.content && (
         <section id="about" className="max-w-3xl mx-auto px-4 py-16 sm:py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <div
             className="card"
           >
             <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
@@ -1083,7 +1041,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </section>
       )}
 
