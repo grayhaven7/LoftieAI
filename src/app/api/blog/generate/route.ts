@@ -84,7 +84,7 @@ Return as JSON with this exact structure:
         'X-Title': 'Loftie AI Blog Generator',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-preview-05-20',
+        model: 'google/gemini-2.0-flash-001',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
