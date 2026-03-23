@@ -1101,6 +1101,12 @@ export default function HomeClient() {
             <a href="#features" className="nav-item hidden sm:block">
               How it Works
             </a>
+            <a href="/blog" className="nav-item hidden sm:block">
+              Blog
+            </a>
+            <a href="/marketplace" className="nav-item hidden sm:block">
+              Marketplace
+            </a>
             <a href="/dashboard" className="nav-item">
               Dashboard
             </a>
