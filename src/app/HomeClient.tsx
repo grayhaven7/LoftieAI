@@ -72,7 +72,18 @@ async function compressImage(file: File, maxDimension: number = 1440, quality: n
   });
 }
 
-export default function HomeClient() {
+interface HomeClientProps {
+  initialHeadlines?: {
+    mainHeadline: string;
+    subHeadline: string;
+    subtitle1: string;
+    subtitle2: string;
+  };
+  initialSectionOrder?: string[];
+  initialBio?: { content: string; headshotUrl: string } | null;
+}
+
+export default function HomeClient({ initialHeadlines, initialSectionOrder, initialBio }: HomeClientProps = {}) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -80,7 +91,7 @@ export default function HomeClient() {
   const [isCompressing, setIsCompressing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [configWarning, setConfigWarning] = useState<string | null>(null);
-  const [bio, setBio] = useState<BioData | null>(null);
+  const [bio, setBio] = useState<BioData | null>(initialBio || null);
   // User controls
   const [creativityLevel, setCreativityLevel] = useState<'strict' | 'balanced' | 'creative'>('strict');
   const [keepItems, setKeepItems] = useState('');
@@ -163,15 +174,17 @@ export default function HomeClient() {
       })
       .catch(() => {});
 
-    // Fetch bio data for About section
-    fetch('/api/bio')
-      .then(res => res.json())
-      .then(data => {
-        if (data.bio) {
-          setBio(data.bio);
-        }
-      })
-      .catch(() => {});
+    // Fetch bio data for About section (skip if already have server data)
+    if (!initialBio) {
+      fetch('/api/bio')
+        .then(res => res.json())
+        .then(data => {
+          if (data.bio) {
+            setBio(data.bio);
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
 
   // Auth form submit
@@ -393,8 +406,8 @@ export default function HomeClient() {
     }
   };
 
-  const [headlinesLoaded, setHeadlinesLoaded] = useState(false);
-  const [headlines, setHeadlines] = useState({
+  const [headlinesLoaded, setHeadlinesLoaded] = useState(!!initialHeadlines);
+  const [headlines, setHeadlines] = useState(initialHeadlines || {
     mainHeadline: 'Overwhelmed by clutter?',
     subHeadline: 'Let Loftie help.',
     subtitle1: 'Upload a photo of your cluttered space and watch Loftie transform it in seconds.',
@@ -402,6 +415,7 @@ export default function HomeClient() {
   });
 
   useEffect(() => {
+    if (initialHeadlines) return; // Already have server data
     fetch('/api/headlines')
       .then(res => res.json())
       .then(data => {
@@ -409,13 +423,14 @@ export default function HomeClient() {
       })
       .catch(() => {})
       .finally(() => setHeadlinesLoaded(true));
-  }, []);
-  const [sectionOrderLoaded, setSectionOrderLoaded] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState<string[]>([
+  }, [initialHeadlines]);
+  const [sectionOrderLoaded, setSectionOrderLoaded] = useState(!!initialSectionOrder);
+  const [sectionOrder, setSectionOrder] = useState<string[]>(initialSectionOrder || [
     'hero', 'howItWorks', 'upload', 'recentTransformations', 'cta', 'testimonials', 'about'
   ]);
 
   useEffect(() => {
+    if (initialSectionOrder) return; // Already have server data
     fetch('/api/section-order')
       .then(res => res.json())
       .then(data => {
@@ -423,7 +438,7 @@ export default function HomeClient() {
       })
       .catch(() => {})
       .finally(() => setSectionOrderLoaded(true));
-  }, []);
+  }, [initialSectionOrder]);
 
   const features = [
     {
@@ -1084,20 +1099,12 @@ export default function HomeClient() {
       {/* Header */}
       <header className="py-4 px-4 sm:px-6">
         <nav className="max-w-5xl mx-auto flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center gap-2"
-          >
+          <div className="flex items-center gap-2">
             <NextImage src="/loftie-logo.png" alt="Loftie" width={72} height={72} className="rounded-full w-10 h-10 sm:w-[72px] sm:h-[72px]" />
             <span className="logo-text">Loftie</span>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center"
-          >
+          <div className="flex items-center">
             <a href="#features" className="nav-item hidden sm:block">
               How it Works
             </a>
@@ -1120,7 +1127,7 @@ export default function HomeClient() {
                 <span className="hidden sm:inline">Sign Out</span>
               </button>
             )}
-          </motion.div>
+          </div>
         </nav>
       </header>
 
