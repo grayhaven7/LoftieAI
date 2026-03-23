@@ -84,7 +84,7 @@ Return as JSON with this exact structure:
         'X-Title': 'Loftie AI Blog Generator',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-sonnet-4-20250514',
+        model: 'google/gemini-2.5-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -96,8 +96,8 @@ Return as JSON with this exact structure:
 
     if (!res.ok) {
       const errText = await res.text();
-      console.error('[Blog Generate] OpenRouter error:', errText);
-      return NextResponse.json({ error: 'AI generation failed' }, { status: 500 });
+      console.error('[Blog Generate] OpenRouter error:', res.status, errText);
+      return NextResponse.json({ error: `AI generation failed (${res.status}): ${errText.substring(0, 200)}` }, { status: 500 });
     }
 
     const data = await res.json();
