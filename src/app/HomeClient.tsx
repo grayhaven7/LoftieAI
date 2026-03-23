@@ -112,12 +112,10 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
   const [cameraError, setCameraError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Auth state — check cookie synchronously so nav renders correctly on first paint
-  const hasSessionCookie = typeof document !== 'undefined'
-    ? document.cookie.includes('loftie-session=')
-    : false;
+  // Auth state
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(!hasSessionCookie); // skip loading state if no cookie
+  const [authLoading, setAuthLoading] = useState(true);
+  const [hasSessionCookie, setHasSessionCookie] = useState(false);
   const [authFormFirstName, setAuthFormFirstName] = useState('');
   const [authFormLastName, setAuthFormLastName] = useState('');
   const [authFormEmail, setAuthFormEmail] = useState('');
@@ -125,6 +123,13 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+
+  // Check session cookie immediately on client mount — before API call resolves
+  useEffect(() => {
+    if (document.cookie.includes('loftie-session=')) {
+      setHasSessionCookie(true);
+    }
+  }, []);
 
   useEffect(() => {
     // Check for auth errors from redirect
@@ -1078,16 +1083,19 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
             <a href="/dashboard" className="nav-item">
               Dashboard
             </a>
-            {(authUser || hasSessionCookie) && (
-              <button
-                onClick={handleLogout}
-                className="nav-item flex items-center gap-1"
-                title="Sign out"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </button>
-            )}
+            {/* Reserve space so nav doesn't shift when Sign Out appears */}
+            <span style={{ minWidth: 80, display: 'inline-flex', justifyContent: 'flex-end' }}>
+              {(authUser || hasSessionCookie) ? (
+                <button
+                  onClick={handleLogout}
+                  className="nav-item flex items-center gap-1"
+                  title="Sign out"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Sign Out</span>
+                </button>
+              ) : null}
+            </span>
           </div>
         </nav>
       </header>
