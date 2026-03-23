@@ -112,9 +112,12 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
   const [cameraError, setCameraError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Auth state
+  // Auth state — check cookie synchronously so nav renders correctly on first paint
+  const hasSessionCookie = typeof document !== 'undefined'
+    ? document.cookie.includes('loftie-session=')
+    : false;
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(!hasSessionCookie); // skip loading state if no cookie
   const [authFormFirstName, setAuthFormFirstName] = useState('');
   const [authFormLastName, setAuthFormLastName] = useState('');
   const [authFormEmail, setAuthFormEmail] = useState('');
@@ -1075,7 +1078,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
             <a href="/dashboard" className="nav-item">
               Dashboard
             </a>
-            {authUser && (
+            {(authUser || hasSessionCookie) && (
               <button
                 onClick={handleLogout}
                 className="nav-item flex items-center gap-1"
