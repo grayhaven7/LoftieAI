@@ -9,6 +9,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      url: 'https://www.loftie.ai/marketplace',
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
+    {
       url: 'https://www.loftie.ai/dashboard',
       lastModified: new Date(),
       changeFrequency: 'monthly',
