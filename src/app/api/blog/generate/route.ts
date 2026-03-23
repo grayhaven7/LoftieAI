@@ -2,14 +2,58 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// Book excerpt sections mapped by topic for context injection
-const BOOK_CONTEXT: Record<string, string> = {
-  decluttering: `From "Secrets of a Million Dollar Stager" by Sejal Parekh: Less is more and in the case of selling your home, less stuff can mean more money. Eliminating clutter in each room creates a spacious and inviting feeling. Create a "decluttering station" with boxes labeled for Donation, Shredding, Recycling, Trash. A family packed up 2/3 of their furniture and didn't miss any of it. Their condo sold quickly. Key areas: pare down bookshelves, reduce closet clothes to 1/3 or 1/2, organize kitchen cabinets, tidy office paperwork. Depersonalize by removing family photos, trophies, religious items. Storage options: garage boxes, storage units, PODS, pick-up services like Clutter.`,
-  'home-staging': `From "Secrets of a Million Dollar Stager" by Sejal Parekh: Staging is designing and filling a home with aesthetically pleasing furniture, accessories, and decor. Top benefits: increase sale price and reduce time on market. The Doorframe Concept: imagine how a room looks from the doorframe — that first glance should captivate buyers. Staging creates an emotional connection. Small touches like a wine bottle and cookbook help buyers envision cooking there. White towels and bath salts create spa ambiance. Staging also helps sellers emotionally detach. Over 12 years, Sejal staged over $350 million of property in Silicon Valley.`,
-  organization: `From "Secrets of a Million Dollar Stager" by Sejal Parekh: Closet organization — remove all items, wipe down shelves, sort and purge. Use matching hangers, hang similar clothing together, arrange by length. Create donation boxes. Kitchen pantry — line up items neatly, use decorative baskets. Linen closets — fold and stack white towels. Laundry rooms — remove excess supplies, create stylish displays with glass jars of clothespins, stacked towels.`,
-  'room-guides': `From "Secrets of a Million Dollar Stager" by Sejal Parekh: Living room formula: sofa + rug + coffee table + 1-2 accent chairs + side tables + lamps. Pull sofa 6-12" from wall. 5x8 or 8x10 rug. Glass coffee table for small rooms. Master bedroom: matching nightstands, matching lamps, white comforter for hotel luxury feel. 4 sleeping pillows + 1-3 throw pillows. Kitchen: clear counters, organize cabinets (buyers WILL open them), light staging with cookbook stand, coffee tray, wine vignette. Dining room: set table with placemats, white dishes, wine glasses with napkins, cherry blossom centerpiece.`,
-  lifestyle: `From "Secrets of a Million Dollar Stager" by Sejal Parekh: Even while living in your current home, keep staging principles in mind. Keep your space fresh by moving items around, donating items you don't need, bringing in new pieces when inspired. The decision to sell is momentous — signifies end of one chapter, beginning of exciting new one. Staging has the magical effect of helping sellers emotionally detach. After staging, clients often say "it doesn't feel like my home anymore" — this is the magic.`,
-  tips: `From "Secrets of a Million Dollar Stager" by Sejal Parekh: Curb appeal — $50 house numbers transform a home, Everbilt 5-inch elevated in black or brushed nickel. Edison bulb porch lights. Bold front door colors (black, coral, turquoise, navy). Broom is a stager's best friend. Potted plants flanking front door. "Wood chips are like Spanx for your yard." Interior updates: door knobs in black/gold/brushed nickel, cabinet hardware, light switch covers, crown molding, paint in light neutrals (white, greige, light gray). Fireplace: paint brass enclosures black, remove freestanding screens.`,
+// Comprehensive knowledge base about Sejal, her expertise, and Loftie
+const SEJAL_CONTEXT = `
+ABOUT SEJAL PAREKH:
+- Certified Staging Design Specialist (SDS) and licensed REALTOR® (DRE 01895441) at Compass in Burlingame, CA
+- Founded Innovae Designs, a boutique home staging company in Silicon Valley (San Francisco Bay Area)
+- Over 12 years, staged over $350 million of property throughout the Bay Area — home to tech giants Google, Apple, Facebook, and Nvidia
+- Staged both vacant and occupied homes: cozy condos to multi-million dollar properties
+- B.S. in Biological Sciences and B.A. in International Studies from UC Irvine
+- Career pivot from medical devices to home staging and real estate
+- Active in Silicon Valley Association of REALTORS® (SILVAR) community events and multicultural homeownership seminars
+- Author of "Secrets of a Million Dollar Stager" — comprehensive staging guide for homeowners
+
+ABOUT LOFTIE AI:
+- AI-powered room transformation tool at loftie.ai
+- Users upload a photo of a cluttered room and get an instant AI-generated visualization of how it could look organized and staged
+- Generates personalized decluttering plans with step-by-step cue cards
+- Includes a community marketplace for listing items for donation or sale
+- Built for homeowners preparing to sell, people overwhelmed by clutter, real estate agents, and design enthusiasts
+- Founded by Sejal to scale her staging expertise to anyone, anywhere
+
+SEJAL'S CORE PHILOSOPHY:
+- "Less stuff can mean more money" — decluttering directly impacts home sale price
+- The Doorframe Concept: first impression from the room entry must captivate
+- Staging creates emotional connection — buyers need to see themselves living there
+- Depersonalizing helps sellers emotionally detach and see the home as a product
+- Space sells — removing excess furniture makes rooms feel larger and more valuable
+- Elegance in symmetry, especially in bedrooms
+- "Wood chips are like Spanx for your yard" — attention to exterior details matters
+- Model home feeling: wine bottles on counters, plush towels by the tub, children's books in kids rooms
+
+SEJAL'S TARGET AUDIENCES:
+1. Homeowners preparing to sell (primary) — need staging, decluttering, and preparation guidance
+2. First-time home sellers — overwhelmed by the process, need step-by-step help
+3. Real estate agents and brokers — want to advise clients on staging, need resources
+4. Empty nesters downsizing — emotional attachment to decades of possessions
+5. Relocating families (tech workers in Silicon Valley moving for jobs) — time-constrained
+6. DIY home decorators — love design, want professional techniques on a budget
+7. People overwhelmed by clutter — not selling, just need motivation and methods
+8. Property photographers — need to understand staging for better shoots
+9. Interior designers and fellow stagers — industry professionals learning techniques
+10. Home flippers and investors — need cost-effective staging to maximize ROI
+`;
+
+// Book content organized by topic for deeper context
+const BOOK_SECTIONS: Record<string, string> = {
+  decluttering: `Decluttering: Less is more. Create a "decluttering station" with labeled boxes (Donation, Shredding, Recycling, Trash, Returns). A family packed up 2/3 of furniture and didn't miss any of it — condo sold quickly. Pare down bookshelves, reduce closet clothes to 1/3-1/2, organize kitchen cabinets. Storage options: garage boxes, storage units (Public Storage), PODS portable storage, pick-up services (Clutter). Depersonalize: remove family photos, trophies, religious items, hunting displays. "Universalize" the home for broadest buyer appeal. Selling items: Facebook Marketplace, OfferUp, NextDoor, garage sales, donation to Goodwill/Salvation Army/Habitat for Humanity.`,
+  staging: `Home Staging: According to NAR, staging is "designing and filling a home with aesthetically pleasing furniture, accessories, and decor." Top benefits: increase sale price + reduce time on market. Creates emotional connection — wine bottle and cookbook on kitchen counter, plush towels and bath salts near tub, children's books in kids room. Staging helps sellers emotionally detach. Living room formula: sofa + rug + coffee table + 1-2 accent chairs + side tables + lamps. Pull sofa 6-12" from wall. Glass coffee table for small rooms. Master bedroom: matching nightstands, matching lamps, white comforter for hotel luxury feel. Kitchen: clear counters (buyers WILL open cabinets), light staging with cookbook stand, coffee tray.`,
+  curb_appeal: `Curb Appeal: $50 house numbers transform a home (Everbilt 5-inch elevated in black/brushed nickel). Edison bulb porch lights. Bold front door colors (black, coral, turquoise, navy). Broom is a stager's best friend. Potted plants flanking front door — symmetric entrance. "Wood chips are like Spanx for your yard." Flowers: fuchsia, purple, magenta, yellow, orange. Natural fiber welcome mat. New lockset under $200. Power wash carefully (never windows, wood siding, electrical panels). Green lawn, trimmed hedges, clear walkways.`,
+  interior_updates: `Budget Interior Updates: Door knobs/hinges in black, matte gold, brushed nickel. Cabinet hardware instantly modernizes dated kitchens. Light fixtures as "statement necklaces." Repaint cabinets white/gray/navy blue. Light neutral wall colors: white, off-white, cream, greige, light gray. Paint ceilings white for spacious feel. Remove popcorn ceilings. Remove pass-through doors for open concept. Accent walls in gray, navy, or black for focal points. Fireplace: paint brass enclosures black with heat-resistant paint.`,
+  photography: `Photo Day Prep: Walk through every room starting from front entrance. Pack away dish sponges, soap dispensers, paper towel holders. Make all beds, hide toiletries. Full toilet paper rolls in bathrooms. Turn on ALL lights. Open curtains/blinds. Sweep and vacuum. Professional photography makes the difference — properties with amateur photos linger on market. Curb appeal photos first.`,
+  selling_process: `Selling Process: Broker tour (weekday mornings for agents) vs open house (weekends for public). Twilight tours for evening previews. Set out water bottles and snacks for open house. Disposable booties for buyers. Property flyers and business cards on console table. Keep home "show-ready" throughout listing period. Store toiletries in baskets under sinks for quick access. De-staging after contingencies removed and appraisal done.`,
+  room_specific: `Room-Specific: Entryway — console table with mirror above, orchid/flowers, stack of books, small lamp. Dining room — set table with placemats, white dishes, wine glasses with folded napkins, cherry blossom centerpiece. Kids rooms — fun and playful, colorful comforters, chalkboard, toys in baskets. Office — desk facing window or floating with upholstered chair (not office chair), globe, magazines (Architectural Digest, Dwell). Bathrooms — white waffle shower curtain, layered towels tied with raffia, apothecary jars with bath salts. Laundry — stack white towels, glass jar of clothespins, vintage "Laundry" sign. Hallways — gallery mirrors, clean baseboards. Backyard — outdoor rug, bistro set, colorful pillows, sparkling water bottles.`,
 };
 
 export async function POST(request: NextRequest) {
@@ -30,28 +74,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Keyword is required' }, { status: 400 });
     }
 
-    // Get relevant book context
-    const bookContext = BOOK_CONTEXT[category] || BOOK_CONTEXT['home-staging'];
-    const allContext = Object.values(BOOK_CONTEXT).join('\n\n');
+    // Select relevant book sections based on category
+    const relevantSections = [];
+    if (category === 'decluttering' || category === 'organization') relevantSections.push(BOOK_SECTIONS.decluttering);
+    if (category === 'home-staging') relevantSections.push(BOOK_SECTIONS.staging);
+    if (category === 'tips') relevantSections.push(BOOK_SECTIONS.curb_appeal, BOOK_SECTIONS.interior_updates);
+    if (category === 'room-guides') relevantSections.push(BOOK_SECTIONS.room_specific);
+    if (category === 'lifestyle') relevantSections.push(BOOK_SECTIONS.selling_process);
+    // Always include staging context as baseline
+    if (relevantSections.length === 0) relevantSections.push(BOOK_SECTIONS.staging);
 
-    const systemPrompt = `You are a blog content generator for Loftie AI (loftie.ai), an AI-powered room transformation and decluttering tool. You write as Sejal Parekh, a professional home stager who staged over $350 million of property in Silicon Valley over 12 years.
+    const systemPrompt = `You are a blog content generator for Loftie AI (loftie.ai), an AI-powered room transformation and decluttering tool. You write as Sejal Parekh.
 
-IMPORTANT RULES:
-- Write in first person as Sejal — warm, knowledgeable, encouraging tone
-- Use real examples and specific product recommendations from the book content provided
+${SEJAL_CONTEXT}
+
+RELEVANT BOOK CONTENT:
+${relevantSections.join('\n\n')}
+
+${additionalContext ? `ADDITIONAL CONTEXT:\n${additionalContext}` : ''}
+
+WRITING RULES:
+- Write in first person as Sejal — warm, knowledgeable, encouraging
+- Use real examples, specific product recommendations, and dollar amounts from the book
+- Reference her $350M staging experience naturally (not in every post, but where relevant)
 - Structure with H2 headers for SEO (use <h2> tags)
 - Include practical, actionable advice with bullet lists (<ul><li>)
-- Target the specified keyword naturally — include it in the first paragraph, at least one H2, and naturally throughout
+- Target the specified keyword naturally — in the first paragraph, at least one H2, and throughout
 - End with a soft CTA mentioning Loftie AI for room visualization
 - Output valid HTML (no markdown)
-- Aim for 800-1200 words
+- Aim for 1000-1500 words
 - Never use em dashes — use commas or periods instead
-- ${tone === 'casual' ? 'Keep the tone conversational and friendly' : tone === 'professional' ? 'Keep the tone authoritative but warm' : 'Keep the tone encouraging and approachable'}
-
-BOOK REFERENCE MATERIAL (use this as the knowledge source):
-${bookContext}
-
-${additionalContext ? `ADDITIONAL CONTEXT FROM THE BOOK:\n${additionalContext}` : ''}`;
+- Include personal anecdotes or client stories where natural
+- Reference Bay Area / Silicon Valley context when relevant
+- ${tone === 'casual' ? 'Keep the tone conversational and friendly' : tone === 'professional' ? 'Keep the tone authoritative and expert' : 'Keep the tone encouraging and approachable'}`;
 
     const userPrompt = `Write an SEO-optimized blog post targeting the keyword: "${keyword}"
 
@@ -103,7 +158,7 @@ Return as JSON with this exact structure:
     const data = await res.json();
     const rawContent = data.choices?.[0]?.message?.content || '';
 
-    // Parse JSON from the response (handle potential markdown code blocks)
+    // Parse JSON from the response
     let parsed;
     try {
       const jsonMatch = rawContent.match(/\{[\s\S]*\}/);

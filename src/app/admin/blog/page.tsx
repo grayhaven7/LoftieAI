@@ -16,26 +16,34 @@ const CATEGORIES = [
 ];
 
 const SUGGESTED_KEYWORDS = [
-  { keyword: 'how to organize a small closet', category: 'organization' },
-  { keyword: 'bathroom staging tips for selling', category: 'home-staging' },
-  { keyword: 'dining room staging ideas', category: 'room-guides' },
-  { keyword: 'how to stage a home office', category: 'room-guides' },
-  { keyword: 'backyard staging on a budget', category: 'tips' },
-  { keyword: 'garage organization before selling', category: 'organization' },
-  { keyword: 'laundry room makeover ideas', category: 'tips' },
-  { keyword: 'how to depersonalize your home', category: 'decluttering' },
-  { keyword: 'home staging mistakes to avoid', category: 'home-staging' },
-  { keyword: 'staging a small apartment', category: 'home-staging' },
-  { keyword: 'open house preparation checklist', category: 'tips' },
-  { keyword: 'how to stage with existing furniture', category: 'home-staging' },
-  { keyword: 'paint colors that sell homes', category: 'tips' },
-  { keyword: 'budget home staging under $500', category: 'home-staging' },
-  { keyword: 'staging tips for real estate photos', category: 'tips' },
-  { keyword: 'entryway staging ideas', category: 'room-guides' },
-  { keyword: 'guest bedroom staging tips', category: 'room-guides' },
-  { keyword: 'kids room staging for home sale', category: 'room-guides' },
-  { keyword: 'how to stage a kitchen on a budget', category: 'home-staging' },
-  { keyword: 'front porch curb appeal ideas', category: 'tips' },
+  // Homeowners selling
+  { keyword: 'is home staging worth the cost', category: 'home-staging' },
+  { keyword: 'how to sell your home fast', category: 'tips' },
+  { keyword: 'biggest staging mistakes sellers make', category: 'home-staging' },
+  { keyword: 'how to keep your house show ready with kids', category: 'tips' },
+  // Empty nesters
+  { keyword: 'downsizing tips for empty nesters', category: 'decluttering' },
+  { keyword: 'how to let go of sentimental items', category: 'decluttering' },
+  { keyword: 'emotional guide to selling the family home', category: 'lifestyle' },
+  // Overwhelmed by clutter
+  { keyword: 'where to start when your house is a mess', category: 'decluttering' },
+  { keyword: 'decluttering when you feel overwhelmed', category: 'decluttering' },
+  // DIY design
+  { keyword: 'how to make your home look expensive on a budget', category: 'tips' },
+  { keyword: 'interior design tricks from professional stagers', category: 'tips' },
+  { keyword: 'throw pillow arrangement ideas', category: 'tips' },
+  // Real estate agents
+  { keyword: 'staging tips for real estate agents', category: 'home-staging' },
+  { keyword: 'staging ROI statistics agents should know', category: 'home-staging' },
+  // High-value markets
+  { keyword: 'luxury home staging tips', category: 'home-staging' },
+  { keyword: 'staging a condo for sale', category: 'home-staging' },
+  // AI and innovation
+  { keyword: 'how AI is changing home staging', category: 'lifestyle' },
+  { keyword: 'virtual staging vs traditional staging', category: 'home-staging' },
+  // Thought leadership
+  { keyword: 'psychology behind home staging', category: 'home-staging' },
+  { keyword: 'why staged homes sell faster', category: 'home-staging' },
 ];
 
 const ADMIN_KEY = 'loftie-admin-2026';
