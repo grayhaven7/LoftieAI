@@ -39,8 +39,8 @@ export async function getAllPosts(includesDrafts = false): Promise<BlogPost[]> {
   }
 }
 
-export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  const posts = await getAllPosts();
+export async function getPostBySlug(slug: string, includeDrafts = false): Promise<BlogPost | null> {
+  const posts = await getAllPosts(includeDrafts);
   return posts.find((p) => p.slug === slug) || null;
 }
 

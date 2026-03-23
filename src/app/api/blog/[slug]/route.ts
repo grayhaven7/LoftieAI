@@ -29,7 +29,7 @@ export async function PATCH(
     }
 
     const { slug } = await params;
-    const post = await getPostBySlug(slug);
+    const post = await getPostBySlug(slug, true);
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
@@ -68,7 +68,7 @@ export async function DELETE(
     }
 
     const { slug } = await params;
-    const post = await getPostBySlug(slug);
+    const post = await getPostBySlug(slug, true);
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
