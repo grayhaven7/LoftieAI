@@ -1,5 +1,3 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 const UMAMI_BASE = 'https://analytics.bizwebfix.com';
@@ -49,11 +47,7 @@ function formatPercent(val: number): string {
 }
 
 export default async function AnalyticsPage() {
-  const cookieStore = await cookies();
-  const adminCookie = cookieStore.get('loftie-admin');
-  if (!adminCookie || adminCookie.value !== 'loftie-admin-2026') {
-    redirect('/admin-login');
-  }
+  // Auth is handled by middleware — no cookie check needed here
 
   const now = Date.now();
   const startAt = now - 30 * 24 * 60 * 60 * 1000;
