@@ -502,6 +502,18 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
     });
   };
 
+  // Extract time estimate from step text e.g. "(est. 5 min)" or "(est. 10–15 min)"
+  const extractTimeEstimate = (step: string): { text: string; time: string | null } => {
+    const match = step.match(/\(est\.?\s*([^)]+)\)\s*$/i);
+    if (match) {
+      return {
+        text: step.replace(match[0], '').trim(),
+        time: match[1].trim(),
+      };
+    }
+    return { text: step, time: null };
+  };
+
   // Parse greeting (text before first numbered step)
   const parseGreeting = (plan: string | undefined): string => {
     if (!plan) return '';
@@ -1020,20 +1032,32 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                               </button>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <span className="text-base">{stepEmoji}</span>
                                 <span className={`text-[10px] font-semibold uppercase tracking-wider ${
                                   isCompleted ? 'text-[var(--color-success)]' : 'text-[var(--color-accent)]'
                                 }`}>
                                   Step {i + 1}
                                 </span>
+                                {(() => {
+                                  const { time } = extractTimeEstimate(step.trim());
+                                  return time ? (
+                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                                      isCompleted
+                                        ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]'
+                                        : 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+                                    }`}>
+                                      ⏱ {time}
+                                    </span>
+                                  ) : null;
+                                })()}
                               </div>
                               <p className={`text-sm leading-relaxed ${
                                 isCompleted
                                   ? 'line-through text-[var(--color-text-muted)]'
                                   : 'text-[var(--color-text-secondary)]'
                               } print:text-gray-700`}>
-                                {formatStepWithEmoji(step.trim())}
+                                {formatStepWithEmoji(extractTimeEstimate(step.trim()).text)}
                               </p>
                             </div>
                           </div>

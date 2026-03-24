@@ -152,6 +152,7 @@ IMPORTANT OUTPUT FORMAT:
    - Less cluttered spaces = fewer steps (minimum 5)
    - Be specific about items you can see (e.g., "those shoes by the door" not "items on the floor")
    - Tell them WHERE to put things (donate bin, trash, closet, drawer, etc.)
+   - At the end of EACH step, add an estimated time in parentheses, e.g. "(est. 5 min)" or "(est. 10–15 min)". Keep estimates realistic and encouraging — most steps should be 3–15 minutes.
 
 3. Include 1-2 lines of supportive encouragement (NOT more) woven naturally into the plan
    Examples: "You don't need to finish everything at once." / "Small progress counts — even one cleared surface helps." / "You're doing great. Keep going."
