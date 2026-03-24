@@ -81,9 +81,10 @@ interface HomeClientProps {
   };
   initialSectionOrder?: string[];
   initialBio?: { content: string; headshotUrl: string } | null;
+  initialUser?: { id: string; firstName: string; lastName: string; email: string } | null;
 }
 
-export default function HomeClient({ initialHeadlines, initialSectionOrder, initialBio }: HomeClientProps = {}) {
+export default function HomeClient({ initialHeadlines, initialSectionOrder, initialBio, initialUser }: HomeClientProps = {}) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -112,10 +113,10 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
   const [cameraError, setCameraError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Auth state
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [hasSessionCookie, setHasSessionCookie] = useState(false);
+  // Auth state — seeded from server so Sign Out renders on first paint
+  const [authUser, setAuthUser] = useState<AuthUser | null>(initialUser || null);
+  const [authLoading, setAuthLoading] = useState(!initialUser);
+  const [hasSessionCookie, setHasSessionCookie] = useState(!!initialUser);
   const [authFormFirstName, setAuthFormFirstName] = useState('');
   const [authFormLastName, setAuthFormLastName] = useState('');
   const [authFormEmail, setAuthFormEmail] = useState('');
@@ -123,13 +124,6 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
-
-  // Check session cookie immediately on client mount — before API call resolves
-  useEffect(() => {
-    if (document.cookie.includes('loftie-session=')) {
-      setHasSessionCookie(true);
-    }
-  }, []);
 
   useEffect(() => {
     // Check for auth errors from redirect
@@ -143,7 +137,11 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
   }, []);
 
   useEffect(() => {
-    // Check if user is logged in
+    // Skip auth fetch if server already provided user data
+    if (initialUser !== undefined) {
+      setAuthLoading(false);
+      return;
+    }
     fetch('/api/auth/me')
       .then(res => res.json())
       .then(data => {

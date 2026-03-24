@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
 import { getSettingsAsync, DEFAULT_HEADLINES, DEFAULT_BIO, DEFAULT_SECTION_ORDER } from '@/lib/settings';
+import { getSessionFromCookies } from '@/lib/auth';
+import { getUser } from '@/lib/storage';
 import HomeClient from './HomeClient';
 
 export const dynamic = 'force-dynamic';
@@ -7,17 +9,33 @@ export const revalidate = 0;
 
 async function getPageData() {
   try {
-    const settings = await getSettingsAsync();
+    const [settings, session] = await Promise.all([
+      getSettingsAsync(),
+      getSessionFromCookies(),
+    ]);
+
+    let initialUser = null;
+    if (session?.userId) {
+      try {
+        const user = await getUser(session.userId);
+        if (user) {
+          initialUser = { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email };
+        }
+      } catch { /* ignore */ }
+    }
+
     return {
       headlines: settings.headlines || DEFAULT_HEADLINES,
       sectionOrder: settings.sectionOrder || DEFAULT_SECTION_ORDER,
       bio: settings.bio || DEFAULT_BIO,
+      initialUser,
     };
   } catch {
     return {
       headlines: DEFAULT_HEADLINES,
       sectionOrder: DEFAULT_SECTION_ORDER as string[],
       bio: DEFAULT_BIO,
+      initialUser: null,
     };
   }
 }
@@ -58,13 +76,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const { headlines, sectionOrder, bio } = await getPageData();
+  const { headlines, sectionOrder, bio, initialUser } = await getPageData();
 
   return (
     <HomeClient
       initialHeadlines={headlines}
       initialSectionOrder={sectionOrder as string[]}
       initialBio={bio}
+      initialUser={initialUser}
     />
   );
 }
