@@ -115,7 +115,7 @@ export default async function AnalyticsPage() {
               boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
             }}>
               <div style={{ fontSize: 22, marginBottom: 8 }}>{card.icon}</div>
-              <div style={{ fontSize: 28, fontWeight: 700, color: '#4ade80' ? '#4a7c3f' : '#2d3a28', lineHeight: 1 }}>
+              <div style={{ fontSize: 28, fontWeight: 700, color: '#4a7c3f', lineHeight: 1 }}>
                 {card.value}
               </div>
               <div style={{ fontSize: 12, color: '#9aab8e', marginTop: 4, fontWeight: 500 }}>{card.label}</div>
