@@ -185,6 +185,9 @@ export default function AdminPage() {
           <span className="logo-text">Loftie Admin</span>
 
           <div className="flex items-center gap-2">
+            <Link href="/admin/analytics" className="btn-icon" title="Analytics" style={{ fontSize: 12, padding: '4px 10px', borderRadius: 8, background: 'rgba(156,175,136,0.1)', color: '#7a9166', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              📊 Analytics
+            </Link>
             <Link href="/admin/blog" className="btn-icon" title="Blog Manager" style={{ fontSize: 12, padding: '4px 10px', borderRadius: 8, background: 'rgba(156,175,136,0.1)', color: '#7a9166', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               ✍️ Blog
             </Link>

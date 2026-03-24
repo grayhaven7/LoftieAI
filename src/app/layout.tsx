@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto_Condensed } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
 import "./globals.css";
 
 const robotoCondensed = Roboto_Condensed({
@@ -67,6 +68,11 @@ export default function RootLayout({
         />
         {children}
         <Analytics />
+        <Script
+          src="https://analytics.bizwebfix.com/script.js"
+          data-website-id="fab2dee5-5a11-4129-9ac6-46c4a6f30603"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
