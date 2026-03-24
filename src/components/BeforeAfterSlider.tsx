@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 export default function BeforeAfterSlider() {
   const [sliderPos, setSliderPos] = useState(50);
@@ -40,7 +41,11 @@ export default function BeforeAfterSlider() {
   const handlePointerUp = () => { isDragging.current = false; };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
       className="mb-12"
     >
       <div className="max-w-lg mx-auto px-4 sm:px-0">
@@ -101,6 +106,6 @@ export default function BeforeAfterSlider() {
           Move the slider to transform this room
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }

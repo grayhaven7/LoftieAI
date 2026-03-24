@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, X, ArrowUpRight, Settings, ExternalLink, Camera, Upload, LogOut, Mail } from 'lucide-react';
 import Link from 'next/link';
 import NextImage from 'next/image';
@@ -518,7 +518,11 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
           <div key="howItWorks">
       {/* Features / How It Works */}
       <section id="features" className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
           className="text-center mb-8"
         >
           <h2 className="text-xl sm:text-2xl text-[var(--color-text-primary)] tracking-tight mb-2">
@@ -527,14 +531,19 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
           <p className="text-sm text-[var(--color-text-secondary)]">
             Three simple steps to your dream space
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {features.map((feature, i) => (
-            <div
+            <motion.div
               key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.1 }}
               className="feature-card"
             >
+
               <NextImage
                 src={feature.image}
                 alt={feature.title}
@@ -554,7 +563,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
                   {feature.desc}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -961,7 +970,11 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
           <div key="testimonials">
       {/* Testimonials */}
       <section className="max-w-3xl mx-auto px-4 py-16 sm:py-20">
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
         >
           <h2 className="text-lg sm:text-xl text-[var(--color-text-primary)] text-center mb-10">
             What our <span className="text-emphasis">users</span> are saying
@@ -994,7 +1007,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
           </div>
         );
@@ -1004,7 +1017,11 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
       {/* About */}
       {bio && bio.content && (
         <section id="about" className="max-w-3xl mx-auto px-4 py-16 sm:py-20">
-          <div
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
             className="card"
           >
             <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
@@ -1047,7 +1064,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </section>
       )}
 
