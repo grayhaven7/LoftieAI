@@ -7,6 +7,8 @@ import Link from 'next/link';
 import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
 import BeforeAfterSlider from '@/components/BeforeAfterSlider';
+import dynamic from 'next/dynamic';
+const ChatWidget = dynamic(() => import('@/components/ChatWidget'), { ssr: false });
 
 interface BioData {
   content: string;
@@ -1151,6 +1153,7 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
           </p>
         </div>
       </footer>
+      <ChatWidget />
     </div>
   );
 }
