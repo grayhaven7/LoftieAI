@@ -67,6 +67,10 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
   const [socialConsentAnswer, setSocialConsentAnswer] = useState<boolean | null>(null);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [showFollowUp, setShowFollowUp] = useState(false);
+  const [styleMyRoomLoading, setStyleMyRoomLoading] = useState(false);
+  const [styleMyRoomResult, setStyleMyRoomResult] = useState<{ styledImageUrl: string; cueCards: string[] } | null>(null);
+  const [styleMyRoomError, setStyleMyRoomError] = useState<string | null>(null);
+  const [styleMyRoomStarted, setStyleMyRoomStarted] = useState(false);
   const [loadingSlideIndex, setLoadingSlideIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -456,6 +460,33 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
       console.error('Failed to submit feedback:', err);
     } finally {
       setFeedbackSending(false);
+    }
+  };
+
+  const handleStyleMyRoom = async () => {
+    if (!data?.afterImageUrl) return;
+    setStyleMyRoomStarted(true);
+    setStyleMyRoomLoading(true);
+    setStyleMyRoomError(null);
+    try {
+      const response = await fetch('/api/style-room', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          afterImageUrl: data.afterImageUrl,
+          roomType: 'room',
+        }),
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to style room');
+      }
+      const result = await response.json();
+      setStyleMyRoomResult(result);
+    } catch (err) {
+      setStyleMyRoomError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setStyleMyRoomLoading(false);
     }
   };
 
@@ -1262,6 +1293,93 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
                   </div>
                 </div>
               )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Style My Room */}
+        {data.status === 'completed' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }} className="mb-6 print:hidden">
+            <div className="card">
+              <div className="flex items-center gap-2 mb-3">
+                <svg className="w-4 h-4 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                <h3 className="text-sm text-[var(--color-text-primary)] font-medium">Style My Room</h3>
+              </div>
+
+              {!styleMyRoomStarted ? (
+                <div>
+                  <p className="text-xs text-[var(--color-text-secondary)] mb-4">
+                    Your room is decluttered — now let&apos;s make it shine! Get an AI-styled version with decor suggestions and a personalized styling guide.
+                  </p>
+                  <button
+                    onClick={handleStyleMyRoom}
+                    className="btn-primary w-full flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    Style This Room
+                  </button>
+                </div>
+              ) : styleMyRoomLoading ? (
+                <div className="flex flex-col items-center py-6 gap-3">
+                  <div className="w-8 h-8 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
+                  <p className="text-xs text-[var(--color-text-muted)] text-center">Styling your room with AI magic... this takes about 30 seconds ✨</p>
+                </div>
+              ) : styleMyRoomError ? (
+                <div className="space-y-3">
+                  <p className="text-xs text-[var(--color-error)]">{styleMyRoomError}</p>
+                  <button onClick={handleStyleMyRoom} className="btn-secondary w-full text-xs">Try Again</button>
+                </div>
+              ) : styleMyRoomResult ? (
+                <div className="space-y-4">
+                  {/* Styled image */}
+                  <div className="relative rounded-lg overflow-hidden">
+                    <Image
+                      src={styleMyRoomResult.styledImageUrl}
+                      alt="Styled room"
+                      width={600}
+                      height={400}
+                      className="w-full h-auto object-cover rounded-lg"
+                      unoptimized
+                    />
+                    <div className="absolute top-2 left-2 bg-[var(--color-accent)] text-white text-[10px] font-medium px-2 py-1 rounded-full">
+                      ✨ Styled
+                    </div>
+                  </div>
+
+                  {/* Styling cue cards */}
+                  {styleMyRoomResult.cueCards.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-[var(--color-text-primary)] mb-2">Your Styling Guide</p>
+                      <div className="space-y-2">
+                        {styleMyRoomResult.cueCards.map((card, i) => (
+                          <div
+                            key={i}
+                            className="flex gap-3 p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg"
+                          >
+                            <span className="text-[var(--color-accent)] font-bold text-xs flex-shrink-0 mt-0.5">{i + 1}</span>
+                            <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{card}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setStyleMyRoomStarted(false);
+                      setStyleMyRoomResult(null);
+                      setStyleMyRoomError(null);
+                    }}
+                    className="btn-secondary w-full text-xs"
+                  >
+                    Try a Different Style
+                  </button>
+                </div>
+              ) : null}
             </div>
           </motion.div>
         )}
