@@ -56,10 +56,17 @@ function formatDate(dateStr: string): string {
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
+  const allPosts = await getAllPosts();
 
   if (!post) {
     notFound();
   }
+
+  // Related posts: same category first, then any, max 3, exclude current
+  const related = [
+    ...allPosts.filter(p => p.slug !== post.slug && p.category === post.category),
+    ...allPosts.filter(p => p.slug !== post.slug && p.category !== post.category),
+  ].slice(0, 3);
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)' }}>
@@ -202,6 +209,44 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             Try Loftie Free
           </Link>
         </div>
+
+        {/* Author Bio */}
+        <div style={{ marginTop: 48, padding: '24px 28px', borderRadius: 16, background: '#fff', border: '1px solid #e8ede5', display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+          <div style={{ flexShrink: 0, width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, #9CAF88, #7a9166)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: '#fff', fontFamily: "'General Sans', sans-serif" }}>
+            SP
+          </div>
+          <div>
+            <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: 15, fontWeight: 700, color: '#2d3748', margin: '0 0 2px' }}>Sejal Parekh</p>
+            <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: 12, color: '#9CAF88', fontWeight: 600, margin: '0 0 10px' }}>Compass Real Estate Agent &amp; Professional Home Stager</p>
+            <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: 13, color: '#718096', lineHeight: 1.6, margin: '0 0 12px' }}>
+              Sejal has staged over $350M in Silicon Valley properties through her company Innovae Designs. Her proven techniques help homes sell faster and for more — and inspired the AI behind Loftie.
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <a href="https://innovaedesigns.com" target="_blank" rel="noreferrer" style={{ fontFamily: "'General Sans', sans-serif", fontSize: 12, color: '#7a9166', fontWeight: 600, textDecoration: 'none' }}>Innovae Designs ↗</a>
+              <a href="https://www.loftie.ai" style={{ fontFamily: "'General Sans', sans-serif", fontSize: 12, color: '#7a9166', fontWeight: 600, textDecoration: 'none' }}>Loftie AI ↗</a>
+            </div>
+          </div>
+        </div>
+
+        {/* Related Posts */}
+        {related.length > 0 && (
+          <div style={{ marginTop: 48 }}>
+            <h2 style={{ fontFamily: "'General Sans', sans-serif", fontSize: 18, fontWeight: 700, color: '#2d3748', marginBottom: 20, letterSpacing: '-0.02em' }}>Related Articles</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+              {related.map(p => (
+                <Link key={p.slug} href={`/blog/${p.slug}`} style={{ textDecoration: 'none', display: 'block', padding: 18, borderRadius: 12, border: '1px solid #e8ede5', background: '#fff', transition: 'border-color 0.2s' }}>
+                  <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 5, background: 'rgba(156,175,136,0.12)', color: '#7a9166', fontSize: 11, fontWeight: 600, fontFamily: "'General Sans', sans-serif", textTransform: 'capitalize', marginBottom: 8 }}>
+                    {p.category.replace('-', ' ')}
+                  </span>
+                  <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#2d3748', lineHeight: 1.4, margin: '0 0 8px' }}>{p.title}</p>
+                  <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: 12, color: '#a0aec0', lineHeight: 1.5, margin: 0 }}>
+                    {(p.excerpt || '').slice(0, 100)}{(p.excerpt || '').length > 100 ? '…' : ''}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Tags */}
         {post.tags.length > 0 && (
