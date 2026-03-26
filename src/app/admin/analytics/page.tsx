@@ -129,13 +129,14 @@ export default function AnalyticsPage() {
   }, [days]);
 
   const stats = umamiData?.stats;
-  const visitors = stats?.visitors?.value ?? 0;
-  const pageviews = stats?.pageviews?.value ?? 0;
-  const bounceRate = stats?.bounces?.value && stats?.visits?.value
-    ? Math.round((stats.bounces.value / stats.visits.value) * 100) + '%'
+  // Umami API returns flat numbers (e.g. { visitors: 18 }) not nested { visitors: { value: 18 } }
+  const visitors = stats?.visitors ?? 0;
+  const pageviews = stats?.pageviews ?? 0;
+  const bounceRate = stats?.bounces && stats?.visits
+    ? Math.round((stats.bounces / stats.visits) * 100) + '%'
     : 'N/A';
-  const avgDuration = stats?.totaltime?.value && stats?.visits?.value
-    ? formatDuration((stats.totaltime.value / stats.visits.value) * 1000)
+  const avgDuration = stats?.totaltime && stats?.visits
+    ? formatDuration((stats.totaltime / stats.visits) * 1000)
     : 'N/A';
 
   const gscSummary = gscData?.summary;
