@@ -234,9 +234,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         {/* Author Bio */}
         <div style={{ marginTop: 48, padding: '24px 28px', borderRadius: 16, background: '#fff', border: '1px solid #e8ede5', display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-          <div style={{ flexShrink: 0, width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, #9CAF88, #7a9166)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: '#fff', fontFamily: "'General Sans', sans-serif" }}>
-            SP
-          </div>
+          <img
+            src="https://www.compass.com/m/13/45bf84f9-6c46-4085-9db5-2cde80179f68/300x300.webp"
+            alt="Sejal Parekh"
+            width={64}
+            height={64}
+            style={{ flexShrink: 0, width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(156,175,136,0.3)' }}
+          />
           <div>
             <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: 15, fontWeight: 700, color: '#2d3748', margin: '0 0 2px' }}>Sejal Parekh</p>
             <p style={{ fontFamily: "'General Sans', sans-serif", fontSize: 12, color: '#9CAF88', fontWeight: 600, margin: '0 0 10px' }}>Compass Real Estate Agent &amp; Professional Home Stager</p>
