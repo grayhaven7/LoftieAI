@@ -65,6 +65,19 @@ export async function POST(request: NextRequest) {
 
     const roomContext = roomType || 'living room or bedroom';
 
+    // Fetch the image and convert to base64 — Gemini requires base64, not URLs
+    let imageBase64: string;
+    if (afterImageUrl.startsWith('data:')) {
+      // Already base64
+      imageBase64 = afterImageUrl;
+    } else {
+      const imgRes = await fetch(afterImageUrl);
+      if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status}`);
+      const buffer = await imgRes.arrayBuffer();
+      const contentType = imgRes.headers.get('content-type') || 'image/png';
+      imageBase64 = `data:${contentType};base64,${Buffer.from(buffer).toString('base64')}`;
+    }
+
     // Generate styled image and cue cards in parallel
     const stylePrompt = `Transform this already-decluttered room into a beautifully staged, model-home quality space. 
 Keep the exact same room layout, walls, and furniture positions.
@@ -77,7 +90,7 @@ Make it feel aspirational but achievable. Do not remove furniture.`;
       generateImageWithOpenRouter(
         'google/gemini-2.5-flash-image',
         stylePrompt,
-        afterImageUrl
+        imageBase64
       ),
       generateStylingCueCards(roomContext),
     ]);

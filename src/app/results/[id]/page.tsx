@@ -1297,89 +1297,91 @@ function ResultsPageContent({ params }: { params: Promise<{ id: string }> }) {
           </motion.div>
         )}
 
-        {/* Style My Room */}
+        {/* Style My Room — prominent feature section */}
         {data.status === 'completed' && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }} className="mb-6 print:hidden">
-            <div className="card">
-              <div className="flex items-center gap-2 mb-3">
-                <svg className="w-4 h-4 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
-                <h3 className="text-sm text-[var(--color-text-primary)] font-medium">Style My Room</h3>
+            <div style={{ borderRadius: 16, overflow: 'hidden', border: '1.5px solid rgba(156,175,136,0.35)', background: 'linear-gradient(135deg, rgba(156,175,136,0.10) 0%, rgba(156,175,136,0.04) 100%)' }}>
+              {/* Header banner */}
+              <div style={{ background: 'linear-gradient(90deg, #7a9166 0%, #9CAF88 100%)', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 28 }}>✨</span>
+                <div>
+                  <h3 style={{ margin: 0, color: '#fff', fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>Style My Room</h3>
+                  <p style={{ margin: 0, color: 'rgba(255,255,255,0.82)', fontSize: 12, marginTop: 2 }}>Step 2 — Transform your clean room into a staged showcase</p>
+                </div>
               </div>
 
-              {!styleMyRoomStarted ? (
-                <div>
-                  <p className="text-xs text-[var(--color-text-secondary)] mb-4">
-                    Your room is decluttered — now let&apos;s make it shine! Get an AI-styled version with decor suggestions and a personalized styling guide.
-                  </p>
-                  <button
-                    onClick={handleStyleMyRoom}
-                    className="btn-primary w-full flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                    Style This Room
-                  </button>
-                </div>
-              ) : styleMyRoomLoading ? (
-                <div className="flex flex-col items-center py-6 gap-3">
-                  <div className="w-8 h-8 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-[var(--color-text-muted)] text-center">Styling your room with AI magic... this takes about 30 seconds ✨</p>
-                </div>
-              ) : styleMyRoomError ? (
-                <div className="space-y-3">
-                  <p className="text-xs text-[var(--color-error)]">{styleMyRoomError}</p>
-                  <button onClick={handleStyleMyRoom} className="btn-secondary w-full text-xs">Try Again</button>
-                </div>
-              ) : styleMyRoomResult ? (
-                <div className="space-y-4">
-                  {/* Styled image */}
-                  <div className="relative rounded-lg overflow-hidden">
-                    <Image
-                      src={styleMyRoomResult.styledImageUrl}
-                      alt="Styled room"
-                      width={600}
-                      height={400}
-                      className="w-full h-auto object-cover rounded-lg"
-                      unoptimized
-                    />
-                    <div className="absolute top-2 left-2 bg-[var(--color-accent)] text-white text-[10px] font-medium px-2 py-1 rounded-full">
-                      ✨ Styled
-                    </div>
+              <div style={{ padding: '20px' }}>
+                {!styleMyRoomStarted ? (
+                  <div>
+                    <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+                      Your room is decluttered 🎉 Now let Loftie&apos;s AI interior designer add the finishing touches — decor, lighting, and staging details that make buyers fall in love.
+                    </p>
+                    <button
+                      onClick={handleStyleMyRoom}
+                      style={{ width: '100%', padding: '14px', borderRadius: 10, background: 'linear-gradient(90deg, #7a9166 0%, #9CAF88 100%)', color: '#fff', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, letterSpacing: '-0.01em' }}
+                    >
+                      <span style={{ fontSize: 18 }}>✨</span>
+                      Style This Room Now
+                    </button>
                   </div>
-
-                  {/* Styling cue cards */}
-                  {styleMyRoomResult.cueCards.length > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-[var(--color-text-primary)] mb-2">Your Styling Guide</p>
-                      <div className="space-y-2">
-                        {styleMyRoomResult.cueCards.map((card, i) => (
-                          <div
-                            key={i}
-                            className="flex gap-3 p-3 bg-[var(--color-bg-secondary)] border border-[var(--glass-border)] rounded-lg"
-                          >
-                            <span className="text-[var(--color-accent)] font-bold text-xs flex-shrink-0 mt-0.5">{i + 1}</span>
-                            <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{card}</p>
-                          </div>
-                        ))}
+                ) : styleMyRoomLoading ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '28px 0', gap: 12 }}>
+                    <div style={{ width: 36, height: 36, border: '3px solid #9CAF88', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-muted)', textAlign: 'center' }}>AI is styling your room... about 30 seconds ✨</p>
+                  </div>
+                ) : styleMyRoomError ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--color-error)' }}>{styleMyRoomError}</p>
+                    <button onClick={handleStyleMyRoom} className="btn-secondary w-full text-xs">Try Again</button>
+                  </div>
+                ) : styleMyRoomResult ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* Styled image */}
+                    <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.10)' }}>
+                      <Image
+                        src={styleMyRoomResult.styledImageUrl}
+                        alt="Styled room"
+                        width={600}
+                        height={400}
+                        className="w-full h-auto object-cover"
+                        unoptimized
+                      />
+                      <div style={{ position: 'absolute', top: 10, left: 10, background: 'linear-gradient(90deg,#7a9166,#9CAF88)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20 }}>
+                        ✨ AI Styled
                       </div>
                     </div>
-                  )}
 
-                  <button
-                    onClick={() => {
-                      setStyleMyRoomStarted(false);
-                      setStyleMyRoomResult(null);
-                      setStyleMyRoomError(null);
-                    }}
-                    className="btn-secondary w-full text-xs"
-                  >
-                    Try a Different Style
-                  </button>
-                </div>
-              ) : null}
+                    {/* Styling cue cards */}
+                    {styleMyRoomResult.cueCards.length > 0 && (
+                      <div>
+                        <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Your Personalized Styling Guide</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {styleMyRoomResult.cueCards.map((card, i) => (
+                            <div
+                              key={i}
+                              style={{ display: 'flex', gap: 12, padding: '12px 14px', background: 'rgba(156,175,136,0.08)', border: '1px solid rgba(156,175,136,0.2)', borderRadius: 10 }}
+                            >
+                              <span style={{ color: '#7a9166', fontWeight: 800, fontSize: 13, flexShrink: 0, marginTop: 1 }}>{i + 1}</span>
+                              <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-secondary)', lineHeight: 1.55 }}>{card}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setStyleMyRoomStarted(false);
+                        setStyleMyRoomResult(null);
+                        setStyleMyRoomError(null);
+                      }}
+                      className="btn-secondary w-full text-xs"
+                    >
+                      Try a Different Style
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </motion.div>
         )}
