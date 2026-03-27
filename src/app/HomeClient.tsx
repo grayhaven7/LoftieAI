@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import BeforeAfterSlider from '@/components/BeforeAfterSlider';
 import dynamic from 'next/dynamic';
 const ChatWidget = dynamic(() => import('@/components/ChatWidget'), { ssr: false });
+const EmailCapture = dynamic(() => import('@/components/EmailCapture'), { ssr: false });
 
 interface BioData {
   content: string;
@@ -1118,6 +1119,9 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
       </header>
 
       {sectionOrder.map(sectionId => renderSection(sectionId))}
+
+      {/* Email Capture */}
+      <EmailCapture />
 
       {/* Footer */}
       <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[var(--glass-border)]">
