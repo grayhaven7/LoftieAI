@@ -24,6 +24,7 @@ async function fetchUmami(path: string, token: string) {
   try {
     const res = await fetch(`${UMAMI_BASE}${path}`, {
       headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
     });
     return await res.json();
   } catch { return null; }
@@ -240,7 +241,7 @@ export default function AnalyticsPage() {
   const loadGsc = useCallback(async () => {
     setLoadingGsc(true);
     try {
-      const res = await fetch(`/api/admin/gsc?days=${days}`);
+      const res = await fetch(`/api/admin/gsc?days=${days}&t=${Date.now()}`, { cache: 'no-store' });
       setGscData(await res.json());
     } catch { setGscData({ error: 'Failed to fetch' }); }
     setLoadingGsc(false);
@@ -249,7 +250,7 @@ export default function AnalyticsPage() {
   const loadBlog = useCallback(async () => {
     setLoadingBlog(true);
     try {
-      const res = await fetch('/api/blog');
+      const res = await fetch(`/api/blog?t=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json();
       const posts = Array.isArray(data) ? data : data.posts || [];
       setBlogData(posts);

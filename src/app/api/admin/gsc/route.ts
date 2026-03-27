@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const GSC_SITE_URL = process.env.GSC_SITE_URL || 'sc-domain:loftie.ai';
 
 async function getGSCAuth() {

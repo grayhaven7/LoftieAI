@@ -3,6 +3,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { getAllPosts, savePost } from '@/lib/blog-storage';
 import { BlogPost, BlogCategory } from '@/lib/blog-types';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   const includesDrafts = request.nextUrl.searchParams.get('drafts') === 'true';
   try {
