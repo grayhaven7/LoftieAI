@@ -35,7 +35,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const updatable = ['title', 'excerpt', 'content', 'category', 'tags', 'coverImageUrl', 'seoTitle', 'seoDescription', 'status'] as const;
+    const updatable = ['title', 'slug', 'excerpt', 'content', 'category', 'tags', 'coverImageUrl', 'seoTitle', 'seoDescription', 'status', 'faqs'] as const;
 
     for (const key of updatable) {
       if (body[key] !== undefined) {

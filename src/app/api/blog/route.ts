@@ -35,7 +35,8 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
-      .substring(0, 80);
+      .substring(0, 100)
+      .replace(/-+$/, ''); // never end with a dash
 
     // Estimate reading time (~200 words/min)
     const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;

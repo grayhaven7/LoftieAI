@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import { generateImageWithOpenRouter } from '@/lib/openrouter';
+import { getAllPosts } from '@/lib/blog-storage';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -72,6 +73,10 @@ export async function POST(request: NextRequest) {
 
     const { keyword, category, tone, additionalContext } = await request.json();
 
+    // Fetch existing posts for internal linking context
+    const existingPosts = await getAllPosts();
+    const postLinkContext = existingPosts.slice(0, 20).map(p => `- "${p.title}" → https://www.loftie.ai/blog/${p.slug}`).join('\n');
+
     if (!keyword) {
       return NextResponse.json({ error: 'Keyword is required' }, { status: 400 });
     }
@@ -108,7 +113,11 @@ WRITING RULES:
 - Never use em dashes — use commas or periods instead
 - Include personal anecdotes or client stories where natural
 - Reference Bay Area / Silicon Valley context when relevant
-- ${tone === 'casual' ? 'Keep the tone conversational and friendly' : tone === 'professional' ? 'Keep the tone authoritative and expert' : 'Keep the tone encouraging and approachable'}`;
+- ${tone === 'casual' ? 'Keep the tone conversational and friendly' : tone === 'professional' ? 'Keep the tone authoritative and expert' : 'Keep the tone encouraging and approachable'}
+- INTERNAL LINKING: Naturally link to 2-3 related posts from the list below using <a href="URL">anchor text</a> inline within the content where contextually relevant. Do not force links — only add them where they genuinely fit.
+
+EXISTING LOFTIE BLOG POSTS FOR INTERNAL LINKING:
+${postLinkContext}`;
 
     const userPrompt = `Write an SEO-optimized blog post targeting the keyword: "${keyword}"
 
