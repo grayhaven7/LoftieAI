@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
+import { generateImageWithOpenRouter } from '@/lib/openrouter';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -119,6 +121,7 @@ Generate:
 4. 3-5 relevant tags
 5. An SEO title (may differ slightly from the display title, max 60 chars)
 6. An SEO description (max 155 chars)
+7. 3-5 FAQ entries naturally derived from the post content
 
 Return as JSON with this exact structure:
 {
@@ -127,7 +130,10 @@ Return as JSON with this exact structure:
   "content": "<p>...</p><h2>...</h2>...",
   "tags": ["tag1", "tag2"],
   "seoTitle": "...",
-  "seoDescription": "..."
+  "seoDescription": "...",
+  "faqs": [
+    { "question": "...", "answer": "..." }
+  ]
 }`;
 
     const res = await fetch(OPENROUTER_API_URL, {
@@ -172,6 +178,25 @@ Return as JSON with this exact structure:
       return NextResponse.json({ error: 'Failed to parse AI response', raw: rawContent }, { status: 500 });
     }
 
+    // Generate cover image (non-blocking — failure is OK)
+    let coverImageUrl: string | undefined;
+    try {
+      const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+      if (blobToken) {
+        const title = parsed.title || keyword;
+        const coverPrompt = `A beautiful professional interior design photo for a home staging blog post titled "${title}". Bright airy modern Bay Area luxury home interior. No text, no people, no watermarks.`;
+        const base64DataUrl = await generateImageWithOpenRouter('google/gemini-2.5-flash-preview', coverPrompt);
+        // Convert base64 data URL to Buffer
+        const base64Data = base64DataUrl.replace(/^data:image\/\w+;base64,/, '');
+        const buffer = Buffer.from(base64Data, 'base64');
+        const slug = (parsed.title || keyword).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const blob = await put(`blog-covers/${slug}.jpg`, buffer, { access: 'public', token: blobToken, contentType: 'image/jpeg' });
+        coverImageUrl = blob.url;
+      }
+    } catch (imgErr) {
+      console.error('[Blog Generate] Cover image generation failed (non-fatal):', imgErr);
+    }
+
     return NextResponse.json({
       generated: {
         title: parsed.title || '',
@@ -181,6 +206,8 @@ Return as JSON with this exact structure:
         seoTitle: parsed.seoTitle || parsed.title || '',
         seoDescription: parsed.seoDescription || parsed.excerpt || '',
         category: category || 'home-staging',
+        faqs: parsed.faqs || [],
+        ...(coverImageUrl ? { coverImageUrl } : {}),
       },
     });
   } catch (error) {

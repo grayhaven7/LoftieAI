@@ -167,6 +167,28 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           }}
         />
 
+        {/* FAQ Section */}
+        {post.faqs && post.faqs.length > 0 && (
+          <div style={{ marginTop: 48 }}>
+            <h2 style={{ fontFamily: "'General Sans', sans-serif", fontSize: 22, fontWeight: 600, color: '#2d3748', letterSpacing: '-0.02em', marginBottom: 16 }}>
+              Frequently Asked Questions
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {post.faqs.map((faq, i) => (
+                <details key={i} style={{ borderRadius: 10, border: '1px solid rgba(156,175,136,0.25)', overflow: 'hidden' }}>
+                  <summary style={{ padding: '14px 18px', fontFamily: "'General Sans', sans-serif", fontSize: 15, fontWeight: 600, color: '#2d3748', cursor: 'pointer', background: 'rgba(156,175,136,0.06)', listStyle: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {faq.question}
+                    <span style={{ color: '#9CAF88', fontSize: 18, fontWeight: 300, flexShrink: 0, marginLeft: 12 }}>+</span>
+                  </summary>
+                  <div style={{ padding: '14px 18px', fontFamily: "'General Sans', sans-serif", fontSize: 14, color: '#4a5568', lineHeight: 1.7, background: '#fff' }}>
+                    {faq.answer}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* CTA */}
         <div
           style={{
@@ -312,6 +334,27 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           }),
         }}
       />
+
+      {/* FAQPage schema for rich snippets */}
+      {post.faqs && post.faqs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: post.faqs.map(faq => ({
+                '@type': 'Question',
+                name: faq.question,
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: faq.answer,
+                },
+              })),
+            }),
+          }}
+        />
+      )}
 
       <style>{`
         .blog-content h2 { font-size: 24px; font-weight: 600; margin: 32px 0 12px; letter-spacing: -0.02em; }

@@ -15,6 +15,7 @@ export interface BlogPost {
   seoTitle?: string;
   seoDescription?: string;
   readingTimeMinutes: number;
+  faqs?: Array<{ question: string; answer: string }>;
 }
 
 export type BlogCategory =
