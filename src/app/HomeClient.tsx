@@ -1120,9 +1120,6 @@ export default function HomeClient({ initialHeadlines, initialSectionOrder, init
 
       {sectionOrder.map(sectionId => renderSection(sectionId))}
 
-      {/* Email Capture */}
-      <EmailCapture />
-
       {/* Footer */}
       <footer className="py-6 text-center text-[var(--color-text-muted)] text-xs border-t border-[var(--glass-border)]">
         <div className="flex flex-col items-center gap-3">
